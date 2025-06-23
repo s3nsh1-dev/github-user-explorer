@@ -1,0 +1,9 @@
+When looking raw API : https://api.github.com we have multiple things showing... have idea what they about...
+
+================================================
+
+TASKS:
+Learn react-query aka TanStack Query
+build a short app in sandbox about TanStack before here
+
+BUILD -> HOME + EXPLORE + USER_REPO + NOT+FOUND
