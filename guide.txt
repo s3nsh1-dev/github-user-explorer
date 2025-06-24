@@ -7,3 +7,8 @@ Learn react-query aka TanStack Query
 build a short app in sandbox about TanStack before here
 
 BUILD -> HOME + EXPLORE + USER_REPO + NOT+FOUND
+
+=================================================
+NOW:
+Attach the theme to a button and check the working
+Read the quick info about how the context work in chatGPT
