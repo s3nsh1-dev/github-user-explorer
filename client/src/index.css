@@ -1,5 +1,9 @@
 * {
   margin: 0px;
   padding: 0px;
+  /*
+  The import of CssBasline automatically sets the box-sizing to border-box for all elements.
+  This is a common practice in modern CSS to ensure consistent sizing across elements.
   box-sizing: border-box;
+  */
 }
