@@ -10,4 +10,5 @@ BUILD -> HOME + EXPLORE + USER_REPO + NOT+FOUND
 
 =================================================
 NOW:
-attach the theme to a button and check the working
+Attach the theme to a button and check the working
+Read the quick info about how the context work in chatGPT
