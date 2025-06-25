@@ -3,16 +3,23 @@ import Explorer from "./page/Explorer";
 import ProfileInfo from "./page/ProfileInfo";
 import NotFound from "./page/NotFound";
 import { Route, Routes } from "react-router-dom";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import useMode from "./hooks/useMode";
+import { getTheme } from "./theme/muiCustomTheme";
 
 const App = () => {
+  const { mode } = useMode();
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/explore" element={<Explorer />} />
-        <Route path="/profile-info" element={<ProfileInfo />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <ThemeProvider theme={getTheme(mode)}>
+        <CssBaseline />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/explore" element={<Explorer />} />
+          <Route path="/profile-info" element={<ProfileInfo />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ThemeProvider>
     </>
   );
 };

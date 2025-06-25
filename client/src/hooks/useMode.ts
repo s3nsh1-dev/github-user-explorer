@@ -2,10 +2,12 @@ import backgroundContext from "../context/modeContext";
 import { useContext } from "react";
 
 const useMode = () => {
-  const context = useContext(backgroundContext);
-  if (!context) return;
-  const { mode, setMode } = context;
-  return { mode, setMode };
+  const modeContext = useContext(backgroundContext);
+  if (!modeContext) {
+    throw new Error("Mode Context is null");
+  }
+  const { mode, handleSettingMode } = modeContext;
+  return { mode, handleSettingMode };
 };
 
 export default useMode;

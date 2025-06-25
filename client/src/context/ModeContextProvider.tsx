@@ -3,9 +3,15 @@ import backgroundContext from "./modeContext";
 import type { ModeType } from "../constants/common.types";
 
 const ModeContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const [mode, setMode] = useState<ModeType>("dark");
+  const localStorageValue = localStorage.getItem("mode") as ModeType;
+  const [mode, setMode] = useState<ModeType>(localStorageValue || "light");
+  console.log(`Mode changed to: ${mode}`);
+  const handleSettingMode = (newMode: ModeType) => {
+    setMode(newMode);
+    localStorage.setItem("mode", newMode);
+  };
   return (
-    <backgroundContext.Provider value={{ mode, setMode }}>
+    <backgroundContext.Provider value={{ mode, handleSettingMode }}>
       {children}
     </backgroundContext.Provider>
   );

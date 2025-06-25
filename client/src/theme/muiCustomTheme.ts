@@ -3,13 +3,7 @@ import type { ModeType } from "../constants/common.types";
 
 export const getTheme = (mode: ModeType) =>
   createTheme({
-    typography: {
-      fontFamily: "Roboto, Times New Roman",
-      fontWeightLight: 300,
-      fontWeightRegular: 400,
-      fontWeightMedium: 500,
-      fontWeightBold: 700,
-    },
+    typography: {},
     palette: {
       mode,
       primary: {
