@@ -2,8 +2,15 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
+import useMode from "../hooks/useMode";
 
 const Home = () => {
+  const { mode, setMode } = useMode();
+
+  const handleModeChange = () => {
+    const newMode = mode === "light" ? "dark" : "light";
+    setMode(newMode);
+  };
   return (
     <Box
       sx={{
@@ -27,6 +34,9 @@ const Home = () => {
           sx={{ width: 300 }}
         />
         <Button variant="contained">Search</Button>
+        <Button variant="contained" onClick={handleModeChange}>
+          Change Mode
+        </Button>
       </Box>
       <Typography fontSize={25} fontWeight={300} color="textSecondary">
         Search for GitHub user to view their profile and repositories
