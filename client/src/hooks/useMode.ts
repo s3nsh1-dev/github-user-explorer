@@ -6,8 +6,8 @@ const useMode = () => {
   if (!modeContext) {
     throw new Error("Mode Context is null");
   }
-  const { mode, setMode } = modeContext;
-  return { mode, setMode };
+  const { mode, handleSettingMode } = modeContext;
+  return { mode, handleSettingMode };
 };
 
 export default useMode;
