@@ -28,7 +28,15 @@ export const getTheme = (mode: ModeType) =>
             backgroundColor: mode === "light" ? "#23272b" : "#e0e0e0",
             color: mode === "light" ? "#e0e0e0" : "#23272b",
             "&:hover": {
-              backgroundColor: mode === "light" ? "#1a1d22" : "#cccccc",
+              backgroundColor: mode === "light" ? "#FFD63A" : "#16610E",
+              color: mode === "light" ? "#23272b" : "#e0e0e0",
+            },
+          },
+          outlinedPrimary: {
+            border: `2px solid ${mode === "light" ? "#23272b" : "#e0e0e0"}`,
+            color: mode === "light" ? "#23272b" : "#e0e0e0",
+            "&:hover": {
+              backgroundColor: mode === "light" ? "#FFD63A" : "#16610E",
             },
           },
         },

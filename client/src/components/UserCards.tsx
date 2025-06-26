@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import { type FC } from "react";
+import useMode from "../hooks/useMode";
 
 interface UserCardsProps {
   userName: string;
@@ -18,6 +19,7 @@ const UserCards: FC<UserCardsProps> = ({
   githubURL,
   seeRepos,
 }) => {
+  const { mode } = useMode();
   const navigate = useNavigate();
   const handleUserProfileVisit = () => {
     navigate(`/user/${userName}`, {
@@ -32,13 +34,19 @@ const UserCards: FC<UserCardsProps> = ({
         margin: 2,
         padding: 2,
       }}
+      elevation={5}
     >
       <Box>
         <Box
           component={"img"}
           src={imageURL}
           alt="User-Profile-Picture"
-          sx={{ height: "100px", width: "100px", borderRadius: "50%" }}
+          sx={{
+            height: "100px",
+            width: "100px",
+            borderRadius: "50%",
+            border: `2px solid ${mode === "light" ? "black" : "white"}`,
+          }}
         />
         <Typography textAlign={"center"} fontWeight={"bold"}>
           {userName}
@@ -47,32 +55,37 @@ const UserCards: FC<UserCardsProps> = ({
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
-          gap: 1,
-          justifyContent: "end",
-          alignItems: "end",
-          padding: "10px 0px",
+          flexDirection: "column",
+          justifyContent: "space-between",
         }}
       >
-        <Button variant="contained" onClick={handleUserProfileVisit}>
-          Open Profile
-        </Button>
         <Button
-          variant="contained"
-          href={seeRepos}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Repositories
-        </Button>
-        <Button
-          variant="contained"
+          variant="outlined"
+          component={"a"}
           href={githubURL}
           target="_blank"
           rel="noopener noreferrer"
+          sx={{
+            marginTop: "35px",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
         >
-          View on Github
+          View this profile on a GitHub.
         </Button>
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <Button variant="contained" onClick={handleUserProfileVisit}>
+            Open Profile
+          </Button>
+          <Button
+            variant="contained"
+            href={seeRepos}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Repositories
+          </Button>
+        </Box>
       </Box>
     </Paper>
   );
