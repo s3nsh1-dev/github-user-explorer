@@ -3,7 +3,7 @@ import Toolbar from "@mui/material/Toolbar";
 import useMode from "../hooks/useMode";
 import CustomSwitchForModeTransition from "../theme/CustomSwitchForModeTransition";
 import lightModeImage from "../assets/website_logo_1.png";
-import darkModeImage from "../assets/website_logo_2.png";
+import darkModeImage from "../assets/website_logo_3.png";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {
@@ -22,7 +22,7 @@ const Navbar = () => {
           <img
             src={mode === "light" ? lightModeImage : darkModeImage}
             alt="Website Logo"
-            width={130}
+            width={120}
             height={50}
             style={{ cursor: "pointer" }}
           />
