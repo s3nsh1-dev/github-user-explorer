@@ -72,7 +72,7 @@ const ProfileInfo = () => {
 
   return (
     <>
-      <Box maxWidth={1000} mx="auto" px={3}>
+      <Box maxWidth={1000} mx="auto" px={3} py={1}>
         <div
           style={{
             display: "flex",
