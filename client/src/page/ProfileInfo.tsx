@@ -2,9 +2,10 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
 import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
-import { Avatar, Box, Typography, Divider, Stack, Paper } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import StarIcon from "@mui/icons-material/Star";
+import { Box, Divider } from "@mui/material";
+import UserProfileHeader from "../components/UserProfileHeader";
+import UserProfileStats from "../components/UserProfileStats";
+import UserProfileRepos from "../components/UserProfileRepos";
 
 const ProfileInfo = () => {
   const { username } = useParams();
@@ -48,83 +49,11 @@ const ProfileInfo = () => {
   const repos = Array.isArray(reposData) ? reposData : [];
 
   return (
-    <Box mx="auto" mt={4} px={3}>
-      {/* Profile Header */}
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Avatar
-          src={userProfile.avatar_url}
-          alt={userProfile.username}
-          sx={{ width: 100, height: 100 }}
-        />
-        <Box>
-          <Typography variant="h5" fontWeight={600}>
-            {userProfile.username}
-          </Typography>
-          <Typography variant="subtitle1">{userProfile.name}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            📍 {userProfile.location || "Unknown"}
-          </Typography>
-        </Box>
-      </Stack>
-
-      {/* Stats */}
-      <Grid container spacing={2} my={3}>
-        <Grid>
-          <Paper elevation={1} sx={{ textAlign: "center", p: 2 }}>
-            <Typography fontWeight={600}>{userProfile.public_repos}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Public Repos
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid>
-          <Paper elevation={1} sx={{ textAlign: "center", p: 2 }}>
-            <Typography fontWeight={600}>{userProfile.followers}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Followers
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid>
-          <Paper elevation={1} sx={{ textAlign: "center", p: 2 }}>
-            <Typography fontWeight={600}>{userProfile.following}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Following
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-
+    <Box maxWidth={1000} mx="auto" mt={4} px={3}>
+      <UserProfileHeader userProfile={userProfile} />
+      <UserProfileStats userProfile={userProfile} />
       <Divider sx={{ my: 3 }} />
-
-      {/* Repositories List */}
-      <Typography variant="h6" fontWeight={600} gutterBottom>
-        Repositories
-      </Typography>
-      <Stack spacing={2}>
-        {repos.length === 0 ? (
-          <Typography variant="body2">No repositories found.</Typography>
-        ) : (
-          repos.map((repo) => (
-            <Paper
-              key={repo.id}
-              elevation={1}
-              sx={{ p: 2, display: "flex", justifyContent: "space-between" }}
-            >
-              <Box>
-                <Typography fontWeight={600}>{repo.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {repo.description || "No description"}
-                </Typography>
-              </Box>
-              <Box display="flex" alignItems="center" gap={0.5}>
-                <StarIcon fontSize="small" color="action" />
-                <Typography variant="body2">{repo.stargazers_count}</Typography>
-              </Box>
-            </Paper>
-          ))
-        )}
-      </Stack>
+      <UserProfileRepos repos={repos} />
     </Box>
   );
 };

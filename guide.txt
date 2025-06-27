@@ -4,8 +4,6 @@ When looking raw API : https://api.github.com we have multiple things showing...
 
 TASKS:
 Learn react-query aka TanStack Query
-when site loads up its visible form going to Times new Roman to Roboto making the UI ugly
-build a short app in sandbox about TanStack before here
 Debounce user input for better UX (before calling navigate or search).
 📦 Use staleTime to control how often data is refetched.
 🗂️ Paginate or infinite load with useInfiniteQuery.
@@ -14,3 +12,4 @@ BUILD -> HOME + EXPLORE + USER_REPO + NOT+FOUND
 
 =================================================
 NOW:
+delegate all the components
