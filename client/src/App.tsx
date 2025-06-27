@@ -16,7 +16,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explorer />} />
-          <Route path="/profile-info" element={<ProfileInfo />} />
+          <Route path="/user/:username" element={<ProfileInfo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </ThemeProvider>

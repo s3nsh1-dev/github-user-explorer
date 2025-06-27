@@ -22,9 +22,7 @@ const UserCards: FC<UserCardsProps> = ({
   const { mode } = useMode();
   const navigate = useNavigate();
   const handleUserProfileVisit = () => {
-    navigate(`/user/${userName}`, {
-      state: { userName, imageURL, githubURL },
-    });
+    navigate(`/user/${userName}`);
   };
   return (
     <Paper
