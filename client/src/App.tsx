@@ -6,6 +6,7 @@ import { Route, Routes } from "react-router-dom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import useMode from "./hooks/useMode";
 import { getTheme } from "./theme/muiCustomTheme";
+import Navbar from "./components/Navbar";
 
 const App = () => {
   const { mode } = useMode();
@@ -13,6 +14,7 @@ const App = () => {
     <>
       <ThemeProvider theme={getTheme(mode)}>
         <CssBaseline />
+        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explorer />} />

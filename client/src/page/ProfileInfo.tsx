@@ -6,7 +6,6 @@ import { Box, Divider } from "@mui/material";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import UserProfileRepos from "../components/UserProfileRepos";
-import Navbar from "../components/Navbar";
 
 const gitHub_authentication_token = import.meta.env
   .VITE_GITHUB_AUTHENTICATION_TOKEN;
@@ -63,10 +62,17 @@ const ProfileInfo = () => {
 
   return (
     <>
-      <Navbar />
-      <Box maxWidth={1000} mx="auto" mt={4} px={3}>
-        <UserProfileHeader userProfile={userProfile} />
-        <UserProfileStats userProfile={userProfile} />
+      <Box maxWidth={1000} mx="auto" px={3}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+          }}
+        >
+          <UserProfileHeader userProfile={userProfile} />
+          <UserProfileStats userProfile={userProfile} />
+        </div>
         <Divider sx={{ my: 3 }} />
         <UserProfileRepos repos={repos} />
       </Box>

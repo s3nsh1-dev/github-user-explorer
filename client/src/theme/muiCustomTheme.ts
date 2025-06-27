@@ -41,5 +41,19 @@ export const getTheme = (mode: ModeType) =>
           },
         },
       },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === "light" ? "#e0e0e0" : "#23272b",
+          },
+        },
+      },
+      MuiToolbar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === "light" ? "#e0e0e0" : "#23272b",
+          },
+        },
+      },
     },
   });

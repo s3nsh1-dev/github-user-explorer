@@ -2,7 +2,6 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
-import useMode from "../hooks/useMode";
 import {
   useRef,
   useState,
@@ -15,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 const Home = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  const { mode, handleSettingMode } = useMode();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -24,10 +22,6 @@ const Home = () => {
     }
   }, []);
 
-  const handleModeChange = () => {
-    const newMode = mode === "light" ? "dark" : "light";
-    handleSettingMode(newMode);
-  };
   const handleSearch = (event: FormEvent) => {
     event.preventDefault();
     const trimUserName = searchTerm.trim();
@@ -72,10 +66,6 @@ const Home = () => {
         />
         <Button variant="contained" type="submit">
           Search
-        </Button>
-
-        <Button variant="contained" onClick={handleModeChange}>
-          Change Mode
         </Button>
       </Box>
       <Typography fontSize={25} fontWeight={300} color="textSecondary">
