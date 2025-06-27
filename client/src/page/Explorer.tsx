@@ -11,6 +11,9 @@ type UserObjectType = {
   repos_url: string;
 };
 
+const gitHub_authentication_token = import.meta.env
+  .VITE_GITHUB_AUTHENTICATION_TOKEN;
+
 const Explorer = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("query");
@@ -23,7 +26,11 @@ const Explorer = () => {
       if (!query) {
         throw new Error("Search query is required");
       }
-      const response = await fetch(URL);
+      const response = await fetch(URL, {
+        headers: {
+          Authorization: "Bearer " + gitHub_authentication_token,
+        },
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch data from GitHub API");
       }

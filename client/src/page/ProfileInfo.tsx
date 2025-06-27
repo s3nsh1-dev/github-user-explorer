@@ -6,6 +6,10 @@ import { Box, Divider } from "@mui/material";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import UserProfileRepos from "../components/UserProfileRepos";
+import Navbar from "../components/Navbar";
+
+const gitHub_authentication_token = import.meta.env
+  .VITE_GITHUB_AUTHENTICATION_TOKEN;
 
 const ProfileInfo = () => {
   const { username } = useParams();
@@ -17,7 +21,11 @@ const ProfileInfo = () => {
     queryKey: ["userProfile", username],
     queryFn: async () => {
       if (!username) throw new Error("Username is required");
-      const response = await fetch(`https://api.github.com/users/${username}`);
+      const response = await fetch(`https://api.github.com/users/${username}`, {
+        headers: {
+          Authorization: `Bearer ${gitHub_authentication_token}`,
+        },
+      });
       if (!response.ok) throw new Error("Failed to fetch user profile");
       return await response.json();
     },
@@ -33,7 +41,12 @@ const ProfileInfo = () => {
     queryFn: async () => {
       if (!username) throw new Error("Username is required");
       const response = await fetch(
-        `https://api.github.com/users/${username}/repos`
+        `https://api.github.com/users/${username}/repos`,
+        {
+          headers: {
+            Authorization: `Bearer ${gitHub_authentication_token}`,
+          },
+        }
       );
       if (!response.ok) throw new Error("Failed to fetch user repositories");
       return await response.json();
@@ -49,12 +62,15 @@ const ProfileInfo = () => {
   const repos = Array.isArray(reposData) ? reposData : [];
 
   return (
-    <Box maxWidth={1000} mx="auto" mt={4} px={3}>
-      <UserProfileHeader userProfile={userProfile} />
-      <UserProfileStats userProfile={userProfile} />
-      <Divider sx={{ my: 3 }} />
-      <UserProfileRepos repos={repos} />
-    </Box>
+    <>
+      <Navbar />
+      <Box maxWidth={1000} mx="auto" mt={4} px={3}>
+        <UserProfileHeader userProfile={userProfile} />
+        <UserProfileStats userProfile={userProfile} />
+        <Divider sx={{ my: 3 }} />
+        <UserProfileRepos repos={repos} />
+      </Box>
+    </>
   );
 };
 
