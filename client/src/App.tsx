@@ -9,6 +9,7 @@ import { getTheme } from "./theme/muiCustomTheme";
 import Navbar from "./components/Navbar";
 
 const App = () => {
+  console.log("app is reloaded");
   const { mode } = useMode();
   return (
     <>

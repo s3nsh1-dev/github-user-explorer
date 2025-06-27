@@ -13,6 +13,7 @@ type UserProfileReposProps = {
 };
 
 const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
+  console.log("repos", repos);
   return (
     <>
       {/* Repositories List */}

@@ -31,12 +31,14 @@ const Explorer = () => {
           Authorization: "Bearer " + gitHub_authentication_token,
         },
       });
+      console.log("fetching users matching keyword: ", query);
       if (!response.ok) {
         throw new Error("Failed to fetch data from GitHub API");
       }
       return await response.json();
     },
     enabled: !!query, // Only run the query if query is not null
+    staleTime: 1000 * 60 * 5,
   });
 
   if (isLoading) return <div>....Loading</div>;

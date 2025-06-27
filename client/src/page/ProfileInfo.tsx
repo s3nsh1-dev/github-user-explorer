@@ -25,10 +25,18 @@ const ProfileInfo = () => {
           Authorization: `Bearer ${gitHub_authentication_token}`,
         },
       });
+      console.log("fetching user info for", username);
       if (!response.ok) throw new Error("Failed to fetch user profile");
       return await response.json();
     },
     enabled: !!username,
+    // how long the data will be considered fresh = stale time(in this case 5min)
+    staleTime: 1000 * 60 * 5,
+    /*
+    // 10 mins in memory, the default is 5 min
+    // using to not hit the api again and again if the request is frequent
+    cacheTime: 1000 * 60 * 10
+    */
   });
 
   const {
@@ -47,10 +55,12 @@ const ProfileInfo = () => {
           },
         }
       );
+      console.log("fetching repos for", username);
       if (!response.ok) throw new Error("Failed to fetch user repositories");
       return await response.json();
     },
     enabled: !!username,
+    staleTime: 1000 * 60 * 5,
   });
 
   if (userLoading || reposLoading) return <div>Loading...</div>;
