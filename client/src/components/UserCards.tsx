@@ -68,7 +68,7 @@ const UserCards: FC<UserCardsProps> = ({
           View this profile on a GitHub.
         </Button>
         <Box sx={{ display: "flex", gap: 3 }}>
-          <Link to={`/user/${userName}`}>
+          <Link to={`/user/${userName}?page=1`}>
             <Button variant="contained">Open Profile</Button>
           </Link>
           <Button

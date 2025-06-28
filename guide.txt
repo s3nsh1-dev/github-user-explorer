@@ -5,11 +5,17 @@ When looking raw API : https://api.github.com we have multiple things showing...
 TASKS:
 Learn react-query aka TanStack Query
 Debounce user input for better UX (before calling navigate or search).
-📦 Use staleTime to control how often data is refetched.
 🗂️ Paginate or infinite load with useInfiniteQuery.
 🔐 Handle auth and errors globally using React Query’s QueryClient config.
 BUILD -> HOME + EXPLORE + USER_REPO + NOT+FOUND
 
 =================================================
 NOW:
-delegate all the components
+* Pagination for repo
+* Pagination for users
+* Show repo info
+* Make image of user alone and shift the username above the button in page
+* A userSearch box in the User profile so that another search can be done while viewing a user profile
+* a Drop box in the Home page shows the user that have been started that can be visited directly from the homepage
+* UI mobile friendly
+*Deploy

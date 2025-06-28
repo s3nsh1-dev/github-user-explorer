@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
 import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
@@ -6,12 +6,19 @@ import { Box, Divider } from "@mui/material";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import UserProfileRepos from "../components/UserProfileRepos";
+import Pagination from "../components/Pagination";
 
 const gitHub_authentication_token = import.meta.env
   .VITE_GITHUB_AUTHENTICATION_TOKEN;
 
 const ProfileInfo = () => {
   const { username } = useParams();
+  const [searchParams] = useSearchParams();
+  const currentPageNumber = parseInt(searchParams.get("page") || "1", 10);
+  console.log("currentPageNumber", currentPageNumber);
+  const reposPerPage = 6;
+  const startIndex = (currentPageNumber - 1) * reposPerPage;
+  const endIndex = startIndex + reposPerPage;
   const {
     data: userData,
     isLoading: userLoading,
@@ -69,6 +76,8 @@ const ProfileInfo = () => {
 
   const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
   const repos = Array.isArray(reposData) ? reposData : [];
+  const paginatedRepos = repos.slice(startIndex, endIndex);
+  console.log("repos", repos);
 
   return (
     <>
@@ -84,7 +93,13 @@ const ProfileInfo = () => {
           <UserProfileStats userProfile={userProfile} />
         </div>
         <Divider sx={{ my: 3 }} />
-        <UserProfileRepos repos={repos} />
+        <UserProfileRepos repos={paginatedRepos} />
+        <Pagination
+          repos={repos}
+          reposPerPage={reposPerPage}
+          page={currentPageNumber}
+          username={username || "unknown"}
+        />
       </Box>
     </>
   );
