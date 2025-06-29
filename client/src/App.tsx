@@ -23,7 +23,7 @@ const App = () => {
           <Route path="/user/:username" element={<ProfileInfo />} />
           <Route path="*" element={<NotFound />} />
           <Route
-            path="/user/:username/:repoName/*"
+            path="/user/:username/:repoName"
             element={<ShowSelectedRepo />}
           />
         </Routes>

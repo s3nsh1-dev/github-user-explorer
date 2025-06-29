@@ -11,6 +11,7 @@ BUILD -> HOME + EXPLORE + USER_REPO + NOT+FOUND
 
 =================================================
 NOW:
+* revise how the pageNumber is appended to the link
 * Create a Page showing user's individual repo info
 * Delegate it -> create a button on the repos's list to view repos individually
 * Pagination for users
@@ -18,4 +19,4 @@ NOW:
 * A userSearch box in the User profile so that another search can be done while viewing a user profile
 * a Drop box in the Home page shows the user that have been started that can be visited directly from the homepage
 * UI mobile friendly
-*Deploy
+* Deploy
