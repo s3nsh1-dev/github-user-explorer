@@ -64,6 +64,8 @@ export type Repo = {
   name: string;
   description: string | null;
   stargazers_count: number;
+  full_name: string;
+  url: string;
 };
 export type PaginationProps = {
   repos: Repo[];

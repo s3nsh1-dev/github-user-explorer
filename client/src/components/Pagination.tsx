@@ -17,37 +17,20 @@ const Pagination: React.FC<PaginationProps> = ({
 }) => {
   const totalPages = Math.ceil(repos.length / reposPerPage);
   const navigate = useNavigate();
-  let numberOfPages;
-  if (totalPages <= 3) {
-    numberOfPages = [...Array(totalPages)].map((_, idx) => {
-      const pageNum = idx + 1;
-      return <PageButton username={username} key={pageNum} pageNum={pageNum} />;
-    });
-  } else if (page > 1 && page < totalPages) {
-    numberOfPages = (
-      <>
-        <PageButton username={username} pageNum={page - 1}></PageButton>
-        <PageButton username={username} pageNum={page}></PageButton>
-        <PageButton username={username} pageNum={page + 1}></PageButton>
-      </>
-    );
-  } else if (page === 1) {
-    numberOfPages = (
-      <>
-        <PageButton username={username} pageNum={1}></PageButton>
-        <PageButton username={username} pageNum={2}></PageButton>
-        <PageButton username={username} pageNum={3}></PageButton>
-      </>
-    );
-  } else if (page === totalPages) {
-    numberOfPages = (
-      <>
-        <PageButton username={username} pageNum={page - 2}></PageButton>
-        <PageButton username={username} pageNum={page - 1}></PageButton>
-        <PageButton username={username} pageNum={page}></PageButton>
-      </>
-    );
-  }
+
+  //page is like reflective state provided from react-router-dom change page = rerender
+
+  const getVisiblePages = () => {
+    if (totalPages <= 3) return [1, 2, 3].slice(0, totalPages);
+
+    if (page === 1) return [1, 2, 3];
+    if (page === totalPages)
+      return [totalPages - 2, totalPages - 1, totalPages];
+    return [page - 1, page, page + 1];
+  };
+  const numberOfPages = getVisiblePages().map((pageNum) => (
+    <PageButton key={pageNum} username={username} pageNum={pageNum} />
+  ));
   return (
     <>
       {repos.length > 0 ? (
