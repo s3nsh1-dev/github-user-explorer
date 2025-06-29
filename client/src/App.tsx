@@ -22,7 +22,10 @@ const App = () => {
           <Route path="/explore" element={<Explorer />} />
           <Route path="/user/:username" element={<ProfileInfo />} />
           <Route path="*" element={<NotFound />} />
-          <Route path="/user/:username/*" element={<ShowSelectedRepo />} />
+          <Route
+            path="/user/:username/:repoName/*"
+            element={<ShowSelectedRepo />}
+          />
         </Routes>
       </ThemeProvider>
     </>

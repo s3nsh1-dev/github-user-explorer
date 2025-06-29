@@ -10,8 +10,11 @@ type UserProfileReposProps = {
 const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
   const navigate = useNavigate();
   const handleOpenRepository = (repo: Repo) => {
+    const username = repo.full_name.split("/")[0];
+    const repoName = repo.name;
+    console.log("navigate:", repoName, username);
     navigate(`/user/${repo.full_name}`, {
-      state: { URL: repo.url },
+      state: { repoName, username },
     });
   };
 
