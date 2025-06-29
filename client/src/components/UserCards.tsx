@@ -5,13 +5,7 @@ import Button from "@mui/material/Button";
 import { type FC } from "react";
 import useMode from "../hooks/useMode";
 import { Link } from "react-router-dom";
-
-interface UserCardsProps {
-  userName: string;
-  imageURL: string;
-  githubURL: string;
-  seeRepos: string;
-}
+import type { UserCardsProps } from "../constants/common.types";
 
 const UserCards: FC<UserCardsProps> = ({
   userName,

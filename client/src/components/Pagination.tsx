@@ -1,25 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import PageButton from "./PageButton";
-
-type Repo = {
-  id: number;
-  name: string;
-  description: string | null;
-  stargazers_count: number;
-};
-interface PaginationProps {
-  repos: Repo[];
-  reposPerPage: number;
-  page: number;
-  username: string;
-}
+import Typography from "@mui/material/Typography";
+import type { PaginationProps } from "../constants/common.types";
 
 const Pagination: React.FC<PaginationProps> = ({
   repos,
@@ -33,15 +21,7 @@ const Pagination: React.FC<PaginationProps> = ({
   if (totalPages <= 3) {
     numberOfPages = [...Array(totalPages)].map((_, idx) => {
       const pageNum = idx + 1;
-      return (
-        <Button
-          key={pageNum}
-          variant={page === pageNum ? "contained" : "outlined"}
-          onClick={() => navigate(`/user/${username}?page=${pageNum}`)}
-        >
-          {pageNum}
-        </Button>
-      );
+      return <PageButton username={username} key={pageNum} pageNum={pageNum} />;
     });
   } else if (page > 1 && page < totalPages) {
     numberOfPages = (
@@ -69,33 +49,41 @@ const Pagination: React.FC<PaginationProps> = ({
     );
   }
   return (
-    <Box gap={2} mt={4} sx={{ display: "flex", justifyContent: "center" }}>
-      <IconButton
-        onClick={() => navigate(`/user/${username}?page=${1}`)}
-        disabled={page === 1}
-      >
-        <FirstPageIcon />
-      </IconButton>
-      <IconButton
-        disabled={page === 1}
-        onClick={() => navigate(`/user/${username}?page=${page - 1}`)}
-      >
-        <KeyboardArrowLeftIcon />
-      </IconButton>
-      {numberOfPages}
-      <IconButton
-        onClick={() => navigate(`/user/${username}?page=${page + 1}`)}
-        disabled={page === totalPages}
-      >
-        <KeyboardArrowRightIcon />
-      </IconButton>
-      <IconButton
-        disabled={page === totalPages}
-        onClick={() => navigate(`/user/${username}?page=${totalPages}`)}
-      >
-        <LastPageIcon />
-      </IconButton>
-    </Box>
+    <>
+      {repos.length > 0 ? (
+        <Box gap={2} mt={4} sx={{ display: "flex", justifyContent: "center" }}>
+          <IconButton
+            onClick={() => navigate(`/user/${username}?page=${1}`)}
+            disabled={page === 1}
+          >
+            <FirstPageIcon />
+          </IconButton>
+          <IconButton
+            disabled={page === 1}
+            onClick={() => navigate(`/user/${username}?page=${page - 1}`)}
+          >
+            <KeyboardArrowLeftIcon />
+          </IconButton>
+          {numberOfPages}
+          <IconButton
+            onClick={() => navigate(`/user/${username}?page=${page + 1}`)}
+            disabled={page === totalPages}
+          >
+            <KeyboardArrowRightIcon />
+          </IconButton>
+          <IconButton
+            disabled={page === totalPages}
+            onClick={() => navigate(`/user/${username}?page=${totalPages}`)}
+          >
+            <LastPageIcon />
+          </IconButton>
+        </Box>
+      ) : (
+        <Typography color="textDisabled">
+          Create repositories to reflect here
+        </Typography>
+      )}
+    </>
   );
 };
 

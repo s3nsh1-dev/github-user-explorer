@@ -1,12 +1,6 @@
 import { Box, Typography, Stack, Paper } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
-
-type Repo = {
-  id: number;
-  name: string;
-  description: string | null;
-  stargazers_count: number;
-};
+import type { Repo } from "../constants/common.types";
 
 type UserProfileReposProps = {
   repos: Repo[];

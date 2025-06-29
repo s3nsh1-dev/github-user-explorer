@@ -1,44 +1,15 @@
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import Box from "@mui/material/Box";
 import UserCards from "../components/UserCards";
-
-type UserObjectType = {
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  id: number;
-  repos_url: string;
-};
-
-const gitHub_authentication_token = import.meta.env
-  .VITE_GITHUB_AUTHENTICATION_TOKEN;
+import useFetchSearchUsers from "../hooks/useFetchSearchUsers";
+import type { UserObjectType } from "../constants/common.types";
 
 const Explorer = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("query");
 
-  const URL = `https://api.github.com/search/users?q=${query}`;
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["users", query],
-    queryFn: async () => {
-      if (!query) {
-        throw new Error("Search query is required");
-      }
-      const response = await fetch(URL, {
-        headers: {
-          Authorization: "Bearer " + gitHub_authentication_token,
-        },
-      });
-      console.log("fetching users matching keyword: ", query);
-      if (!response.ok) {
-        throw new Error("Failed to fetch data from GitHub API");
-      }
-      return await response.json();
-    },
-    enabled: !!query, // Only run the query if query is not null
-    staleTime: 1000 * 60 * 5,
+  const { data, isLoading, error } = useFetchSearchUsers({
+    query: query || "noQueryToSearch",
   });
 
   if (isLoading) return <div>....Loading</div>;
