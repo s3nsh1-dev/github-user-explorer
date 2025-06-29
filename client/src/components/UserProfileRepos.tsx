@@ -42,7 +42,7 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
                   {repo.description || "No description"}
                 </Typography>
               </Box>
-              <Box display="flex" alignItems="center" gap={0.5} sx={{ ml: 1 }}>
+              <Box display="flex" alignItems="center" gap={0.5} sx={{ ml: 2 }}>
                 <StarIcon fontSize="small" color="action" />
                 <Typography variant="body2">{repo.stargazers_count}</Typography>
                 <Button

@@ -73,3 +73,22 @@ export type PaginationProps = {
   page: number;
   username: string;
 };
+
+export interface GitHubRepo {
+  id: number;
+  name: string;
+  full_name: string;
+  html_url: string;
+  description: string | null;
+  language: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  size: number;
+  visibility: string;
+  default_branch: string;
+  license: { name: string } | null;
+  created_at: string;
+  updated_at: string;
+  pushed_at: string;
+}
