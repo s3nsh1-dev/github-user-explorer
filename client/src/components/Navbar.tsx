@@ -2,6 +2,9 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import useMode from "../hooks/useMode";
 import CustomSwitchForModeTransition from "../theme/CustomSwitchForModeTransition";
+import lightModeImage from "../assets/website_logo_1.png";
+import darkModeImage from "../assets/website_logo_3.png";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const { mode, handleSettingMode } = useMode();
@@ -11,9 +14,19 @@ const Navbar = () => {
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          paddingTop: 1,
         }}
       >
-        <div></div>
+        {/* Website Logo will be displayed here */}
+        <Link to="/">
+          <img
+            src={mode === "light" ? lightModeImage : darkModeImage}
+            alt="Website Logo"
+            width={120}
+            height={50}
+            style={{ cursor: "pointer" }}
+          />
+        </Link>
         <CustomSwitchForModeTransition
           mode={mode}
           handleSettingMode={handleSettingMode}

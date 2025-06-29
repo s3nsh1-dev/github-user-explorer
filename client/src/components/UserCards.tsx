@@ -2,16 +2,10 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import { useNavigate } from "react-router-dom";
 import { type FC } from "react";
 import useMode from "../hooks/useMode";
-
-interface UserCardsProps {
-  userName: string;
-  imageURL: string;
-  githubURL: string;
-  seeRepos: string;
-}
+import { Link } from "react-router-dom";
+import type { UserCardsProps } from "../constants/common.types";
 
 const UserCards: FC<UserCardsProps> = ({
   userName,
@@ -20,10 +14,6 @@ const UserCards: FC<UserCardsProps> = ({
   seeRepos,
 }) => {
   const { mode } = useMode();
-  const navigate = useNavigate();
-  const handleUserProfileVisit = () => {
-    navigate(`/user/${userName}`);
-  };
   return (
     <Paper
       sx={{
@@ -72,9 +62,9 @@ const UserCards: FC<UserCardsProps> = ({
           View this profile on a GitHub.
         </Button>
         <Box sx={{ display: "flex", gap: 3 }}>
-          <Button variant="contained" onClick={handleUserProfileVisit}>
-            Open Profile
-          </Button>
+          <Link to={`/user/${userName}?page=1`}>
+            <Button variant="contained">Open Profile</Button>
+          </Link>
           <Button
             variant="contained"
             href={seeRepos}

@@ -1,68 +1,50 @@
-import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useParams, useSearchParams } from "react-router-dom";
 import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
 import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
 import { Box, Divider } from "@mui/material";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import UserProfileRepos from "../components/UserProfileRepos";
-
-const gitHub_authentication_token = import.meta.env
-  .VITE_GITHUB_AUTHENTICATION_TOKEN;
+import Pagination from "../components/Pagination";
+import { useMemo } from "react";
+import useFetchUserData from "../hooks/useFetchUserData";
+import useFetchUserRepoDetails from "../hooks/useFetchUserRepoDetails";
 
 const ProfileInfo = () => {
   const { username } = useParams();
-  const {
-    data: userData,
-    isLoading: userLoading,
-    error: userError,
-  } = useQuery({
-    queryKey: ["userProfile", username],
-    queryFn: async () => {
-      if (!username) throw new Error("Username is required");
-      const response = await fetch(`https://api.github.com/users/${username}`, {
-        headers: {
-          Authorization: `Bearer ${gitHub_authentication_token}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch user profile");
-      return await response.json();
-    },
-    enabled: !!username,
+  const [searchParams] = useSearchParams();
+  const currentPageNumber = parseInt(searchParams.get("page") || "1", 10);
+  console.log("currentPageNumber", currentPageNumber);
+  const reposPerPage = 6;
+  const startIndex = (currentPageNumber - 1) * reposPerPage;
+  const endIndex = startIndex + reposPerPage;
+
+  const { userData, userLoading, userError } = useFetchUserData({
+    username: username || "demoUserName",
   });
 
-  const {
-    data: reposData,
-    isLoading: reposLoading,
-    error: reposError,
-  } = useQuery({
-    queryKey: ["userRepos", username],
-    queryFn: async () => {
-      if (!username) throw new Error("Username is required");
-      const response = await fetch(
-        `https://api.github.com/users/${username}/repos`,
-        {
-          headers: {
-            Authorization: `Bearer ${gitHub_authentication_token}`,
-          },
-        }
-      );
-      if (!response.ok) throw new Error("Failed to fetch user repositories");
-      return await response.json();
-    },
-    enabled: !!username,
+  const { reposData, reposLoading, reposError } = useFetchUserRepoDetails({
+    username: username || "demoUserName",
   });
 
+  const repos = useMemo(
+    () => (Array.isArray(reposData) ? reposData : []),
+    [reposData]
+  );
+
+  const paginatedRepos = repos.slice(startIndex, endIndex);
+
+  if (!userData) return null;
+  const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
   if (userLoading || reposLoading) return <div>Loading...</div>;
   if (userError) return <div>Error: {userError.message}</div>;
   if (reposError) return <div>Error: {reposError.message}</div>;
 
-  const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
-  const repos = Array.isArray(reposData) ? reposData : [];
+  console.log("repos", reposData);
 
   return (
     <>
-      <Box maxWidth={1000} mx="auto" px={3}>
+      <Box maxWidth={1000} mx="auto" px={3} py={1}>
         <div
           style={{
             display: "flex",
@@ -74,7 +56,13 @@ const ProfileInfo = () => {
           <UserProfileStats userProfile={userProfile} />
         </div>
         <Divider sx={{ my: 3 }} />
-        <UserProfileRepos repos={repos} />
+        <UserProfileRepos repos={paginatedRepos} />
+        <Pagination
+          repos={repos}
+          reposPerPage={reposPerPage}
+          page={currentPageNumber}
+          username={username || "unknown"}
+        />
       </Box>
     </>
   );

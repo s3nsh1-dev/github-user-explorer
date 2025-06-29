@@ -43,3 +43,52 @@ export type GitHubApiUser = {
   repos_url: string;
   // You can add more fields if needed
 };
+
+export type UserObjectType = {
+  login: string;
+  avatar_url: string;
+  html_url: string;
+  id: number;
+  repos_url: string;
+};
+
+export type UserCardsProps = {
+  userName: string;
+  imageURL: string;
+  githubURL: string;
+  seeRepos: string;
+};
+
+export type Repo = {
+  id: number;
+  name: string;
+  description: string | null;
+  stargazers_count: number;
+  full_name: string;
+  url: string;
+};
+export type PaginationProps = {
+  repos: Repo[];
+  reposPerPage: number;
+  page: number;
+  username: string;
+};
+
+export interface GitHubRepo {
+  id: number;
+  name: string;
+  full_name: string;
+  html_url: string;
+  description: string | null;
+  language: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  size: number;
+  visibility: string;
+  default_branch: string;
+  license: { name: string } | null;
+  created_at: string;
+  updated_at: string;
+  pushed_at: string;
+}
