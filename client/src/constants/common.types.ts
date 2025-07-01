@@ -92,3 +92,9 @@ export interface GitHubRepo {
   updated_at: string;
   pushed_at: string;
 }
+
+export interface GitHubUserSearchResult {
+  total_count: number;
+  incomplete_results: boolean;
+  items: GitHubUser[];
+}
