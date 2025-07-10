@@ -22,6 +22,7 @@ export type GitHubUser = {
   html_url: string; // Main GitHub profile link
   public_repos: number;
   repos_url: string;
+  login: string;
 };
 export type GitHubApiUser = {
   login: string;
@@ -91,4 +92,10 @@ export interface GitHubRepo {
   created_at: string;
   updated_at: string;
   pushed_at: string;
+}
+
+export interface GitHubUserSearchResult {
+  total_count: number;
+  incomplete_results: boolean;
+  items: GitHubUser[];
 }
