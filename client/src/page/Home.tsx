@@ -55,8 +55,11 @@ const Home = () => {
             }
           }}
         >
-          <option value="select">select</option>
+          <option value="select" style={{ color: "gray" }}>
+            ---select---
+          </option>
           <option value="s3nsh1-dev">s3nsh1-dev</option>
+          <option value="google">google</option>
         </select>
       </Box>
       <Typography fontSize={42} fontWeight={500}>

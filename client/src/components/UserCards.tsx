@@ -18,13 +18,18 @@ const UserCards: FC<UserCardsProps> = ({
     <Paper
       sx={{
         display: "flex",
-        gap: 2,
-        margin: 2,
-        padding: 2,
+        margin: 1,
+        padding: 1,
       }}
       elevation={5}
     >
-      <Box>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          margin: 1,
+        }}
+      >
         <Box
           component={"img"}
           src={imageURL}
@@ -36,17 +41,35 @@ const UserCards: FC<UserCardsProps> = ({
             border: `2px solid ${mode === "light" ? "black" : "white"}`,
           }}
         />
-        <Typography textAlign={"center"} fontWeight={"bold"}>
-          {userName}
-        </Typography>
       </Box>
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
+          gap: 2,
+          padding: 1,
         }}
       >
+        <Typography
+          textAlign={"center"}
+          fontSize="1 rem"
+          sx={{
+            fontFamily: "monospace",
+            color: "grey",
+          }}
+        >
+          &gt;&gt;&gt;{" "}
+          <span
+            style={{
+              fontWeight: "bold",
+              color: mode === "light" ? "#16610E" : "#FFD63A",
+            }}
+          >
+            {userName}
+          </span>{" "}
+          &lt;&lt;&lt;
+        </Typography>
         <Button
           variant="outlined"
           component={"a"}
@@ -54,7 +77,6 @@ const UserCards: FC<UserCardsProps> = ({
           target="_blank"
           rel="noopener noreferrer"
           sx={{
-            marginTop: "35px",
             textDecoration: "none",
             fontWeight: "bold",
           }}

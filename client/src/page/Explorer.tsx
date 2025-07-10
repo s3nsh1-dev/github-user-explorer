@@ -29,14 +29,25 @@ const Explorer = () => {
   });
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "space-evenly",
-      }}
-    >
-      {renderUserCards}
+    <Box>
+      <Box
+        sx={{
+          textAlign: "center",
+          marginBottom: "10px",
+          fontFamily: "monospace",
+        }}
+      >
+        Matching Results: {data.total_count}
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-evenly",
+        }}
+      >
+        {renderUserCards}
+      </Box>
     </Box>
   );
 };
