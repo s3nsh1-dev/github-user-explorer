@@ -43,7 +43,7 @@ const Explorer = () => {
       <Typography
         sx={{
           textAlign: "center",
-          marginBottom: "10px",
+          margin: "15px 0px 5px 0px",
           fontFamily: "monospace",
         }}
       >
@@ -53,7 +53,8 @@ const Explorer = () => {
         sx={{
           display: "flex",
           flexWrap: "wrap",
-          justifyContent: "space-evenly",
+          justifyContent: "center",
+          // paddingRight: 10,
         }}
       >
         {renderUserCards}

@@ -22,4 +22,4 @@ NOW:
 * Deploy
 ==================================================
 NEXT: 
-UI for userCard is overflowing for mobile
+LEARN HOW THE INFINITE SCROLL HAPPEN (TO REPLICATE WITHOUT INTERNET + LEARN REACT-QUERY)

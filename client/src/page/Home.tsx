@@ -42,7 +42,7 @@ const Home = () => {
           justifyContent: "end",
           alignItems: "end",
           paddingRight: "20px",
-          marginTop: "80px",
+          marginTop: "50px",
         }}
       >
         <StaredRepositories />

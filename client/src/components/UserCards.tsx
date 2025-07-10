@@ -2,7 +2,7 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import { type FC } from "react";
+import type { FC } from "react";
 import useMode from "../hooks/useMode";
 import { Link } from "react-router-dom";
 import type { UserCardsProps } from "../constants/common.types";
@@ -18,8 +18,9 @@ const UserCards: FC<UserCardsProps> = ({
     <Paper
       sx={{
         display: "flex",
-        margin: 1,
-        padding: 1,
+        marginBottom: 1,
+        padding: "0px 20px",
+        margin: "0px 10px 10px 10px",
       }}
       elevation={5}
     >
@@ -27,7 +28,7 @@ const UserCards: FC<UserCardsProps> = ({
         sx={{
           display: "flex",
           alignItems: "center",
-          margin: 1,
+          // margin: 1,
         }}
       >
         <Box
@@ -46,9 +47,10 @@ const UserCards: FC<UserCardsProps> = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
+          justifyContent: "center",
+          alignItems: "center",
           gap: 2,
-          padding: 1,
+          padding: 2,
         }}
       >
         <Typography
@@ -57,6 +59,7 @@ const UserCards: FC<UserCardsProps> = ({
           sx={{
             fontFamily: "monospace",
             color: "grey",
+            textWrap: "nowrap",
           }}
         >
           &gt;&gt;&gt;{" "}
@@ -77,15 +80,26 @@ const UserCards: FC<UserCardsProps> = ({
           target="_blank"
           rel="noopener noreferrer"
           sx={{
+            textTransform: "none",
             textDecoration: "none",
             fontWeight: "bold",
+            textAlign: "center",
+            width: { xs: "100%", sm: "280px" },
+            textOverflow: "ellipsis",
           }}
         >
-          View on GitHub.
+          GITHUB WEBSITE
         </Button>
-        <Box sx={{ display: "flex", gap: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
           <Link to={`/user/${userName}?page=1`}>
-            <Button variant="contained">Open Profile</Button>
+            <Button variant="contained">View Profile</Button>
           </Link>
           <Button
             variant="contained"
