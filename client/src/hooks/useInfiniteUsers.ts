@@ -11,13 +11,15 @@ const useInfiniteUsers = (query: string) => {
       const page = (context.pageParam ?? 1) as number;
 
       const res = await fetch(
-        `https://api.github.com/search/users?q=${query}&page=${page}&per_page=20`,
-        { headers: { Authorization: `Bearer ${TOKEN}` } }
+        `https://api.github.com/search/users?q=${query}&page=${page}&per_page=16`,
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
       );
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch users");
-      }
+      if (!res.ok) throw new Error("Failed to fetch users");
 
       return res.json();
     },

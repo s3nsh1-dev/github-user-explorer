@@ -22,6 +22,7 @@ export type GitHubUser = {
   html_url: string; // Main GitHub profile link
   public_repos: number;
   repos_url: string;
+  login: string;
 };
 export type GitHubApiUser = {
   login: string;

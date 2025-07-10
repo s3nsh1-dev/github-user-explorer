@@ -81,7 +81,7 @@ const UserCards: FC<UserCardsProps> = ({
             fontWeight: "bold",
           }}
         >
-          View this profile on a GitHub.
+          View on GitHub.
         </Button>
         <Box sx={{ display: "flex", gap: 3 }}>
           <Link to={`/user/${userName}?page=1`}>

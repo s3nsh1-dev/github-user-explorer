@@ -53,7 +53,7 @@ const Home = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          margin: "auto",
+          margin: "10px",
           gap: 2,
           height: "60vh",
         }}
@@ -73,7 +73,9 @@ const Home = () => {
             id="outlined-basic"
             variant="outlined"
             placeholder="Enter the GitHub username..."
-            sx={{ width: 300 }}
+            sx={{
+              width: { xs: "55vw", sm: "300px" },
+            }}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
               setSearchTerm(event.target.value)
             }

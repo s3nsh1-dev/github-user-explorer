@@ -20,3 +20,6 @@ NOW:
 * a Drop box in the Home page shows the user that have been started that can be visited directly from the homepage
 * UI mobile friendly
 * Deploy
+==================================================
+NEXT: 
+UI for userCard is overflowing for mobile
