@@ -10,7 +10,6 @@ import {
   type ChangeEvent,
 } from "react";
 import { useNavigate } from "react-router-dom";
-
 const Home = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -44,6 +43,22 @@ const Home = () => {
         height: "90vh",
       }}
     >
+      <Box>
+        <label htmlFor="stared-repos">⭐</label>
+        <select
+          name="stared-repos"
+          id="stared-repos"
+          onChange={(event) => {
+            const value = event.target.value;
+            if (value) {
+              navigate(`/user/${value}?page=1`);
+            }
+          }}
+        >
+          <option value="select">select</option>
+          <option value="s3nsh1-dev">s3nsh1-dev</option>
+        </select>
+      </Box>
       <Typography fontSize={42} fontWeight={500}>
         Github User Explorer
       </Typography>
