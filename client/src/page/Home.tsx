@@ -10,6 +10,8 @@ import {
   type ChangeEvent,
 } from "react";
 import { useNavigate } from "react-router-dom";
+import StaredRepositories from "../components/StaredRepositories";
+
 const Home = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -32,64 +34,59 @@ const Home = () => {
     navigate(`/explore?query=${trimUserName}`);
   };
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        margin: "auto",
-        gap: 2,
-        height: "90vh",
-      }}
-    >
-      <Box>
-        <label htmlFor="stared-repos">⭐</label>
-        <select
-          name="stared-repos"
-          id="stared-repos"
-          onChange={(event) => {
-            const value = event.target.value;
-            if (value) {
-              navigate(`/user/${value}?page=1`);
-            }
-          }}
-        >
-          <option value="select" style={{ color: "gray" }}>
-            ---select---
-          </option>
-          <option value="s3nsh1-dev">s3nsh1-dev</option>
-          <option value="google">google</option>
-        </select>
-      </Box>
-      <Typography fontSize={42} fontWeight={500}>
-        Github User Explorer
-      </Typography>
+    <>
       <Box
-        sx={{ display: "flex", gap: 2 }}
-        component={"form"}
-        onSubmit={(event) => handleSearch(event)}
-        noValidate
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "end",
+          alignItems: "end",
+          paddingRight: "20px",
+          marginTop: "80px",
+        }}
       >
-        <TextField
-          inputRef={inputRef}
-          value={searchTerm}
-          id="outlined-basic"
-          variant="outlined"
-          placeholder="Enter the GitHub username..."
-          sx={{ width: 300 }}
-          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-            setSearchTerm(event.target.value)
-          }
-        />
-        <Button variant="contained" type="submit">
-          Search
-        </Button>
+        <StaredRepositories />
       </Box>
-      <Typography fontSize={25} fontWeight={300} color="textSecondary">
-        Search for GitHub user to view their profile and repositories
-      </Typography>
-    </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          margin: "auto",
+          gap: 2,
+          height: "60vh",
+        }}
+      >
+        <Typography fontSize={42} fontWeight={500}>
+          Github User Explorer
+        </Typography>
+        <Box
+          sx={{ display: "flex", gap: 2 }}
+          component={"form"}
+          onSubmit={(event) => handleSearch(event)}
+          noValidate
+        >
+          <TextField
+            inputRef={inputRef}
+            value={searchTerm}
+            id="outlined-basic"
+            variant="outlined"
+            placeholder="Enter the GitHub username..."
+            sx={{ width: 300 }}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setSearchTerm(event.target.value)
+            }
+          />
+          <Button variant="contained" type="submit">
+            Search
+          </Button>
+        </Box>
+        <Typography fontSize={25} fontWeight={300} color="textSecondary">
+          Search for GitHub user to view their profile and repositories
+        </Typography>
+      </Box>
+    </>
   );
 };
 
