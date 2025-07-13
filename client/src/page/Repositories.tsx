@@ -14,7 +14,7 @@ const Repositories = () => {
 
   const currentPageNumber = parseInt(searchParams.get("page") || "1", 10);
   console.log("currentPageNumber", currentPageNumber);
-  const reposPerPage = 9;
+  const reposPerPage = 8;
   const startIndex = (currentPageNumber - 1) * reposPerPage;
   const endIndex = startIndex + reposPerPage;
   const repos = useMemo(

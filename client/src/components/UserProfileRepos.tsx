@@ -2,6 +2,7 @@ import { Box, Typography, Stack, Paper, Button } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import type { Repo } from "../constants/common.types";
 import { useNavigate } from "react-router-dom";
+import ShowColorChangingUserName from "./ShowColorChangingUserName";
 
 type UserProfileReposProps = {
   repos: Repo[];
@@ -28,8 +29,11 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({
   return (
     <>
       {/* Repositories List */}
-      <Typography variant="h6" fontWeight={600} gutterBottom>
-        Repositories: {totalRepos}
+      <Typography fontFamily="monospace" marginY={2}>
+        <ShowColorChangingUserName username={username} />
+        <p>
+          <b>{totalRepos}</b> <i>repositories</i>
+        </p>
       </Typography>
       <Stack spacing={0.5}>
         {repos.length === 0 ? (

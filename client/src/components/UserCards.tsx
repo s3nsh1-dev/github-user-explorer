@@ -1,4 +1,3 @@
-import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -6,6 +5,7 @@ import type { FC } from "react";
 import useMode from "../hooks/useMode";
 import { Link } from "react-router-dom";
 import type { UserCardsProps } from "../constants/common.types";
+import ShowColorChangingUserName from "./ShowColorChangingUserName";
 
 const UserCards: FC<UserCardsProps> = ({ userName, imageURL, githubURL }) => {
   const { mode } = useMode();
@@ -48,26 +48,7 @@ const UserCards: FC<UserCardsProps> = ({ userName, imageURL, githubURL }) => {
           padding: 2,
         }}
       >
-        <Typography
-          textAlign={"center"}
-          fontSize="1 rem"
-          sx={{
-            fontFamily: "monospace",
-            color: "grey",
-            textWrap: "nowrap",
-          }}
-        >
-          &gt;&gt;&gt;{" "}
-          <span
-            style={{
-              fontWeight: "bold",
-              color: mode === "light" ? "#16610E" : "#FFD63A",
-            }}
-          >
-            {userName}
-          </span>{" "}
-          &lt;&lt;&lt;
-        </Typography>
+        <ShowColorChangingUserName username={userName} />
         <Button
           variant="outlined"
           component={"a"}
