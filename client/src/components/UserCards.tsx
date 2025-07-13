@@ -98,7 +98,7 @@ const UserCards: FC<UserCardsProps> = ({
             justifyContent: "center",
           }}
         >
-          <Link to={`/user/${userName}?page=1`}>
+          <Link to={`/user/${userName}`}>
             <Button variant="contained">View Profile</Button>
           </Link>
           <Button

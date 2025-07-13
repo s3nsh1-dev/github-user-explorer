@@ -4,9 +4,9 @@ import Repositories from "./Repositories";
 
 const LinkWrapper = () => {
   const [searchParams] = useSearchParams();
-  const value = searchParams.get("tab") || "overview";
-  console.log("what is Wrapper", value);
-  return value === "overview" ? <ProfileInfo /> : <Repositories />;
+  const value = searchParams.get("tab");
+  if (value == "repositories") return <Repositories />;
+  return <ProfileInfo />;
 };
 
 export default LinkWrapper;
