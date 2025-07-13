@@ -1,41 +1,55 @@
-import { Paper, Typography } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import type { GitHubUser } from "../constants/common.types";
-import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
+import { useNavigate } from "react-router-dom";
+import Button from "@mui/material/Button";
 
 type UserProfileStatsProps = {
   userProfile: GitHubUser;
 };
 
 const UserProfileStats: React.FC<UserProfileStatsProps> = ({ userProfile }) => {
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate(`/user/${userProfile.username}?tab=repositories`);
+  };
   return (
     <>
       {/* Stats */}
-      <Grid container spacing={2} my={3}>
-        <Grid>
-          <Paper elevation={1} sx={{ textAlign: "center", p: 1 }}>
-            <Typography fontWeight={600}>{userProfile.public_repos}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Public Repos
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid>
-          <Paper elevation={1} sx={{ textAlign: "center", p: 1 }}>
-            <Typography fontWeight={600}>{userProfile.followers}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Followers
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid>
-          <Paper elevation={1} sx={{ textAlign: "center", p: 1 }}>
-            <Typography fontWeight={600}>{userProfile.following}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Following
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
+      <Box display="flex" justifyContent="space-between" gap={2}>
+        <Button
+          variant="outlined"
+          onClick={handleClick}
+          sx={{ display: "flex", flexDirection: "column" }}
+        >
+          <Typography fontWeight={600}>{userProfile.public_repos}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Public Repos
+          </Typography>
+        </Button>
+
+        <Button
+          variant="contained"
+          sx={{ display: "flex", flexDirection: "column" }}
+          disabled
+        >
+          <Typography fontWeight={600}>{userProfile.followers}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Followers
+          </Typography>
+        </Button>
+
+        <Button
+          variant="contained"
+          sx={{ display: "flex", flexDirection: "column" }}
+          disabled
+        >
+          <Typography fontWeight={600}>{userProfile.following}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Following
+          </Typography>
+        </Button>
+      </Box>
     </>
   );
 };

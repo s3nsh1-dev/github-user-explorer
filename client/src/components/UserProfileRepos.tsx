@@ -1,7 +1,7 @@
 import { Box, Typography, Stack, Paper, Button } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import type { Repo } from "../constants/common.types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import ShowColorChangingUserName from "./ShowColorChangingUserName";
 
 type UserProfileReposProps = {
@@ -9,7 +9,6 @@ type UserProfileReposProps = {
   totalRepos: number;
   username: string;
 };
-
 const UserProfileRepos: React.FC<UserProfileReposProps> = ({
   repos,
   totalRepos,
@@ -30,7 +29,13 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({
     <>
       {/* Repositories List */}
       <Typography fontFamily="monospace" marginY={2}>
-        <ShowColorChangingUserName username={username} />
+        <Link
+          to={`/user/${username}`}
+          style={{ textDecoration: "none", cursor: "pointer" }}
+        >
+          <ShowColorChangingUserName username={username} />
+        </Link>
+
         <p>
           <b>{totalRepos}</b> <i>repositories</i>
         </p>
