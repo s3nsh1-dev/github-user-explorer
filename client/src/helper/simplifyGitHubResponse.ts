@@ -2,6 +2,7 @@ import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
 export function mapGitHubResponse(data: GitHubApiUser): GitHubUser {
   return {
     id: data.node_id,
+    login: data.login,
     username: data.login,
     name: data.name,
     avatar_url: data.avatar_url,
@@ -17,5 +18,12 @@ export function mapGitHubResponse(data: GitHubApiUser): GitHubUser {
     html_url: data.html_url,
     public_repos: data.public_repos,
     repos_url: data.repos_url,
+    email: data.email || "Not Provided",
+    hirable: data.hireable ? "Actively Applying" : "Busy Learning",
+    accountType: data.type,
+    blog: data.blog || "Coming Soon",
+    gists: data.public_gists,
+    x_handle: data.twitter_username || "Not Provided",
+    starred_url: data.starred_url,
   };
 }

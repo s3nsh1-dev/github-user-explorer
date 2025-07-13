@@ -23,6 +23,13 @@ export type GitHubUser = {
   public_repos: number;
   repos_url: string;
   login: string;
+  email: string;
+  hirable: string;
+  accountType: string;
+  blog: string | null;
+  gists: number;
+  x_handle: string;
+  starred_url: string;
 };
 export type GitHubApiUser = {
   login: string;
@@ -42,6 +49,13 @@ export type GitHubApiUser = {
   following_url: string;
   public_repos: number;
   repos_url: string;
+  email: string;
+  hireable: boolean;
+  type: string;
+  blog: string | null;
+  public_gists: number;
+  twitter_username: string | null;
+  starred_url: string;
   // You can add more fields if needed
 };
 

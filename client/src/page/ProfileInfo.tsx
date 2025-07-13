@@ -5,6 +5,7 @@ import { Box, Divider } from "@mui/material";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import useFetchUserData from "../hooks/useFetchUserData";
+import Typography from "@mui/material/Typography";
 
 const ProfileInfo = () => {
   const { username } = useParams();
@@ -17,6 +18,7 @@ const ProfileInfo = () => {
   const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
   if (userLoading) return <div>Loading...</div>;
   if (userError) return <div>Error: {userError.message}</div>;
+  console.log("ProfileInfo", userData);
 
   return (
     <>
@@ -32,6 +34,24 @@ const ProfileInfo = () => {
           <UserProfileStats userProfile={userProfile} />
         </div>
         <Divider sx={{ my: 3 }} />
+        <Typography>{userProfile.bio}</Typography>
+        <Typography>Joined: {userProfile.joined}</Typography>
+        <Typography>Last Active: {userProfile.lastActive}</Typography>
+        <Typography>Work: {userProfile.company}</Typography>
+        <Typography>Looking for Job: {userProfile.hirable}</Typography>
+        <Typography>
+          Social Media:{" "}
+          <a
+            href={`https://x.com/${userProfile.x_handle}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "inherit", fontWeight: "bold" }}
+          >
+            {userProfile.x_handle}
+          </a>
+        </Typography>
+        <Typography>Em@il: {userProfile.email}</Typography>
+        <Typography>Blog: {userProfile.blog}</Typography>
       </Box>
     </>
   );
