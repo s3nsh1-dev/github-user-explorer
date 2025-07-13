@@ -5,12 +5,17 @@ import { useNavigate } from "react-router-dom";
 
 type UserProfileReposProps = {
   repos: Repo[];
+  totalRepos: number;
+  username: string;
 };
 
-const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
+const UserProfileRepos: React.FC<UserProfileReposProps> = ({
+  repos,
+  totalRepos,
+  username,
+}) => {
   const navigate = useNavigate();
   const handleOpenRepository = (repo: Repo) => {
-    const username = repo.full_name.split("/")[0];
     const repoName = repo.name;
     console.log("navigate:", repoName, username);
     navigate(`/user/${repo.full_name}`, {
@@ -24,9 +29,9 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
     <>
       {/* Repositories List */}
       <Typography variant="h6" fontWeight={600} gutterBottom>
-        Repositories
+        Repositories: {totalRepos}
       </Typography>
-      <Stack spacing={2}>
+      <Stack spacing={0.5}>
         {repos.length === 0 ? (
           <Typography variant="body2">No repositories found.</Typography>
         ) : (

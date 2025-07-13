@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { useMemo } from "react";
 import UserProfileRepos from "../components/UserProfileRepos";
 import Pagination from "../components/Pagination";
+import { Box } from "@mui/material";
 
 const Repositories = () => {
   const { username } = useParams();
@@ -13,7 +14,7 @@ const Repositories = () => {
 
   const currentPageNumber = parseInt(searchParams.get("page") || "1", 10);
   console.log("currentPageNumber", currentPageNumber);
-  const reposPerPage = 6;
+  const reposPerPage = 9;
   const startIndex = (currentPageNumber - 1) * reposPerPage;
   const endIndex = startIndex + reposPerPage;
   const repos = useMemo(
@@ -27,15 +28,19 @@ const Repositories = () => {
 
   console.log("repos", reposData);
   return (
-    <div>
-      <UserProfileRepos repos={paginatedRepos} />
+    <Box maxWidth={1000} mx="auto" px={3} py={1}>
+      <UserProfileRepos
+        repos={paginatedRepos}
+        totalRepos={reposData.length}
+        username={username || "demoUserName"}
+      />
       <Pagination
         repos={repos}
         reposPerPage={reposPerPage}
         page={currentPageNumber}
-        username={username || "unknown"}
+        username={username || "demoUserName"}
       />
-    </div>
+    </Box>
   );
 };
 

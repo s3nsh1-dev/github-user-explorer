@@ -13,7 +13,7 @@ const PageButton = ({
   const navigate = useNavigate();
 
   const handlePageChange = () => {
-    navigate(`/user/${username}?page=${pageNum}`);
+    navigate(`/user/${username}?tab=repositories&page=${pageNum}`);
   };
 
   return (

@@ -7,12 +7,7 @@ import useMode from "../hooks/useMode";
 import { Link } from "react-router-dom";
 import type { UserCardsProps } from "../constants/common.types";
 
-const UserCards: FC<UserCardsProps> = ({
-  userName,
-  imageURL,
-  githubURL,
-  seeRepos,
-}) => {
+const UserCards: FC<UserCardsProps> = ({ userName, imageURL, githubURL }) => {
   const { mode } = useMode();
   return (
     <Paper
@@ -101,14 +96,9 @@ const UserCards: FC<UserCardsProps> = ({
           <Link to={`/user/${userName}`}>
             <Button variant="contained">View Profile</Button>
           </Link>
-          <Button
-            variant="contained"
-            href={seeRepos}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Repositories
-          </Button>
+          <Link to={`/user/${userName}?tab=repositories`}>
+            <Button variant="contained">Repositories</Button>
+          </Link>
         </Box>
       </Box>
     </Paper>
