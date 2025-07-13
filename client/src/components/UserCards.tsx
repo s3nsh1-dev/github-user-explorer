@@ -1,4 +1,3 @@
-import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -6,13 +5,9 @@ import type { FC } from "react";
 import useMode from "../hooks/useMode";
 import { Link } from "react-router-dom";
 import type { UserCardsProps } from "../constants/common.types";
+import ShowColorChangingUserName from "./ShowColorChangingUserName";
 
-const UserCards: FC<UserCardsProps> = ({
-  userName,
-  imageURL,
-  githubURL,
-  seeRepos,
-}) => {
+const UserCards: FC<UserCardsProps> = ({ userName, imageURL, githubURL }) => {
   const { mode } = useMode();
   return (
     <Paper
@@ -53,26 +48,7 @@ const UserCards: FC<UserCardsProps> = ({
           padding: 2,
         }}
       >
-        <Typography
-          textAlign={"center"}
-          fontSize="1 rem"
-          sx={{
-            fontFamily: "monospace",
-            color: "grey",
-            textWrap: "nowrap",
-          }}
-        >
-          &gt;&gt;&gt;{" "}
-          <span
-            style={{
-              fontWeight: "bold",
-              color: mode === "light" ? "#16610E" : "#FFD63A",
-            }}
-          >
-            {userName}
-          </span>{" "}
-          &lt;&lt;&lt;
-        </Typography>
+        <ShowColorChangingUserName username={userName} />
         <Button
           variant="outlined"
           component={"a"}
@@ -98,17 +74,12 @@ const UserCards: FC<UserCardsProps> = ({
             justifyContent: "center",
           }}
         >
-          <Link to={`/user/${userName}?page=1`}>
+          <Link to={`/user/${userName}`}>
             <Button variant="contained">View Profile</Button>
           </Link>
-          <Button
-            variant="contained"
-            href={seeRepos}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Repositories
-          </Button>
+          <Link to={`/user/${userName}?tab=repositories`}>
+            <Button variant="contained">Repositories</Button>
+          </Link>
         </Box>
       </Box>
     </Paper>

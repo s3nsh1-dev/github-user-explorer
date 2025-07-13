@@ -1,46 +1,24 @@
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
 import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
 import { Box, Divider } from "@mui/material";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
-import UserProfileRepos from "../components/UserProfileRepos";
-import Pagination from "../components/Pagination";
-import { useMemo } from "react";
 import useFetchUserData from "../hooks/useFetchUserData";
-import useFetchUserRepoDetails from "../hooks/useFetchUserRepoDetails";
+import Typography from "@mui/material/Typography";
 
 const ProfileInfo = () => {
   const { username } = useParams();
-  const [searchParams] = useSearchParams();
-  const currentPageNumber = parseInt(searchParams.get("page") || "1", 10);
-  console.log("currentPageNumber", currentPageNumber);
-  const reposPerPage = 6;
-  const startIndex = (currentPageNumber - 1) * reposPerPage;
-  const endIndex = startIndex + reposPerPage;
 
   const { userData, userLoading, userError } = useFetchUserData({
     username: username || "demoUserName",
   });
 
-  const { reposData, reposLoading, reposError } = useFetchUserRepoDetails({
-    username: username || "demoUserName",
-  });
-
-  const repos = useMemo(
-    () => (Array.isArray(reposData) ? reposData : []),
-    [reposData]
-  );
-
-  const paginatedRepos = repos.slice(startIndex, endIndex);
-
   if (!userData) return null;
   const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
-  if (userLoading || reposLoading) return <div>Loading...</div>;
+  if (userLoading) return <div>Loading...</div>;
   if (userError) return <div>Error: {userError.message}</div>;
-  if (reposError) return <div>Error: {reposError.message}</div>;
-
-  console.log("repos", reposData);
+  console.log("ProfileInfo", userData);
 
   return (
     <>
@@ -56,13 +34,49 @@ const ProfileInfo = () => {
           <UserProfileStats userProfile={userProfile} />
         </div>
         <Divider sx={{ my: 3 }} />
-        <UserProfileRepos repos={paginatedRepos} />
-        <Pagination
-          repos={repos}
-          reposPerPage={reposPerPage}
-          page={currentPageNumber}
-          username={username || "unknown"}
-        />
+        <Box>
+          <Divider sx={{ my: 3 }} />
+
+          <Typography>📝 Bio: {userProfile.bio}</Typography>
+          <Typography>🏢 Work: {userProfile.company}</Typography>
+          <Typography>💼 Looking for Job: {userProfile.hirable}</Typography>
+          <Typography>📧 Em@il: {userProfile.email}</Typography>
+          <Typography>🔗 Blog: {userProfile.blog}</Typography>
+          <Typography>
+            🌐 Social Media:{" "}
+            {userProfile.x_handle !== "Not Provided" ? (
+              <a
+                href={`https://x.com/${userProfile.x_handle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "inherit", fontWeight: "bold" }}
+              >
+                {userProfile.x_handle}
+              </a>
+            ) : (
+              "Not Provided"
+            )}
+          </Typography>
+          <Typography>
+            📅 Joined:{" "}
+            {new Date(userProfile.joined).toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </Typography>
+
+          <Typography>
+            ⏱️ Last Active:{" "}
+            {new Date(userProfile.lastActive).toLocaleString(undefined, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Typography>
+        </Box>
       </Box>
     </>
   );

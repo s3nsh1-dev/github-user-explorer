@@ -1,13 +1,13 @@
 import Home from "./page/Home";
 import Explorer from "./page/Explorer";
-import ProfileInfo from "./page/ProfileInfo";
 import NotFound from "./page/NotFound";
-import { Route, Routes } from "react-router-dom";
-import { ThemeProvider, CssBaseline } from "@mui/material";
+import ShowSelectedRepo from "./page/ShowSelectedRepo";
+import Navbar from "./components/Navbar";
+import LinkWrapper from "./page/LinkWrapper";
 import useMode from "./hooks/useMode";
 import { getTheme } from "./theme/muiCustomTheme";
-import Navbar from "./components/Navbar";
-import ShowSelectedRepo from "./page/ShowSelectedRepo";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import { Route, Routes } from "react-router-dom";
 
 const App = () => {
   console.log("app is reloaded");
@@ -20,7 +20,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explorer />} />
-          <Route path="/user/:username" element={<ProfileInfo />} />
+          <Route path="/user/:username" element={<LinkWrapper />} />
           <Route path="*" element={<NotFound />} />
           <Route
             path="/user/:username/:repoName"

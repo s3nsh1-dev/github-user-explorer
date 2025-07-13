@@ -15,6 +15,7 @@ NOW:
 * Create a Page showing user's individual repo info
 * Delegate it -> create a button on the repos's list to view repos individually
 * Pagination for users
+* Following and Followers have pagination
 * Make image of user alone and shift the username above the button in page
 * A userSearch box in the User profile so that another search can be done while viewing a user profile
 * a Drop box in the Home page shows the user that have been started that can be visited directly from the homepage

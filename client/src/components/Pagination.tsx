@@ -36,27 +36,35 @@ const Pagination: React.FC<PaginationProps> = ({
       {repos.length > 0 ? (
         <Box gap={2} mt={4} sx={{ display: "flex", justifyContent: "center" }}>
           <IconButton
-            onClick={() => navigate(`/user/${username}?page=${1}`)}
+            onClick={() =>
+              navigate(`/user/${username}?tab=repositories&page=${1}`)
+            }
             disabled={page === 1}
           >
             <FirstPageIcon />
           </IconButton>
           <IconButton
             disabled={page === 1}
-            onClick={() => navigate(`/user/${username}?page=${page - 1}`)}
+            onClick={() =>
+              navigate(`/user/${username}?tab=repositories&page=${page - 1}`)
+            }
           >
             <KeyboardArrowLeftIcon />
           </IconButton>
           {numberOfPages}
           <IconButton
-            onClick={() => navigate(`/user/${username}?page=${page + 1}`)}
+            onClick={() =>
+              navigate(`/user/${username}?tab=repositories&page=${page + 1}`)
+            }
             disabled={page === totalPages}
           >
             <KeyboardArrowRightIcon />
           </IconButton>
           <IconButton
             disabled={page === totalPages}
-            onClick={() => navigate(`/user/${username}?page=${totalPages}`)}
+            onClick={() =>
+              navigate(`/user/${username}?tab=repositories&page=${totalPages}`)
+            }
           >
             <LastPageIcon />
           </IconButton>

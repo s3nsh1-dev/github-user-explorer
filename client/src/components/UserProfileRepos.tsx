@@ -2,15 +2,21 @@ import { Box, Typography, Stack, Paper, Button } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import type { Repo } from "../constants/common.types";
 import { useNavigate } from "react-router-dom";
+import ShowColorChangingUserName from "./ShowColorChangingUserName";
 
 type UserProfileReposProps = {
   repos: Repo[];
+  totalRepos: number;
+  username: string;
 };
 
-const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
+const UserProfileRepos: React.FC<UserProfileReposProps> = ({
+  repos,
+  totalRepos,
+  username,
+}) => {
   const navigate = useNavigate();
   const handleOpenRepository = (repo: Repo) => {
-    const username = repo.full_name.split("/")[0];
     const repoName = repo.name;
     console.log("navigate:", repoName, username);
     navigate(`/user/${repo.full_name}`, {
@@ -23,10 +29,13 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
   return (
     <>
       {/* Repositories List */}
-      <Typography variant="h6" fontWeight={600} gutterBottom>
-        Repositories
+      <Typography fontFamily="monospace" marginY={2}>
+        <ShowColorChangingUserName username={username} />
+        <p>
+          <b>{totalRepos}</b> <i>repositories</i>
+        </p>
       </Typography>
-      <Stack spacing={2}>
+      <Stack spacing={0.5}>
         {repos.length === 0 ? (
           <Typography variant="body2">No repositories found.</Typography>
         ) : (
