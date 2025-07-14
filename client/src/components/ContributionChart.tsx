@@ -13,9 +13,21 @@ const ContributionChart = () => {
   const weeks =
     data.data.user.contributionsCollection.contributionCalendar.weeks;
 
-  console.log("weeks: ", weeks);
+  // console.log("weeks: ", weeks);
 
-  const renderContributionChart = weeks.map((week, index) => {
+  const renderContributionChart = weeks.map((week, index: number) => {
+    const passingArray = week.contributionDays;
+    console.log(passingArray);
+    let finalPass = [...passingArray];
+    if (passingArray.length < 7) {
+      const missingDays = 7 - passingArray.length;
+      const emptyArray = new Array(missingDays).fill({
+        date: "",
+        contributionCount: null,
+        color: "grey",
+      });
+      finalPass = [...passingArray, ...emptyArray];
+    }
     return (
       <Box
         key={index}
@@ -25,10 +37,10 @@ const ContributionChart = () => {
           flexWrap: "wrap",
           justifyContent: "start",
           alignItems: "start",
-          // backgroundColor: "red",
         }}
       >
-        {week.contributionDays.map((day) => {
+        {finalPass.map((day) => {
+          // console.log(day);
           return (
             <Box
               sx={{ backgroundColor: day.color, width: "20px", height: "20px" }}
@@ -39,18 +51,6 @@ const ContributionChart = () => {
         })}
       </Box>
     );
-    // return contributionDays.map((day) => {
-    //   return (
-    //     <Box key={day.date} sx={{ display: "flex", flexDirection: "column" }}>
-    //       {/* {day.date} */}
-    // <Box
-    //   sx={{ backgroundColor: day.color, width: "20px", height: "20px" }}
-    // >
-    //   {day.contributionCount}
-    // </Box>
-    //     </Box>
-    //   );
-    // });
   });
 
   if (isLoading) return <div>....Loading</div>;
