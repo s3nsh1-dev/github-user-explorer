@@ -9,7 +9,7 @@ const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
   return (
     <>
       {/* Profile Header */}
-      <Stack direction="row" spacing={2} alignItems="center">
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
         <Avatar
           src={userProfile.avatar_url}
           alt={userProfile.username}

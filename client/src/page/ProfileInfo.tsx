@@ -8,6 +8,7 @@ import useFetchUserData from "../hooks/useFetchUserData";
 import Paper from "@mui/material/Paper";
 import useMode from "../hooks/useMode";
 import Grid from "@mui/material/Grid";
+import ContributionChart from "../components/ContributionChart";
 
 const ProfileInfo = () => {
   const { username } = useParams();
@@ -119,8 +120,9 @@ const ProfileInfo = () => {
           <UserProfileHeader userProfile={userProfile} />
           <UserProfileStats userProfile={userProfile} />
         </div>
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ my: 2 }} />
         <Box>{renderOtherUserDetails}</Box>
+        <ContributionChart username={username || "demoUserName"} />
       </Box>
     </>
   );

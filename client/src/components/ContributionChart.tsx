@@ -1,9 +1,9 @@
 import useFetchContributionInfo from "../hooks/useFetchContributionInfo";
 import { Box, Typography } from "@mui/material";
 
-const ContributionChart = () => {
+const ContributionChart = ({ username }: { username: string }) => {
   const { data, isLoading, error } = useFetchContributionInfo({
-    username: "s3nsh1-dev",
+    username,
   });
   if (!data) return null;
 
@@ -68,8 +68,19 @@ const ContributionChart = () => {
 
   return (
     <Box>
-      <Typography>Total Contributions: {totalContributions}</Typography>
-      <Box sx={{ display: "flex", flexDirection: "row", gap: "1px" }}>
+      <Typography fontFamily={"monospace"} gutterBottom>
+        {totalContributions} contributions in last 365 days
+      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          gap: "1px",
+          width: "100%",
+          height: "100%",
+          overflow: "auto",
+        }}
+      >
         {renderContributionChart}
       </Box>
     </Box>
