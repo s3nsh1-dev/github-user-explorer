@@ -4,6 +4,7 @@ import NotFound from "./page/NotFound";
 import ShowSelectedRepo from "./page/ShowSelectedRepo";
 import Navbar from "./components/Navbar";
 import LinkWrapper from "./page/LinkWrapper";
+import ContributionChart from "./components/ContributionChart";
 import useMode from "./hooks/useMode";
 import { getTheme } from "./theme/muiCustomTheme";
 import { ThemeProvider, CssBaseline } from "@mui/material";
@@ -26,6 +27,7 @@ const App = () => {
             path="/user/:username/:repoName"
             element={<ShowSelectedRepo />}
           />
+          <Route path="/contribution" element={<ContributionChart />} />
         </Routes>
       </ThemeProvider>
     </>
