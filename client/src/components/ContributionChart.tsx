@@ -33,17 +33,27 @@ const ContributionChart = () => {
         key={index}
         sx={{
           display: "flex",
-          flexDirection: "row",
-          flexWrap: "wrap",
+          flexDirection: "column",
           justifyContent: "start",
           alignItems: "start",
+          gap: "1px",
         }}
       >
         {finalPass.map((day) => {
           // console.log(day);
           return (
             <Box
-              sx={{ backgroundColor: day.color, width: "20px", height: "20px" }}
+              sx={{
+                backgroundColor: day.color,
+                width: "20px",
+                height: "20px",
+                fontSize: "0.7rem",
+                color: "#fffff0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "10px",
+              }}
             >
               {day.contributionCount}
             </Box>
@@ -59,7 +69,7 @@ const ContributionChart = () => {
   return (
     <Box>
       <Typography>Total Contributions: {totalContributions}</Typography>
-      <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
+      <Box sx={{ display: "flex", flexDirection: "row", gap: "1px" }}>
         {renderContributionChart}
       </Box>
     </Box>
