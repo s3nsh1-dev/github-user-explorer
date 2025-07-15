@@ -10,7 +10,7 @@ const ContributionChart = ({ username }: { username: string }) => {
   return data?.data?.user ? (
     <UserContributions data={data} isLoading={isLoading} error={error} />
   ) : (
-    <OrganizationTopRepos />
+    <OrganizationTopRepos data={data} isLoading={isLoading} error={error} />
   );
 };
 

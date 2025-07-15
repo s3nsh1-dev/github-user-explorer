@@ -14,6 +14,8 @@ const useFetchContributionInfo = ({ username }: { username: string }) => {
         }
       }`;
 
+      // how do we know the exact structure of body we are sending here like where do your read the way to structure the body to send to graphql to get the exact detail u want ? where is the documentation if any ... how are doing this magic
+
       const typeResponse = await fetch("https://api.github.com/graphql", {
         method: "POST",
         headers: {
@@ -29,6 +31,7 @@ const useFetchContributionInfo = ({ username }: { username: string }) => {
 
       const typeData = await typeResponse.json();
       console.log("typeData", typeData);
+
       const loginType = typeData.data.repositoryOwner?.__typename;
 
       if (!loginType) {
@@ -86,6 +89,7 @@ const useFetchContributionInfo = ({ username }: { username: string }) => {
         throw new Error("Failed to fetch contribution or repo data");
       }
 
+      console.log("dataResponse", dataResponse.json());
       return await dataResponse.json();
     },
     enabled: !!username,
