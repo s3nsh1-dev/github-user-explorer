@@ -21,7 +21,6 @@ const ProfileInfo = () => {
   const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
   if (userLoading) return <div>Loading...</div>;
   if (userError) return <div>Error: {userError.message}</div>;
-  console.log("ProfileInfo", userData);
 
   const arrays = [
     { label: "📝 Bio", value: userProfile.bio },
@@ -73,37 +72,35 @@ const ProfileInfo = () => {
 
   const renderOtherUserDetails = arrays.map((item, index) => {
     return (
-      <>
-        <Paper key={index} elevation={1} sx={{ my: 1, p: 1, display: "flex" }}>
-          <Grid container spacing={2} columns={12} width="100%">
-            <Grid
-              size={2.5}
-              fontWeight="bold"
-              fontFamily={"monospace"}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                px: 1,
-              }}
-            >
-              {item.label}:
-            </Grid>
-            <Grid
-              size={9.5}
-              fontFamily={"monospace"}
-              sx={{
-                color: mode === "dark" ? "#23272b" : "#e0e0e0",
-                backgroundColor: mode === "dark" ? "#e0e0e0" : "#23272b",
-                px: 1,
-                py: 0.5,
-                borderRadius: 1,
-              }}
-            >
-              {item.value}
-            </Grid>
+      <Paper key={index} elevation={1} sx={{ my: 1, p: 1, display: "flex" }}>
+        <Grid container spacing={2} columns={12} width="100%">
+          <Grid
+            size={2.5}
+            fontWeight="bold"
+            fontFamily={"monospace"}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              px: 1,
+            }}
+          >
+            {item.label}:
           </Grid>
-        </Paper>
-      </>
+          <Grid
+            size={9.5}
+            fontFamily={"monospace"}
+            sx={{
+              color: mode === "dark" ? "#23272b" : "#e0e0e0",
+              backgroundColor: mode === "dark" ? "#e0e0e0" : "#23272b",
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+            }}
+          >
+            {item.value}
+          </Grid>
+        </Grid>
+      </Paper>
     );
   });
 

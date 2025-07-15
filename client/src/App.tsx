@@ -10,7 +10,6 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 import { Route, Routes } from "react-router-dom";
 
 const App = () => {
-  console.log("app is reloaded");
   const { mode } = useMode();
   return (
     <>
