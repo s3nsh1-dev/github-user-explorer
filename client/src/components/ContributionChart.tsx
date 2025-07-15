@@ -17,11 +17,19 @@ const ContributionChart = ({ username }: { username: string }) => {
     username,
   });
 
+  console.log("data", data);
+
+  if (data.data.organization)
+    return (
+      <Typography fontFamily={"monospace"} gutterBottom>
+        Contributions not available for orgs
+      </Typography>
+    );
   if (isLoading) return <LoadingSkeleton />;
-  if (error) return <div>Error Message: {error.message}</div>;
+  if (error) return <div>no data</div>;
   if (!data) return null;
 
-  const totalContributions: number =
+  const totalContributions: number | null =
     data.data.user.contributionsCollection.contributionCalendar
       .totalContributions;
   const weeks: Week[] =

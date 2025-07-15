@@ -4,18 +4,22 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import type { SelectChangeEvent } from "@mui/material/Select";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const StaredRepositories = () => {
+  const [selectValue, setSelectValue] = useState<string>("");
   const navigate = useNavigate();
   const handleChange = (event: SelectChangeEvent) => {
-    const value = event.target.value;
-    navigate(`/user/${value}`);
+    const savedUserName = event.target.value as string;
+    setSelectValue(savedUserName);
+    navigate(`/user/${savedUserName}`);
   };
 
   return (
     <FormControl sx={{ minWidth: 140 }}>
       <InputLabel id="demo-simple-select-label">Favorites ⛦</InputLabel>
       <Select
+        value={selectValue}
         labelId="demo-simple-select-label"
         id="demo-simple-select"
         label="Favorites ⛦"
