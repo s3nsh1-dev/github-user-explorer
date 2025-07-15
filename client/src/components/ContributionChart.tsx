@@ -1,5 +1,6 @@
 import useFetchContributionInfo from "../hooks/useFetchContributionInfo";
 import { Box, Typography } from "@mui/material";
+import LoadingSkeleton from "./LoadingSkeleton";
 
 type Week = {
   contributionDays: ContributionDay[];
@@ -15,6 +16,9 @@ const ContributionChart = ({ username }: { username: string }) => {
   const { data, isLoading, error } = useFetchContributionInfo({
     username,
   });
+
+  if (isLoading) return <LoadingSkeleton />;
+  if (error) return <div>Error Message: {error.message}</div>;
   if (!data) return null;
 
   const totalContributions: number =
@@ -23,12 +27,9 @@ const ContributionChart = ({ username }: { username: string }) => {
   const weeks: Week[] =
     data.data.user.contributionsCollection.contributionCalendar.weeks;
 
-  // console.log("weeks: ", weeks);
-
   const renderContributionChart: React.ReactNode[] = weeks.map(
     (week: Week, index: number) => {
       const passingArray = week.contributionDays;
-      console.log(passingArray);
       let finalPass = [...passingArray];
       if (passingArray.length < 7) {
         const missingDays = 7 - passingArray.length;
@@ -50,10 +51,10 @@ const ContributionChart = ({ username }: { username: string }) => {
             gap: "1px",
           }}
         >
-          {finalPass.map((day) => {
-            // console.log(day);
+          {finalPass.map((day, index) => {
             return (
               <Box
+                key={index}
                 sx={{
                   backgroundColor: day.color,
                   width: "20px",
@@ -74,9 +75,6 @@ const ContributionChart = ({ username }: { username: string }) => {
       );
     }
   );
-
-  if (isLoading) return <div>....Loading</div>;
-  if (error) return <div>Error Message: {error.message}</div>;
 
   return (
     <Box>

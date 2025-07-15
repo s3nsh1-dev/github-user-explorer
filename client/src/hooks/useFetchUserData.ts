@@ -17,7 +17,6 @@ const useFetchUserData = ({ username }: { username: string }) => {
           Authorization: `Bearer ${gitHub_authentication_token}`,
         },
       });
-      console.log("fetching user info for", username);
       if (!response.ok) throw new Error("Failed to fetch user profile");
       return await response.json();
     },
