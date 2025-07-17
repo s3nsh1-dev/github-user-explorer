@@ -30,7 +30,6 @@ const useFetchContributionInfo = ({ username }: { username: string }) => {
       }
 
       const typeData = await typeResponse.json();
-      console.log("typeData", typeData);
 
       const loginType = typeData.data.repositoryOwner?.__typename;
 
@@ -90,7 +89,6 @@ const useFetchContributionInfo = ({ username }: { username: string }) => {
       }
 
       const data = await dataResponse.json();
-      console.log("data", data);
       return data;
     },
     enabled: !!username,

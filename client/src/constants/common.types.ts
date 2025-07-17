@@ -113,3 +113,23 @@ export interface GitHubUserSearchResult {
   incomplete_results: boolean;
   items: GitHubUser[];
 }
+export type dataTypes = {
+  data: {
+    organization: {
+      repositories: {
+        nodes: {
+          name: string;
+          description: string;
+          stargazerCount: number | null;
+          updatedAt: string;
+        }[];
+      };
+    };
+  };
+};
+
+export type OrganizationTopReposTypes = {
+  data: dataTypes;
+  isLoading: boolean;
+  error: unknown;
+};

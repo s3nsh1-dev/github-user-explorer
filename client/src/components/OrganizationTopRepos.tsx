@@ -8,31 +8,15 @@ import {
   Alert,
   Button,
 } from "@mui/material";
-
-type dataTypes = {
-  organization: {
-    repositories: {
-      nodes: {
-        name: string;
-        description: string;
-        stargazerCount: number | null;
-        updatedAt: string;
-      }[];
-    };
-  };
-};
-
-type OrganizationTopReposTypes = {
-  data: dataTypes;
-  isLoading: boolean;
-  error: unknown;
-};
+import type { OrganizationTopReposTypes } from "../constants/common.types";
 
 const OrganizationTopRepos: FC<OrganizationTopReposTypes> = ({
   data,
   isLoading,
   error,
 }) => {
+  console.log("Organization Top Repos: ", data);
+
   if (isLoading)
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -47,9 +31,10 @@ const OrganizationTopRepos: FC<OrganizationTopReposTypes> = ({
       </Alert>
     );
 
-  const repos = data?.organization?.repositories?.nodes || [];
+  const repos = data?.data?.organization?.repositories?.nodes || [];
+  console.log("repos", repos);
 
-  if (repos.length === 0)
+  if (repos.length === 0 && !isLoading)
     return (
       <Typography textAlign="center" mt={4} fontFamily="monospace">
         🚫 No repositories found for this organization
@@ -64,8 +49,11 @@ const OrganizationTopRepos: FC<OrganizationTopReposTypes> = ({
       <Box
         sx={{
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
           gap: 2,
+          flexWrap: "wrap",
+          justifyContent: "space-evenly",
+          // width: "50%",
         }}
       >
         {repos.map((repo, index) => (
@@ -74,6 +62,7 @@ const OrganizationTopRepos: FC<OrganizationTopReposTypes> = ({
             sx={{
               borderRadius: 2,
               boxShadow: 3,
+              width: "400px",
               transition: "transform 0.2s",
               "&:hover": {
                 transform: "scale(1.02)",
