@@ -89,8 +89,9 @@ const useFetchContributionInfo = ({ username }: { username: string }) => {
         throw new Error("Failed to fetch contribution or repo data");
       }
 
-      console.log("dataResponse", dataResponse.json());
-      return await dataResponse.json();
+      const data = await dataResponse.json();
+      console.log("data", data);
+      return data;
     },
     enabled: !!username,
     staleTime: 1000 * 60 * 5,
