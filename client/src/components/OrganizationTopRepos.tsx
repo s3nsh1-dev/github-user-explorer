@@ -15,8 +15,6 @@ const OrganizationTopRepos: FC<OrganizationTopReposTypes> = ({
   isLoading,
   error,
 }) => {
-  console.log("Organization Top Repos: ", data);
-
   if (isLoading)
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -32,7 +30,6 @@ const OrganizationTopRepos: FC<OrganizationTopReposTypes> = ({
     );
 
   const repos = data?.data?.organization?.repositories?.nodes || [];
-  console.log("repos", repos);
 
   if (repos.length === 0 && !isLoading)
     return (

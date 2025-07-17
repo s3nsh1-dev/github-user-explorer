@@ -94,8 +94,14 @@ const useFetchContributionInfo = ({ username }: { username: string }) => {
     enabled: !!username,
     staleTime: 1000 * 60 * 5,
   });
-
-  return result;
+  const foo = result?.data?.data;
+  console.log("foo", Object.keys(foo)[0]);
+  return {
+    data: result.data,
+    isLoading: result.isLoading,
+    error: result.error,
+    loginType: foo,
+  };
 };
 
 export default useFetchContributionInfo;
