@@ -1,6 +1,8 @@
 import LoadingSkeleton from "./LoadingSkeleton";
-import type { FC } from "react";
 import { Box, Typography } from "@mui/material";
+import useFetchContributionInfo from "../hooks/useFetchContributionInfo";
+import type { FC } from "react";
+import type { ContributionCalenderResponseType } from "../constants/common.types";
 
 type Week = {
   contributionDays: ContributionDay[];
@@ -12,30 +14,14 @@ type ContributionDay = {
   color: string; // hex color or "grey"
 };
 
-type dataTypes = {
-  data: {
-    user: {
-      contributionsCollection: {
-        contributionCalendar: {
-          totalContributions: number | null;
-          weeks: Week[];
-        };
-      };
-    };
-  };
+type PropType = {
+  username: string;
 };
 
-type UserContributionsProps = {
-  data: dataTypes;
-  isLoading: boolean;
-  error: unknown;
-};
+const UserContributions: FC<PropType> = ({ username }) => {
+  const { data, isLoading, error }: ContributionCalenderResponseType =
+    useFetchContributionInfo(username);
 
-const UserContributions: FC<UserContributionsProps> = ({
-  data,
-  isLoading,
-  error,
-}) => {
   if (isLoading) return <LoadingSkeleton />;
   if (error) return <div>no data</div>;
   if (!data) return null;

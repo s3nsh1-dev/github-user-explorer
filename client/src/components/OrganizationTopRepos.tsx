@@ -8,13 +8,12 @@ import {
   Alert,
   Button,
 } from "@mui/material";
-import type { OrganizationTopReposTypes } from "../constants/common.types";
+import type { OrganizationRepoResponseType } from "../constants/common.types";
+import useFetchOrganizationRepos from "../hooks/useFetchOgranizationRepos";
 
-const OrganizationTopRepos: FC<OrganizationTopReposTypes> = ({
-  data,
-  isLoading,
-  error,
-}) => {
+const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
+  const { data, isLoading, error }: OrganizationRepoResponseType =
+    useFetchOrganizationRepos(username);
   if (isLoading)
     return (
       <Box display="flex" justifyContent="center" mt={4}>

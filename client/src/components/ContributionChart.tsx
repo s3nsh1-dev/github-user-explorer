@@ -1,31 +1,17 @@
-import useFetchContributionInfo from "../hooks/useFetchContributionInfo";
 import UserContributions from "./UserContributions";
 import OrganizationTopRepos from "./OrganizationTopRepos";
-// import LoadingSkeleton from "./LoadingSkeleton";
-import { Box, CircularProgress } from "@mui/material";
+import useFetchLoginType from "../hooks/useFetchLoginType";
 
 const ContributionChart = ({ username }: { username: string }) => {
-  const { data, isLoading, error } = useFetchContributionInfo({
-    username,
-  });
-
-  const loginType = Object.keys(data?.data || "placeholder")[0];
-  if (isLoading) {
-    console.log("loading UI", loginType, isLoading);
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
-    // return <LoadingSkeleton />;
-  }
-
+  const { data } = useFetchLoginType(username);
   if (!data) return null;
+  const loginType: string = data.data.repositoryOwner?.__typename;
+  console.log("GG", loginType);
 
   return loginType === "user" ? (
-    <UserContributions data={data} isLoading={isLoading} error={error} />
+    <UserContributions username={username} />
   ) : (
-    <OrganizationTopRepos data={data} isLoading={isLoading} error={error} />
+    <OrganizationTopRepos username={username} />
   );
 };
 

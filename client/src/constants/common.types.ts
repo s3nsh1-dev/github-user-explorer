@@ -113,7 +113,7 @@ export interface GitHubUserSearchResult {
   incomplete_results: boolean;
   items: GitHubUser[];
 }
-export type dataTypes = {
+export type OrganizationTop10ReposType = {
   data: {
     organization: {
       repositories: {
@@ -128,8 +128,34 @@ export type dataTypes = {
   };
 };
 
-export type OrganizationTopReposTypes = {
-  data: dataTypes;
+export type OrganizationRepoResponseType = {
+  data: OrganizationTop10ReposType | undefined;
   isLoading: boolean;
-  error: unknown;
+  error: Error | unknown;
+};
+
+// Type for GitHub user contribution calendar GraphQL response
+export type ContributionCalendarResponse = {
+  data: {
+    user: {
+      contributionsCollection: {
+        contributionCalendar: {
+          totalContributions: number;
+          weeks: Array<{
+            contributionDays: Array<{
+              date: string;
+              contributionCount: number;
+              color: string;
+            }>;
+          }>;
+        };
+      };
+    };
+  };
+};
+
+export type ContributionCalenderResponseType = {
+  data: ContributionCalendarResponse | undefined;
+  isLoading: boolean;
+  error: Error | unknown;
 };
