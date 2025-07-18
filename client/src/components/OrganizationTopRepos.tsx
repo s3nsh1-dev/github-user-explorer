@@ -14,6 +14,7 @@ import useFetchOrganizationRepos from "../hooks/useFetchOrganizationRepos";
 const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
   const { data, isLoading, error }: OrganizationRepoResponseType =
     useFetchOrganizationRepos(username);
+
   if (isLoading)
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -104,7 +105,7 @@ const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
                 <Button
                   variant="outlined"
                   size="small"
-                  href={`https://github.com/${repo.name}`}
+                  href={`https://github.com/${username}/${repo.name}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

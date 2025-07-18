@@ -20,7 +20,6 @@ const useFetchUserRepoDetails = ({ username }: { username: string }) => {
           },
         }
       );
-      console.log("fetching repos for", username);
       if (!response.ok) throw new Error("Failed to fetch user repositories");
       return await response.json();
     },

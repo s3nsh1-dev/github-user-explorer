@@ -13,7 +13,6 @@ const Repositories = () => {
   });
 
   const currentPageNumber = parseInt(searchParams.get("page") || "1", 10);
-  console.log("currentPageNumber", currentPageNumber);
   const reposPerPage = 8;
   const startIndex = (currentPageNumber - 1) * reposPerPage;
   const endIndex = startIndex + reposPerPage;
@@ -26,7 +25,6 @@ const Repositories = () => {
   if (reposLoading) return <div>Loading...</div>;
   if (reposError) return <div>Error: {reposError.message}</div>;
 
-  console.log("repos", reposData);
   return (
     <Box maxWidth={1000} mx="auto" px={3} py={1}>
       <UserProfileRepos

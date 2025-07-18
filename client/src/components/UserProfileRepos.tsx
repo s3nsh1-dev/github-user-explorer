@@ -17,18 +17,15 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({
   const navigate = useNavigate();
   const handleOpenRepository = (repo: Repo) => {
     const repoName = repo.name;
-    console.log("navigate:", repoName, username);
     navigate(`/user/${repo.full_name}`, {
       state: { repoName, username },
     });
   };
 
-  console.log("have repos", repos);
-
   return (
     <>
       {/* Repositories List */}
-      <Typography fontFamily="monospace" marginY={2}>
+      <Box fontFamily="monospace" marginY={2}>
         <Link
           to={`/user/${username}`}
           style={{ textDecoration: "none", cursor: "pointer" }}
@@ -36,10 +33,10 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({
           <ShowColorChangingUserName username={username} />
         </Link>
 
-        <p>
+        <Typography>
           <b>{totalRepos}</b> <i>repositories</i>
-        </p>
-      </Typography>
+        </Typography>
+      </Box>
       <Stack spacing={0.5}>
         {repos.length === 0 ? (
           <Typography variant="body2">No repositories found.</Typography>
