@@ -22,7 +22,6 @@ const Explorer = () => {
 
   if (isLoading) return <div>....Loading</div>;
   if (error) return <div>Error Message: {error.message}</div>;
-  console.log(data);
 
   const renderUserCards = data?.pages.flatMap((page) =>
     page.items.map((user) => {

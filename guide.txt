@@ -1,6 +1,3 @@
-When looking raw API : https://api.github.com we have multiple things showing... have idea what they about...
-
-================================================
 
 TASKS:
 Learn react-query aka TanStack Query
@@ -24,6 +21,5 @@ NOW:
 ==================================================
 NEXT:
 STARING FAV REPOS AND SAVING IT TO LOCALSTORAGE
-THE LOADER OF ORGANIZATION IS COMING IN THE USER CALENDER = FIX THAT
-GOING FROM ORGANIZATION PROFILE TO LIST OF REPO : THERE IS AN ERROR SAYS <P> CAN NOT BE DESCENDANT OF A <P>
-LINKS ATTACHED TO THE VIEW ON GITHUB FOR ORGANIZATION REPOS ARE INCORRECT
+IF REPO DESCRIPTION IS LONG THEN TRIM IT
+PAGINATION FOR REPOSITORY LIST IS CAUSING BLEEDING IN MOBILE
