@@ -9,7 +9,7 @@ import {
   Button,
 } from "@mui/material";
 import type { OrganizationRepoResponseType } from "../constants/common.types";
-import useFetchOrganizationRepos from "../hooks/useFetchOgranizationRepos";
+import useFetchOrganizationRepos from "../hooks/useFetchOrganizationRepos";
 
 const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
   const { data, isLoading, error }: OrganizationRepoResponseType =
