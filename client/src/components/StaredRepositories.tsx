@@ -2,12 +2,12 @@ import { Box, FormControl } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import useMode from "../hooks/useMode";
-import { useContext } from "react";
-import startedUserContext from "../context/staredUsersContext";
+import useStartedUserList from "../hooks/useStaredUserList";
 
 const StaredRepositories = () => {
   const { mode } = useMode();
-  const { staredList } = useContext(startedUserContext);
+  const staredUserList = useStartedUserList();
+  const staredList = staredUserList?.staredList ?? [];
 
   console.log("rendering");
 
