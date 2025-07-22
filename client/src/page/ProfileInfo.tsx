@@ -9,6 +9,7 @@ import Paper from "@mui/material/Paper";
 import useMode from "../hooks/useMode";
 import Grid from "@mui/material/Grid";
 import ContributionChart from "../components/ContributionChart";
+import StaredUserContextProvider from "../context/StaredUserContextProvider";
 
 const ProfileInfo = () => {
   const { username } = useParams();
@@ -114,7 +115,9 @@ const ProfileInfo = () => {
             flexWrap: "wrap",
           }}
         >
-          <UserProfileHeader userProfile={userProfile} />
+          <StaredUserContextProvider>
+            <UserProfileHeader userProfile={userProfile} />
+          </StaredUserContextProvider>
           <UserProfileStats userProfile={userProfile} />
         </div>
         <Divider sx={{ my: 2 }} />

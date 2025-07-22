@@ -7,9 +7,12 @@ const useStartedUserList = () => {
   if (!starUserContext) {
     return null;
   }
+
   return {
     staredList: starUserContext.staredList,
-    updateStaredList: starUserContext.updateStaredList,
+    checkStared: starUserContext.checkStared,
+    removeStaredUser: starUserContext.removeStaredUser,
+    addStaredUser: starUserContext.addStaredUser,
   };
 };
 export default useStartedUserList;
