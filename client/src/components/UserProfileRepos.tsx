@@ -45,11 +45,26 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({
             <Paper
               key={repo.id}
               elevation={1}
-              sx={{ p: 2, display: "flex", justifyContent: "space-between" }}
+              sx={{
+                p: 2,
+                display: "flex",
+                justifyContent: "space-between",
+                maxheight: { xs: 10, sm: 20 },
+              }}
             >
               <Box>
                 <Typography fontWeight={600}>{repo.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: { xs: 2, sm: 3 }, // 📱 2 lines on mobile, 3 on desktop
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {repo.description || "No description"}
                 </Typography>
               </Box>
