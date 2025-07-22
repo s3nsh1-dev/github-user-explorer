@@ -11,8 +11,7 @@ const useStartedUserList = () => {
   return {
     staredList: starUserContext.staredList,
     checkStared: starUserContext.checkStared,
-    removeStaredUser: starUserContext.removeStaredUser,
-    addStaredUser: starUserContext.addStaredUser,
+    updateStaredList: starUserContext.updateStaredList,
   };
 };
 export default useStartedUserList;

@@ -13,17 +13,13 @@ const StaredUserContextProvider: React.FC<PropType> = ({ children }) => {
 
   const addStaredUser = (value: string) => {
     setStaredList((prev) => {
-      if (!prev.includes(value)) {
-        const updated = [...prev, value];
-        window.localStorage.setItem("staredProfiles", JSON.stringify(updated));
-        return updated;
-      }
-      return prev;
+      const updated = [...prev, value];
+      window.localStorage.setItem("staredProfiles", JSON.stringify(updated));
+      return updated;
     });
   };
 
   const checkStared = (value: string) => {
-    // console.log("i");
     return initialList.includes(value);
   };
 
@@ -35,9 +31,17 @@ const StaredUserContextProvider: React.FC<PropType> = ({ children }) => {
     });
   };
 
+  const updateStaredList = (value: string) => {
+    if (initialList.includes(value)) {
+      removeStaredUser(value);
+    } else {
+      addStaredUser(value);
+    }
+  };
+
   return (
     <startedUserContext.Provider
-      value={{ staredList, checkStared, removeStaredUser, addStaredUser }}
+      value={{ staredList, checkStared, updateStaredList }}
     >
       {children}
     </startedUserContext.Provider>

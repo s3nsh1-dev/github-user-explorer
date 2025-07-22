@@ -1,24 +1,29 @@
-import { Box, FormControl } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Box, Button, Menu, MenuItem, FormControl } from "@mui/material";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useMode from "../hooks/useMode";
 import useStartedUserList from "../hooks/useStaredUserList";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 const StaredRepositories = () => {
   const { mode } = useMode();
   const staredUserList = useStartedUserList();
   const staredList = staredUserList?.staredList ?? [];
 
-  console.log("rendering");
-
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
   const [selectValue, setSelectValue] = useState<string>("");
   const navigate = useNavigate();
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const savedUserName = event.target.value;
-    setSelectValue(savedUserName);
-    if (savedUserName) {
-      navigate(`/user/${savedUserName}`);
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = (user?: string) => {
+    setAnchorEl(null);
+    if (user) {
+      setSelectValue(user);
+      navigate(`/user/${user}`);
     }
   };
 
@@ -33,34 +38,42 @@ const StaredRepositories = () => {
           borderRadius: "5px",
         }}
       >
-        <Box
-          component="select"
-          value={selectValue}
-          onChange={handleChange}
+        <Button
+          onClick={handleClick}
           sx={{
+            display: "flex",
+            justifyContent: "end",
             width: "100%",
             padding: "8px",
             borderRadius: "4px",
-            fontSize: "1rem",
-            border: "none",
             backgroundColor: mode === "dark" ? "#23272b" : "#e0e0e0",
             color: mode === "dark" ? "white" : "#23272b",
-            "&:focus": {
-              outline: "none",
-              borderColor: "none",
-              // boxShadow: (theme) => `0 0 0 2px ${theme.palette.primary.main}33`,
+          }}
+        >
+          {selectValue || <KeyboardArrowDownIcon />}
+        </Button>
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={() => handleClose()}
+          slotProps={{
+            paper: {
+              sx: {
+                gap: 0,
+                maxHeight: 150, // 🎯 Limit dropdown height
+                overflow: "auto",
+                backgroundColor: mode === "dark" ? "#23272b" : "#e0e0e0",
+                color: mode === "dark" ? "white" : "#23272b",
+              },
             },
           }}
         >
-          <option value="" disabled>
-            ✰
-          </option>
           {staredList.map((user) => (
-            <option key={user} value={user}>
+            <MenuItem key={user} onClick={() => handleClose(user)}>
               {user}
-            </option>
+            </MenuItem>
           ))}
-        </Box>
+        </Menu>
       </FormControl>
     </Box>
   );
