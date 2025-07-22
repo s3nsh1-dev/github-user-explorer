@@ -23,37 +23,46 @@ const StaredRepositories = () => {
   };
 
   return (
-    <FormControl sx={{ minWidth: 140 }}>
-      <Box>Stared Repositories</Box>
-      <Box
-        component="select"
-        value={selectValue}
-        onChange={handleChange}
-        sx={{
-          width: "100%",
-          padding: "8px",
-          border: "1px solid rgba(0, 0, 0, 0.23)",
-          borderRadius: "4px",
-          fontSize: "1rem",
-          backgroundColor: mode === "dark" ? "#23272b" : "white",
-          color: mode === "dark" ? "white" : "#23272b",
-          "&:focus": {
-            outline: "none",
-            // borderColor: "primary.main",
-            boxShadow: (theme) => `0 0 0 2px ${theme.palette.primary.main}33`,
-          },
+    <Box sx={{ display: "flex", flexDirection: "column" }}>
+      <Box>Stared User Profiles</Box>
+      <FormControl
+        sx={{ minWidth: 140 }}
+        style={{
+          padding: "0px 5px",
+          border: `1px solid ${mode === "dark" ? "#e0e0e0" : "#23272b"}`,
+          borderRadius: "5px",
         }}
       >
-        <option value="" disabled>
-          ✰
-        </option>
-        {staredList.map((user) => (
-          <option key={user} value={user}>
-            {user}
+        <Box
+          component="select"
+          value={selectValue}
+          onChange={handleChange}
+          sx={{
+            width: "100%",
+            padding: "8px",
+            borderRadius: "4px",
+            fontSize: "1rem",
+            border: "none",
+            backgroundColor: mode === "dark" ? "#23272b" : "#e0e0e0",
+            color: mode === "dark" ? "white" : "#23272b",
+            "&:focus": {
+              outline: "none",
+              borderColor: "none",
+              // boxShadow: (theme) => `0 0 0 2px ${theme.palette.primary.main}33`,
+            },
+          }}
+        >
+          <option value="" disabled>
+            ✰
           </option>
-        ))}
-      </Box>
-    </FormControl>
+          {staredList.map((user) => (
+            <option key={user} value={user}>
+              {user}
+            </option>
+          ))}
+        </Box>
+      </FormControl>
+    </Box>
   );
 };
 
