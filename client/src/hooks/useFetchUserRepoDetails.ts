@@ -3,7 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 const gitHub_authentication_token = import.meta.env
   .VITE_GITHUB_AUTHENTICATION_TOKEN;
 
-const useFetchUserRepoDetails = ({ username }: { username: string }) => {
+const useFetchUserRepoDetails = ({
+  username,
+  page,
+}: {
+  username: string;
+  page: number;
+}) => {
   const {
     data: reposData,
     isLoading: reposLoading,
@@ -11,9 +17,10 @@ const useFetchUserRepoDetails = ({ username }: { username: string }) => {
   } = useQuery({
     queryKey: ["userRepos", username],
     queryFn: async () => {
+      const perPage = 8;
       if (!username) throw new Error("Username is required");
       const response = await fetch(
-        `https://api.github.com/users/${username}/repos`,
+        `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${gitHub_authentication_token}`,
@@ -23,6 +30,7 @@ const useFetchUserRepoDetails = ({ username }: { username: string }) => {
       if (!response.ok) throw new Error("Failed to fetch user repositories");
       return await response.json();
     },
+
     enabled: !!username,
     staleTime: 1000 * 60 * 5,
   });
