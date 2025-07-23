@@ -86,7 +86,6 @@ export type PaginationProps = {
   page: number;
   username: string;
   totalRepos: number;
-  changePageNumber: (value: number) => void;
 };
 
 export interface GitHubRepo {

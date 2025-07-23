@@ -10,23 +10,29 @@ const PageButton = ({
   pageNum: number;
 }) => {
   const { mode } = useMode();
-  const navigate = useNavigate();
+  const style = {
+    height: 30,
+    width: 30,
+    fontSize: "10px",
+    border: `0px solid grey`,
+    color: mode === "dark" ? "#23272b" : "#e0e0e0",
+    backgroundColor: mode === "dark" ? "#e0e0e0" : "#23272b",
+    clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)", // Kite shape
+    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    transition: "background 0.2s",
+    "&:hover": {
+      backgroundColor: mode === "dark" ? "green" : "#FFD700",
+      color: mode === "dark" ? "#e0e0e0" : "#23272b",
+    },
+  };
 
+  const navigate = useNavigate();
   const handlePageChange = () => {
     navigate(`/user/${username}?tab=repositories&page=${pageNum}`);
   };
 
   return (
-    <IconButton
-      onClick={handlePageChange}
-      sx={{
-        height: 30,
-        width: 30,
-        fontSize: "10px",
-        border: `1px solid ${mode === "dark" ? "white" : "black"}`,
-        color: mode === "dark" ? "white" : "black",
-      }}
-    >
+    <IconButton onClick={handlePageChange} sx={style}>
       {pageNum}
     </IconButton>
   );

@@ -5,16 +5,12 @@ import { Box, Typography } from "@mui/material";
 import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
 import { Link } from "react-router-dom";
 import Pagination from "../components/Pagination";
-import { useState } from "react";
 
 const Repositories = () => {
   const { username } = useParams();
   const [searchParams] = useSearchParams();
-  const [pNum, setPnum] = useState(
-    parseInt(searchParams.get("page") || "1", 10)
-  );
-  // const pNum = parseInt(searchParams.get("page") || "1", 10);
-  console.log(pNum);
+
+  const pNum = parseInt(searchParams.get("page") || "1", 10);
   const { reposData, reposLoading, reposError, totalRepos } =
     useFetchReposPerPage({
       username: username || "demoUserName",
@@ -23,7 +19,6 @@ const Repositories = () => {
 
   if (reposLoading) return <div>Loading...</div>;
   if (reposError) return <div>Error: {reposError.message}</div>;
-  console.log("rendering repos", totalRepos);
 
   return (
     <>
@@ -49,7 +44,6 @@ const Repositories = () => {
         page={pNum}
         username={username || "demoUserName"}
         totalRepos={totalRepos}
-        changePageNumber={setPnum}
       />
     </>
   );

@@ -6,21 +6,12 @@ type PageProps = {
   link: string;
   icon: ReactNode;
   disabled: boolean;
-  changePageNumber: (value: number) => void;
-  pageNumber: number;
 };
 
-const PageQuickButtons: FC<PageProps> = ({
-  link,
-  icon,
-  disabled,
-  changePageNumber,
-  pageNumber,
-}) => {
+const PageQuickButtons: FC<PageProps> = ({ link, icon, disabled }) => {
   const navigate = useNavigate();
   const handleClick = () => {
     navigate(link);
-    changePageNumber(pageNumber);
   };
   return (
     <IconButton onClick={handleClick} disabled={disabled}>
