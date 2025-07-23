@@ -1,5 +1,6 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
-import Button from "@mui/material/Button";
+import { useNavigate } from "react-router-dom";
+import IconButton from "@mui/material/IconButton";
+import useMode from "../hooks/useMode";
 
 const PageButton = ({
   username,
@@ -8,8 +9,7 @@ const PageButton = ({
   username: string;
   pageNum: number;
 }) => {
-  const [searchParams] = useSearchParams();
-  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const { mode } = useMode();
   const navigate = useNavigate();
 
   const handlePageChange = () => {
@@ -17,12 +17,18 @@ const PageButton = ({
   };
 
   return (
-    <Button
-      variant={currentPage === pageNum ? "contained" : "outlined"}
+    <IconButton
       onClick={handlePageChange}
+      sx={{
+        height: 30,
+        width: 30,
+        fontSize: "10px",
+        border: `1px solid ${mode === "dark" ? "white" : "black"}`,
+        color: mode === "dark" ? "white" : "black",
+      }}
     >
       {pageNum}
-    </Button>
+    </IconButton>
   );
 };
 
