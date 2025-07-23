@@ -4,6 +4,7 @@ import UserProfileRepos from "../components/UserProfileRepos";
 import { Box, Typography } from "@mui/material";
 import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
 import { Link } from "react-router-dom";
+import Pagination from "../components/Pagination";
 
 const Repositories = () => {
   const { username } = useParams();
@@ -39,6 +40,12 @@ const Repositories = () => {
           username={username || "demoUserName"}
         />
       </Box>
+      <Pagination
+        repos={reposData}
+        reposPerPage={8}
+        page={pNum}
+        username={username || "demoUserName"}
+      />
     </>
   );
 };
