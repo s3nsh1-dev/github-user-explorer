@@ -1,15 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
+import useFetchRepositories from "./useFetchRepositories";
 
 const gitHub_authentication_token = import.meta.env
   .VITE_GITHUB_AUTHENTICATION_TOKEN;
 
-const useFetchUserRepoDetails = ({
+const useFetchReposPerPage = ({
   username,
   page,
 }: {
   username: string;
   page: number;
 }) => {
+  const fullRepoCall = useFetchRepositories(username);
   const {
     data: reposData,
     isLoading: reposLoading,
@@ -30,11 +32,15 @@ const useFetchUserRepoDetails = ({
       if (!response.ok) throw new Error("Failed to fetch user repositories");
       return await response.json();
     },
-
     enabled: !!username,
     staleTime: 1000 * 60 * 5,
   });
-  return { reposData, reposLoading, reposError };
+  return {
+    reposData,
+    reposLoading,
+    reposError,
+    totalRepos: fullRepoCall.data?.public_repos,
+  };
 };
 
-export default useFetchUserRepoDetails;
+export default useFetchReposPerPage;
