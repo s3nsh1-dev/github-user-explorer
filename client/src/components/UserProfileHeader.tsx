@@ -1,6 +1,7 @@
 import { Avatar, Box, Typography, Stack, IconButton } from "@mui/material";
 import type { GitHubUser } from "../constants/common.types";
-// import StarBorderIcon from "@mui/icons-material/StarBorder";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import StarIcon from "@mui/icons-material/Star";
 import useStartedUserList from "../hooks/useStaredUserList";
 
 type UserProfileProps = {
@@ -8,8 +9,7 @@ type UserProfileProps = {
 };
 
 const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
-  const staredUserList = useStartedUserList();
-  console.log(staredUserList);
+  const staredContext = useStartedUserList();
 
   return (
     <>
@@ -30,11 +30,17 @@ const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
             <Typography variant="h5" fontWeight={600}>
               {userProfile.username}
             </Typography>
-            {/* <IconButton onClick={() => updateStaredList(userProfile.username)}>
-              <StarBorderIcon
-                sx={{ color: !checkStared ? "yellow" : "none" }}
-              />
-            </IconButton> */}
+            <IconButton
+              onClick={() =>
+                staredContext?.updateStaredList(userProfile.username)
+              }
+            >
+              {staredContext?.checkStared(userProfile.username) ? (
+                <StarIcon color="warning" />
+              ) : (
+                <StarBorderIcon />
+              )}
+            </IconButton>
           </Box>
           <Typography variant="subtitle1">{userProfile.name}</Typography>
           <Typography variant="body2" color="text.secondary">

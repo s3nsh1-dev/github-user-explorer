@@ -1,9 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
+import useFetchRepositories from "./useFetchRepositories";
 
 const gitHub_authentication_token = import.meta.env
   .VITE_GITHUB_AUTHENTICATION_TOKEN;
 
-const useFetchUserRepoDetails = ({ username }: { username: string }) => {
+const useFetchReposPerPage = ({
+  username,
+  page,
+}: {
+  username: string;
+  page: number;
+}) => {
+  const fullRepoCall = useFetchRepositories(username);
   const {
     data: reposData,
     isLoading: reposLoading,
@@ -11,9 +19,10 @@ const useFetchUserRepoDetails = ({ username }: { username: string }) => {
   } = useQuery({
     queryKey: ["userRepos", username],
     queryFn: async () => {
+      const perPage = 8;
       if (!username) throw new Error("Username is required");
       const response = await fetch(
-        `https://api.github.com/users/${username}/repos`,
+        `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${gitHub_authentication_token}`,
@@ -26,7 +35,12 @@ const useFetchUserRepoDetails = ({ username }: { username: string }) => {
     enabled: !!username,
     staleTime: 1000 * 60 * 5,
   });
-  return { reposData, reposLoading, reposError };
+  return {
+    reposData,
+    reposLoading,
+    reposError,
+    totalRepos: fullRepoCall.data?.public_repos,
+  };
 };
 
-export default useFetchUserRepoDetails;
+export default useFetchReposPerPage;

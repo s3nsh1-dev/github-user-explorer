@@ -7,8 +7,10 @@ const useStartedUserList = () => {
   if (!starUserContext) {
     return null;
   }
+
   return {
     staredList: starUserContext.staredList,
+    checkStared: starUserContext.checkStared,
     updateStaredList: starUserContext.updateStaredList,
   };
 };

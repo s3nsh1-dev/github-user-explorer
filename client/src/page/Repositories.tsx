@@ -1,44 +1,52 @@
-import useFetchUserRepoDetails from "../hooks/useFetchUserRepoDetails";
+import useFetchReposPerPage from "../hooks/useFetchReposPerPage";
 import { useParams, useSearchParams } from "react-router-dom";
-import { useMemo } from "react";
 import UserProfileRepos from "../components/UserProfileRepos";
+import { Box, Typography } from "@mui/material";
+import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
+import { Link } from "react-router-dom";
 import Pagination from "../components/Pagination";
-import { Box } from "@mui/material";
 
 const Repositories = () => {
   const { username } = useParams();
   const [searchParams] = useSearchParams();
-  const { reposData, reposLoading, reposError } = useFetchUserRepoDetails({
-    username: username || "demoUserName",
-  });
-
-  const currentPageNumber = parseInt(searchParams.get("page") || "1", 10);
-  const reposPerPage = 8;
-  const startIndex = (currentPageNumber - 1) * reposPerPage;
-  const endIndex = startIndex + reposPerPage;
-  const repos = useMemo(
-    () => (Array.isArray(reposData) ? reposData : []),
-    [reposData]
-  );
-  const paginatedRepos = repos.slice(startIndex, endIndex);
+  const pNum = parseInt(searchParams.get("page") || "1", 10);
+  const { reposData, reposLoading, reposError, totalRepos } =
+    useFetchReposPerPage({
+      username: username || "demoUserName",
+      page: pNum,
+    });
 
   if (reposLoading) return <div>Loading...</div>;
   if (reposError) return <div>Error: {reposError.message}</div>;
+  console.log(totalRepos);
 
   return (
-    <Box maxWidth={1000} mx="auto" px={3} py={1}>
-      <UserProfileRepos
-        repos={paginatedRepos}
-        totalRepos={reposData.length}
-        username={username || "demoUserName"}
-      />
+    <>
+      <Box maxWidth={1000} mx="auto" px={3} py={1}>
+        <Box fontFamily="monospace" marginY={2}>
+          <Link
+            to={`/user/${username}`}
+            style={{ textDecoration: "none", cursor: "pointer" }}
+          >
+            <ShowColorChangingUserName username={username || "demoUserName"} />
+          </Link>
+
+          <Typography>
+            <b>{totalRepos}</b> <i>repositories</i>
+          </Typography>
+        </Box>
+        <UserProfileRepos
+          repos={reposData}
+          username={username || "demoUserName"}
+        />
+      </Box>
       <Pagination
-        repos={repos}
-        reposPerPage={reposPerPage}
-        page={currentPageNumber}
+        repos={reposData}
+        reposPerPage={8}
+        page={pNum}
         username={username || "demoUserName"}
       />
-    </Box>
+    </>
   );
 };
 
