@@ -12,43 +12,40 @@ const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
   const staredContext = useStartedUserList();
 
   return (
-    <>
-      {/* Profile Header */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-        <Avatar
-          src={userProfile.avatar_url}
-          alt={userProfile.username}
-          sx={{ width: 100, height: 100 }}
-        />
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="h5" fontWeight={600}>
-              {userProfile.username}
-            </Typography>
-            <IconButton
-              onClick={() =>
-                staredContext?.updateStaredList(userProfile.username)
-              }
-            >
-              {staredContext?.checkStared(userProfile.username) ? (
-                <StarIcon color="warning" />
-              ) : (
-                <StarBorderIcon />
-              )}
-            </IconButton>
-          </Box>
-          <Typography variant="subtitle1">{userProfile.name}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            📍 {userProfile.location || "Unknown"}
+    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+      <Avatar
+        src={userProfile.avatar_url}
+        alt={userProfile.username}
+        sx={{ width: 100, height: 100 }}
+      />
+      <Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h5" fontWeight={600}>
+            {userProfile.username}
           </Typography>
+          <IconButton
+            onClick={() =>
+              staredContext?.updateStaredList(userProfile.username)
+            }
+          >
+            {staredContext?.checkStared(userProfile.username) ? (
+              <StarIcon color="warning" />
+            ) : (
+              <StarBorderIcon />
+            )}
+          </IconButton>
         </Box>
-      </Stack>
-    </>
+        <Typography variant="subtitle1">{userProfile.name}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          📍 {userProfile.location || "Unknown"}
+        </Typography>
+      </Box>
+    </Stack>
   );
 };
 

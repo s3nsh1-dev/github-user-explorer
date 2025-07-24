@@ -14,43 +14,62 @@ const UserProfileStats: React.FC<UserProfileStatsProps> = ({ userProfile }) => {
     navigate(`/user/${userProfile.username}?tab=repositories`);
   };
   return (
-    <>
-      {/* Stats */}
-      <Box display="flex" justifyContent="space-between" gap={2}>
-        <Button
-          variant="outlined"
-          onClick={handleClick}
-          sx={{ display: "flex", flexDirection: "column" }}
-        >
-          <Typography fontWeight={600}>{userProfile.public_repos}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Public Repos
-          </Typography>
-        </Button>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-evenly",
+        flexWrap: "wrap",
+        gap: 2,
+      }}
+    >
+      <Button
+        variant="outlined"
+        onClick={handleClick}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "90px",
+          height: "90px",
+        }}
+      >
+        <Typography fontWeight={600}>{userProfile.public_repos}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Public Repos
+        </Typography>
+      </Button>
 
-        <Button
-          variant="contained"
-          sx={{ display: "flex", flexDirection: "column" }}
-          disabled
-        >
-          <Typography fontWeight={600}>{userProfile.followers}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Followers
-          </Typography>
-        </Button>
+      <Button
+        variant="contained"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "90px",
+          height: "90px",
+        }}
+        disabled
+      >
+        <Typography fontWeight={600}>{userProfile.followers}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Followers
+        </Typography>
+      </Button>
 
-        <Button
-          variant="contained"
-          sx={{ display: "flex", flexDirection: "column" }}
-          disabled
-        >
-          <Typography fontWeight={600}>{userProfile.following}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Following
-          </Typography>
-        </Button>
-      </Box>
-    </>
+      <Button
+        variant="contained"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "90px",
+          height: "90px",
+        }}
+        disabled
+      >
+        <Typography fontWeight={600}>{userProfile.following}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Following
+        </Typography>
+      </Button>
+    </Box>
   );
 };
 

@@ -20,12 +20,6 @@ NOW:
 * Deploy
 ==================================================
 NEXT:
-PAGINATION FOR REPOSITORY LIST IS CAUSING BLEEDING IN MOBILE
 THE VIEW BUTTON(TO VIEW INDIVIDUAL REPOSITORIES INFO) IS BLEEDING IN MOBILE VIEW
 HOMEPAGE UI ON MOBILE IS WEIRD
-
-1 = 1
-2 = 1, 2
-3 = 1, 2, 3
-4 = 1, 2, 3 / 2, 3, 4
-5 = 1, 2, 3 / 2, 3, 4 / 3, 4, 5
+Bio, Blog mentioned in the profile info is bleeding = do not apply text clamp here

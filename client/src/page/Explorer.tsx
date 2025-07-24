@@ -63,7 +63,7 @@ const Explorer = () => {
           variant="contained"
           onClick={() => fetchNextPage()}
           disabled={isFetchingNextPage}
-          sx={{ mt: 2, alignSelf: "center" }}
+          sx={{ mt: 2, alignSelf: "center", mb: 2 }}
         >
           {isFetchingNextPage ? "Loading more..." : "Load More"}
         </Button>

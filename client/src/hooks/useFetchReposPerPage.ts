@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import useFetchRepositories from "./useFetchRepositories";
 
 const gitHub_authentication_token = import.meta.env
   .VITE_GITHUB_AUTHENTICATION_TOKEN;
@@ -11,7 +10,6 @@ const useFetchReposPerPage = ({
   username: string;
   page: number;
 }) => {
-  const fullRepoCall = useFetchRepositories(username);
   const {
     data: reposData,
     isLoading: reposLoading,
@@ -39,7 +37,6 @@ const useFetchReposPerPage = ({
     reposData,
     reposLoading,
     reposError,
-    totalRepos: fullRepoCall.data?.public_repos,
   };
 };
 
