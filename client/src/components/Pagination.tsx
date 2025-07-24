@@ -6,23 +6,60 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import PageButton from "./PageButton";
 import type { PaginationProps } from "../constants/common.types";
 import PageQuickButtons from "./PageQuickButtons";
+import { useSearchParams } from "react-router-dom";
 
 const Pagination: React.FC<PaginationProps> = ({
   page,
   username,
   totalRepos,
 }) => {
+  const [searchParams] = useSearchParams();
+  const foo = parseInt(searchParams.get("page") || page.toString(), 10);
   const totalPages = Math.ceil(totalRepos / 8);
-  const pageNumberOne = page;
-  const pageNumberTwo = page;
-  const pageNumberThree = page;
-  const renderNumericButtons = (
-    <>
-      <PageButton username={username} pageNum={pageNumberOne} />
-      <PageButton username={username} pageNum={pageNumberTwo} />
-      <PageButton username={username} pageNum={pageNumberThree} />
-    </>
-  );
+  // console.log("total Pages", totalPages);
+  let renderNumericButtons;
+  if (totalPages <= 3) {
+    const pageCountArray = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pageCountArray.push(i);
+    }
+    renderNumericButtons = pageCountArray.map((pages) => {
+      return (
+        <PageButton
+          key={pages}
+          username={username}
+          pageNum={pages}
+          active={pages === foo}
+        />
+      );
+    });
+  }
+  if (totalPages > 3) {
+    let pageNumberOne = 1;
+    let pageNumberTwo = 2;
+    let pageNumberThree = 3;
+    if (foo > 1 && foo <= totalPages - 2) {
+      pageNumberOne = foo;
+      pageNumberTwo = foo + 1;
+      pageNumberThree = foo + 2;
+    } else {
+      pageNumberOne = totalPages - 2;
+      pageNumberTwo = totalPages - 1;
+      pageNumberThree = totalPages;
+    }
+    renderNumericButtons = [pageNumberOne, pageNumberTwo, pageNumberThree].map(
+      (pages) => {
+        return (
+          <PageButton
+            key={pages}
+            username={username}
+            pageNum={pages}
+            active={pages === foo}
+          />
+        );
+      }
+    );
+  }
 
   return (
     <>
