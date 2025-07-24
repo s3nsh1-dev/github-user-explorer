@@ -9,6 +9,7 @@ import Pagination from "../components/Pagination";
 const Repositories = () => {
   const { username } = useParams();
   const [searchParams] = useSearchParams();
+
   const pNum = parseInt(searchParams.get("page") || "1", 10);
   const { reposData, reposLoading, reposError, totalRepos } =
     useFetchReposPerPage({
@@ -18,7 +19,6 @@ const Repositories = () => {
 
   if (reposLoading) return <div>Loading...</div>;
   if (reposError) return <div>Error: {reposError.message}</div>;
-  console.log(totalRepos);
 
   return (
     <>
@@ -41,10 +41,9 @@ const Repositories = () => {
         />
       </Box>
       <Pagination
-        repos={reposData}
-        reposPerPage={8}
         page={pNum}
         username={username || "demoUserName"}
+        totalRepos={totalRepos}
       />
     </>
   );

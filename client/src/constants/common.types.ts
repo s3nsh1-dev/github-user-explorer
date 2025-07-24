@@ -83,10 +83,9 @@ export type Repo = {
   url: string;
 };
 export type PaginationProps = {
-  repos: Repo[];
-  reposPerPage: number;
   page: number;
   username: string;
+  totalRepos: number;
 };
 
 export interface GitHubRepo {

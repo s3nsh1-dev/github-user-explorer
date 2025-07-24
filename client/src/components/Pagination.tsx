@@ -1,79 +1,96 @@
-import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import PageButton from "./PageButton";
-import Typography from "@mui/material/Typography";
 import type { PaginationProps } from "../constants/common.types";
+import PageQuickButtons from "./PageQuickButtons";
+import { useSearchParams } from "react-router-dom";
 
 const Pagination: React.FC<PaginationProps> = ({
-  repos,
-  reposPerPage,
   page,
   username,
+  totalRepos,
 }) => {
-  const totalPages = Math.ceil(repos.length / reposPerPage);
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const foo = parseInt(searchParams.get("page") || page.toString(), 10);
+  const totalPages = Math.ceil(totalRepos / 8);
+  // console.log("total Pages", totalPages);
+  let renderNumericButtons;
+  if (totalPages <= 3) {
+    const pageCountArray = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pageCountArray.push(i);
+    }
+    renderNumericButtons = pageCountArray.map((pages) => {
+      return (
+        <PageButton
+          key={pages}
+          username={username}
+          pageNum={pages}
+          active={pages === foo}
+        />
+      );
+    });
+  }
+  if (totalPages > 3) {
+    let pageNumberOne = 1;
+    let pageNumberTwo = 2;
+    let pageNumberThree = 3;
+    if (foo > 1 && foo <= totalPages - 2) {
+      pageNumberOne = foo;
+      pageNumberTwo = foo + 1;
+      pageNumberThree = foo + 2;
+    } else {
+      pageNumberOne = totalPages - 2;
+      pageNumberTwo = totalPages - 1;
+      pageNumberThree = totalPages;
+    }
+    renderNumericButtons = [pageNumberOne, pageNumberTwo, pageNumberThree].map(
+      (pages) => {
+        return (
+          <PageButton
+            key={pages}
+            username={username}
+            pageNum={pages}
+            active={pages === foo}
+          />
+        );
+      }
+    );
+  }
 
-  //page is like reflective state provided from react-router-dom change page = rerender
-
-  const getVisiblePages = () => {
-    if (totalPages <= 3) return [1, 2, 3].slice(0, totalPages);
-
-    if (page === 1) return [1, 2, 3];
-    if (page === totalPages)
-      return [totalPages - 2, totalPages - 1, totalPages];
-    return [page - 1, page, page + 1];
-  };
-  const numberOfPages = getVisiblePages().map((pageNum) => (
-    <PageButton key={pageNum} username={username} pageNum={pageNum} />
-  ));
   return (
     <>
-      {repos.length > 0 ? (
-        <Box gap={2} mt={4} sx={{ display: "flex", justifyContent: "center" }}>
-          <IconButton
-            onClick={() =>
-              navigate(`/user/${username}?tab=repositories&page=${1}`)
-            }
-            disabled={page === 1}
-          >
-            <FirstPageIcon />
-          </IconButton>
-          <IconButton
-            disabled={page === 1}
-            onClick={() =>
-              navigate(`/user/${username}?tab=repositories&page=${page - 1}`)
-            }
-          >
-            <KeyboardArrowLeftIcon />
-          </IconButton>
-          {numberOfPages}
-          <IconButton
-            onClick={() =>
-              navigate(`/user/${username}?tab=repositories&page=${page + 1}`)
-            }
-            disabled={page === totalPages}
-          >
-            <KeyboardArrowRightIcon />
-          </IconButton>
-          <IconButton
-            disabled={page === totalPages}
-            onClick={() =>
-              navigate(`/user/${username}?tab=repositories&page=${totalPages}`)
-            }
-          >
-            <LastPageIcon />
-          </IconButton>
-        </Box>
-      ) : (
-        <Typography color="textDisabled">
-          Create repositories to reflect here
-        </Typography>
-      )}
+      <Box
+        gap={1}
+        mt={4}
+        mb={2}
+        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+      >
+        <PageQuickButtons
+          link={`/user/${username}?tab=repositories&page=${1}`}
+          icon={<FirstPageIcon />}
+          disabled={page === 1}
+        />
+        <PageQuickButtons
+          link={`/user/${username}?tab=repositories&page=${page - 1}`}
+          icon={<KeyboardArrowLeftIcon />}
+          disabled={page === 1}
+        />
+        {renderNumericButtons}
+        <PageQuickButtons
+          link={`/user/${username}?tab=repositories&page=${page + 1}`}
+          icon={<KeyboardArrowRightIcon />}
+          disabled={page === totalPages}
+        />
+        <PageQuickButtons
+          link={`/user/${username}?tab=repositories&page=${totalPages}`}
+          icon={<LastPageIcon />}
+          disabled={page === totalPages}
+        />
+      </Box>
     </>
   );
 };

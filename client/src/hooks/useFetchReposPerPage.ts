@@ -17,7 +17,7 @@ const useFetchReposPerPage = ({
     isLoading: reposLoading,
     error: reposError,
   } = useQuery({
-    queryKey: ["userRepos", username],
+    queryKey: ["userRepos", username, page],
     queryFn: async () => {
       const perPage = 8;
       if (!username) throw new Error("Username is required");
@@ -33,7 +33,7 @@ const useFetchReposPerPage = ({
       return await response.json();
     },
     enabled: !!username,
-    staleTime: 1000 * 60 * 5,
+    // staleTime: 1000 * 60 * 5,
   });
   return {
     reposData,
