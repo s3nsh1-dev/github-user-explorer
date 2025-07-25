@@ -1,7 +1,37 @@
-import { Box, Typography, Stack, Paper, Button } from "@mui/material";
+import { Typography, Stack, Paper, Button, Grid, Box } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import type { Repo } from "../constants/common.types";
 import { useNavigate } from "react-router-dom";
+
+const style1 = {
+  padding: 1,
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "space-between",
+};
+const style2 = {
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "start",
+};
+const style3 = {
+  display: "-webkit-box",
+  WebkitLineClamp: { xs: 2, sm: 3 }, // 📱 2 lines on mobile, 3 on desktop
+  WebkitBoxOrient: "vertical",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+const style4 = {
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "end",
+  alignItems: "center",
+};
+const style5 = {
+  display: "flex",
+  flexDirection: "row",
+  alignContent: "center",
+};
 
 type UserProfileReposProps = {
   repos: Repo[];
@@ -27,35 +57,27 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({
           <Typography variant="body2">No repositories found.</Typography>
         ) : (
           repos.map((repo) => (
-            <Paper
+            <Grid
+              component={Paper}
               key={repo.id}
-              elevation={1}
-              sx={{
-                p: 2,
-                display: "flex",
-                justifyContent: "space-between",
-                maxheight: { xs: 10, sm: 20 },
-              }}
+              container
+              size={12}
+              sx={style1}
+              elevation={2}
             >
-              <Box>
+              <Grid size={{ xs: 7.3, sm: 9.5 }} sx={style2}>
                 <Typography fontWeight={600}>{repo.name}</Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: { xs: 2, sm: 3 }, // 📱 2 lines on mobile, 3 on desktop
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
+                <Typography variant="body2" color="text.secondary" sx={style3}>
                   {repo.description || "No description"}
                 </Typography>
-              </Box>
-              <Box display="flex" alignItems="center" gap={0.5} sx={{ ml: 2 }}>
-                <StarIcon fontSize="small" color="action" />
-                <Typography variant="body2">{repo.stargazers_count}</Typography>
+              </Grid>
+              <Grid size={2} gap={0.5} sx={style4}>
+                <Box sx={style5}>
+                  <StarIcon fontSize="small" color="action" />
+                  <Typography variant="body2">
+                    {repo.stargazers_count}
+                  </Typography>
+                </Box>
                 <Button
                   variant="contained"
                   sx={{ ml: 1 }}
@@ -63,8 +85,8 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({
                 >
                   View
                 </Button>
-              </Box>
-            </Paper>
+              </Grid>
+            </Grid>
           ))
         )}
       </Stack>

@@ -21,5 +21,7 @@ NOW:
 ==================================================
 NEXT:
 THE VIEW BUTTON(TO VIEW INDIVIDUAL REPOSITORIES INFO) IS BLEEDING IN MOBILE VIEW
-HOMEPAGE UI ON MOBILE IS WEIRD
 Bio, Blog mentioned in the profile info is bleeding = do not apply text clamp here
+FIX TEXT 
+INFINITE SCROLL
+PROJECT COMPLETED

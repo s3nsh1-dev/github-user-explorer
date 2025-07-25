@@ -6,11 +6,11 @@ import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
 import { Link } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 
-type PageType = {
+type IncomingPropTypes = {
   totalRepos: number;
 };
 
-const DisplayRepoList: React.FC<PageType> = ({ totalRepos }) => {
+const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
   const { username } = useParams();
   const [searchParams] = useSearchParams();
 
@@ -37,26 +37,23 @@ const DisplayRepoList: React.FC<PageType> = ({ totalRepos }) => {
   if (reposError) return <div>Error: {reposError.message}</div>;
 
   return (
-    <>
-      <Box maxWidth={1000} minHeight={"80vh"} mx="auto" px={3} py={1}>
-        <Box fontFamily="monospace" marginY={2}>
-          <Link
-            to={`/user/${username}`}
-            style={{ textDecoration: "none", cursor: "pointer" }}
-          >
-            <ShowColorChangingUserName username={username || "demoUserName"} />
-          </Link>
-
-          <Typography>
-            <b>{totalRepos}</b> <i>repositories</i>
-          </Typography>
-        </Box>
-        <UserProfileRepos
-          repos={reposData}
-          username={username || "demoUserName"}
-        />
+    <Box maxWidth={1000} minHeight={"80vh"} mx="auto" px={3} py={1}>
+      <Box fontFamily="monospace" marginY={2}>
+        <Link
+          to={`/user/${username}`}
+          style={{ textDecoration: "none", cursor: "pointer" }}
+        >
+          <ShowColorChangingUserName username={username || "demoUserName"} />
+        </Link>
+        <Typography>
+          <b>{totalRepos}</b> <i>repositories</i>
+        </Typography>
       </Box>
-    </>
+      <UserProfileRepos
+        repos={reposData}
+        username={username || "demoUserName"}
+      />
+    </Box>
   );
 };
 
