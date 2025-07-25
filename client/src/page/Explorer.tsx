@@ -66,7 +66,12 @@ const Explorer = () => {
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  if (isLoading) return <div>....Loading</div>;
+  if (isLoading)
+    return (
+      <Box sx={style6}>
+        <CircularProgress />
+      </Box>
+    );
   if (error) return <div>Error Message: {error.message}</div>;
 
   const renderUserCards = data?.pages.flatMap((page) =>

@@ -17,7 +17,7 @@ const useInfiniteUsers = (query: string) => {
       */
       const page = (context.pageParam ?? 1) as number;
       const res = await fetch(
-        `https://api.github.com/search/users?q=${query}&page=${page}&per_page=16`,
+        `https://api.github.com/search/users?q=${query}&page=${page}&per_page=20`,
         {
           headers: {
             Authorization: `Bearer ${TOKEN}`,
@@ -31,7 +31,7 @@ const useInfiniteUsers = (query: string) => {
     },
     getNextPageParam: (prevPage, allPages) => {
       // total_count<count of matched user> is mentioned in every call
-      const totalPages = Math.ceil(prevPage.total_count / 16);
+      const totalPages = Math.ceil(prevPage.total_count / 20);
       // allpages is the array of objects containing the items aka list of names of new users
       const nextPageNumber =
         allPages.length < totalPages ? allPages.length + 1 : undefined;
