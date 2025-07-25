@@ -18,7 +18,6 @@ const useFetchSearchUsers = ({ query }: { query: string }) => {
           },
         }
       );
-      console.log("fetching users matching keyword: ", query);
       if (!response.ok) {
         throw new Error("Failed to fetch data from GitHub API");
       }
