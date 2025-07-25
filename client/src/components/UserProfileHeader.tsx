@@ -1,4 +1,4 @@
-import { Avatar, Box, Typography, Stack, IconButton } from "@mui/material";
+import { Avatar, Box, Typography, IconButton } from "@mui/material";
 import type { GitHubUser } from "../constants/common.types";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import StarIcon from "@mui/icons-material/Star";
@@ -8,26 +8,44 @@ type UserProfileProps = {
   userProfile: GitHubUser;
 };
 
+const style1 = {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  mb: 2,
+  gap: 2,
+};
+const style2 = {
+  width: { xs: 50, sm: 65, md: 80, lg: 100 },
+  height: { xs: 50, sm: 65, md: 80, lg: 100 },
+};
+const style3 = {
+  display: "flex",
+  alignItems: "center",
+};
+const style4 = {
+  fontWeight: 600,
+  fontSize: {
+    xs: "1.2rem",
+    sm: "1.5rem",
+    md: "1.7rem",
+    lg: "1.9rem",
+  },
+};
+
 const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
   const staredContext = useStartedUserList();
 
   return (
-    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+    <Box sx={style1}>
       <Avatar
         src={userProfile.avatar_url}
         alt={userProfile.username}
-        sx={{ width: 100, height: 100 }}
+        sx={style2}
       />
       <Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h5" fontWeight={600}>
-            {userProfile.username}
-          </Typography>
+        <Box sx={style3}>
+          <Typography sx={style4}>{userProfile.username}</Typography>
           <IconButton
             onClick={() =>
               staredContext?.updateStaredList(userProfile.username)
@@ -45,7 +63,7 @@ const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
           📍 {userProfile.location || "Unknown"}
         </Typography>
       </Box>
-    </Stack>
+    </Box>
   );
 };
 

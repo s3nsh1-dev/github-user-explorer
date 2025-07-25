@@ -11,9 +11,37 @@ import Grid from "@mui/material/Grid";
 import ContributionChart from "../components/ContributionChart";
 import StaredUserContextProvider from "../context/StaredUserContextProvider";
 
+const style1 = { my: 1, p: 1, display: "flex" };
+const style2 = {
+  fontWeight: "bold",
+  display: "flex",
+  alignItems: "center",
+  textAlign: "center",
+  px: 1,
+  fontFamily: "monospace",
+};
+const style4 = { px: 3, py: 1, mx: "auto", maxWidth: 1000 };
+const style5 = {
+  display: "flex",
+  justifyContent: "space-between",
+  flexWrap: "wrap",
+};
+
 const ProfileInfo = () => {
-  const { username } = useParams();
   const { mode } = useMode();
+  const style3 = {
+    color: mode === "dark" ? "#23272b" : "#e0e0e0",
+    backgroundColor: mode === "dark" ? "#e0e0e0" : "#23272b",
+    px: 1,
+    py: 0.5,
+    borderRadius: 1,
+    wordWrap: "break-word",
+    // wordBreak: "break-all",
+    fontSize: { xs: ".9rem", sm: "1rem" },
+    fontFamily: "monospace",
+  };
+
+  const { username } = useParams();
   const { userData, userLoading, userError } = useFetchUserData({
     username: username || "demoUserName",
   });
@@ -73,31 +101,12 @@ const ProfileInfo = () => {
 
   const renderOtherUserDetails = arrays.map((item, index) => {
     return (
-      <Paper key={index} elevation={1} sx={{ my: 1, p: 1, display: "flex" }}>
+      <Paper key={index} elevation={1} sx={style1}>
         <Grid container spacing={2} columns={12} width="100%">
-          <Grid
-            size={2.5}
-            fontWeight="bold"
-            fontFamily={"monospace"}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              px: 1,
-            }}
-          >
-            {item.label}:
+          <Grid size={{ xs: 3, sm: 2.5 }} sx={style2}>
+            {item.label}
           </Grid>
-          <Grid
-            size={9.5}
-            fontFamily={"monospace"}
-            sx={{
-              color: mode === "dark" ? "#23272b" : "#e0e0e0",
-              backgroundColor: mode === "dark" ? "#e0e0e0" : "#23272b",
-              px: 1,
-              py: 0.5,
-              borderRadius: 1,
-            }}
-          >
+          <Grid size={{ xs: 9, sm: 9.5 }} sx={style3}>
             {item.value}
           </Grid>
         </Grid>
@@ -106,25 +115,17 @@ const ProfileInfo = () => {
   });
 
   return (
-    <>
-      <Box maxWidth={1000} mx="auto" px={3} py={1}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-          }}
-        >
-          <StaredUserContextProvider>
-            <UserProfileHeader userProfile={userProfile} />
-          </StaredUserContextProvider>
-          <UserProfileStats userProfile={userProfile} />
-        </div>
-        <Divider sx={{ my: 2 }} />
-        <Box>{renderOtherUserDetails}</Box>
-        <ContributionChart username={username || "demoUserName"} />
+    <Box sx={style4}>
+      <Box sx={style5}>
+        <StaredUserContextProvider>
+          <UserProfileHeader userProfile={userProfile} />
+        </StaredUserContextProvider>
+        <UserProfileStats userProfile={userProfile} />
       </Box>
-    </>
+      <Divider sx={{ my: 2 }} />
+      <Box>{renderOtherUserDetails}</Box>
+      <ContributionChart username={username || "demoUserName"} />
+    </Box>
   );
 };
 
