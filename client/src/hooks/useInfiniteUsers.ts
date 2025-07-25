@@ -13,7 +13,7 @@ const useInfiniteUsers = (query: string) => {
       context.pageParam is undefined but not undefined which is returned 
       by getNextPageParam so query starts. But when the total page count
       is reached then the undefined returned by getNextPageParam makes
-      the react query stop
+      the react query stop.
       */
       const page = (context.pageParam ?? 1) as number;
       const res = await fetch(
