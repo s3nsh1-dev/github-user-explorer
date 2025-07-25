@@ -82,7 +82,6 @@ const Explorer = () => {
       );
     })
   );
-  console.log("see last page", data?.pages);
   return (
     <Box sx={style1}>
       <Typography sx={style2}>

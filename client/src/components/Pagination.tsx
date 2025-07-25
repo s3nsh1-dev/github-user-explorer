@@ -13,7 +13,6 @@ const Pagination: React.FC<PaginationProps> = ({
   totalRepos,
 }) => {
   const totalPages = Math.ceil(totalRepos / 8);
-  // console.log("total Pages", totalPages);
   let renderNumericButtons;
   if (totalPages <= 3) {
     const pageCountArray = [];

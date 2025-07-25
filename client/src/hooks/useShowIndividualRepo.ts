@@ -15,7 +15,6 @@ const useShowIndividualRepo = ({
   const { data, isLoading, error } = useQuery({
     queryKey: [repoName, "keyIsUnique"],
     queryFn: async () => {
-      console.log("useShowIndividualRepo is reloaded", repoName, username);
       if (!username || !repoName)
         throw new Error("username or repoName is required");
       const response = await fetch(
@@ -29,7 +28,6 @@ const useShowIndividualRepo = ({
       if (!response.ok) {
         throw new Error("Failed to fetch Individual repo from GitHub API");
       }
-      console.log("fetching repo: ", repoName, username);
       return await response.json();
     },
     enabled: !!repoName && !!username,
