@@ -15,13 +15,13 @@ resolving conflicts with yourself.
 ## How to start a session
 
 ```
-Implement session S4 (plans P28 step 4 → P34 → P35) from
+Implement session S5 (plans P12 → P13 → P14 → P15 → P16) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: fix/token-proxy, off fix/data-layer.
+plan file in order. Branch: fix/error-states, off fix/token-proxy.
 ```
 
-*(S1, S2 and S3 have landed — see `00.INDEX.md` for their SHAs and for what they
-changed that later sessions must account for.)*
+*(S1, S2, S3 and S4 have landed — see `00.INDEX.md` for their SHAs and for what
+they changed that later sessions must account for.)*
 
 Then, in order:
 
@@ -67,9 +67,13 @@ rework/2026 (27c9555)
         a8d7431  docs │
         914cf4a  docs ┘
          └─ 44d69ef  P06  ┐
-            65f6110  P09  ├─ S3  fix/data-layer → 39a310b   ← HEAD
+            65f6110  P09  ├─ S3  fix/data-layer → c3ec6a1
             79ee65c  P10  │
-            39a310b  P11  ┘
+            39a310b  P11  │
+            c3ec6a1  docs ┘
+             └─ 4e04276  P28.4 ┐
+                2babbf0  P34   ├─ S4  fix/token-proxy → 3523d8d   ← HEAD
+                3523d8d  P35   ┘
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -106,12 +110,17 @@ definition — do not run it expecting a merge commit, and do not create one wit
   Review S1 first, and merge in that order — never the reverse.
 
 Either way, **do not rebase any of these branches.** S3 was cut from
-`fix/request-safety` and S4 will be cut from `fix/data-layer`; rewriting their
+`fix/request-safety` and S4 from `fix/data-layer`; rewriting their
 SHAs invalidates every SHA recorded in `00.INDEX.md` and in this file.
 
-*(Written before S3. Still accurate — `rework/2026` has now received neither S1,
-S2 nor S3, and a merge of `fix/data-layer` into it remains a single
-fast-forward landing all three in order.)*
+*(Written before S3. Still accurate after S4 — `rework/2026` has received none of
+S1, S2, S3 or S4, and a merge of `fix/token-proxy` into it remains a single
+fast-forward landing all four in order.)*
+
+**S4 was cut from `c3ec6a1`, not `39a310b`.** Same situation as S3: the S3
+summary names `39a310b` because that was the tip when it was written, and a
+docs-only commit landed after. `c3ec6a1` is a descendant, so "the previous
+session's tip" is the same instruction and loses nothing.
 
 ---
 
@@ -130,8 +139,8 @@ single most likely way a session goes wrong:
 > - If a referenced bug appears already fixed — verify, note it, move on. Do not re-fix.
 > - If reality differs materially from the plan, adapt and **say so in the completion report**.
 
-This matters most in **S5, S7, S8** (S3 is done), which touch files that **S1**,
-**S2** and **S3** have already rewritten. All three have landed, so this is no
+This matters most in **S5, S7, S8** (S3 and S4 are done), which touch files that
+**S1**, **S2** and **S3** have already rewritten. All three have landed, so this is no
 longer hypothetical: **every hook file, `common.types.ts`, `Repositories.tsx`,
 `DisplayRepoList.tsx`, `UserProfileRepos.tsx`, `LowerHomeUI.tsx` and the three
 GraphQL consumer components have changed since the audit snapshot.** Each
@@ -477,83 +486,241 @@ still at `27c9555` and has received none of S1, S2 or S3.
 
 ---
 
-### 🔴 S4 — Proxy & deploy — **THE CRITICAL FIX** ← next
-**Branch:** `fix/token-proxy`, off `fix/data-layer`@`39a310b` · **Risk:** high · **~5 h**
-**Plans:** P28 (step 4 only) → P34 → P35
+### ✅ S4 — Proxy & deploy — **THE CRITICAL FIX** — **landed 2026-08-07**
+**Branch:** `fix/token-proxy`, tip `3523d8d` · **Risk:** high
+**Cut from `fix/data-layer`@`c3ec6a1`**, so it contains all of S1, S2 and S3.
+Nothing has been merged down to `rework/2026` yet; that still blocks nothing.
+**Plans:** P28 step 4 `4e04276` → P34 `2babbf0` → P35 `3523d8d`
 
-Closes **V01**, the exposed token. Earliest possible point — P34 depends on
-P05/P07/P08/P09, and **S3 has landed**, so every dependency is now met.
+**V01 is closed in code.** The token no longer exists anywhere the browser can
+reach it. It is **not yet closed in reality** — see [What is still on you](#-what-is-still-on-you-after-s4)
+at the end of this section. Gate green before every commit, plus a fourth check
+(`npm run typecheck:functions`) that S4 had to add, because `tsc -b` does not
+see `netlify/functions/`.
 
-New territory: `netlify/functions/**`, `netlify.toml`.
+#### What shipped
 
-⚠️ **P34's scope shrank in S2.** The plan says "strip all 8 `VITE_*` reads and 9
-`Authorization` headers". After P05 there is **one** of each, both in
-`client/src/helper/githubFetch.ts` — re-grep, do not trust those numbers. The
-client-side work is now:
+| Plan | Result |
+|---|---|
+| **P28 ✅** | `netlify/functions/_shared/env.mts` — typed `env.GITHUB_TOKEN`, validated at module load (cold start) for presence, whitespace and token shape. Messages name the field and the reason, never the value. Plus a standalone `tsconfig.json` for the functions and a `typecheck:functions` script. |
+| **P34** | Seven functions — `users`, `user-repos`, `repo`, `search-users` (REST) and `owner-type`, `contributions`, `org-repos` (GraphQL) — over a shared `_shared/github.mts`. The 3 GraphQL documents moved to `_shared/queries.mts`; `client/src/constants/graphqlQueries.ts` **deleted**. Client: `githubFetch` loses `TOKEN`, `authHeaders` and `githubGraphQL`; `githubUrls` builds same-origin `/api` URLs and gains three builders; the 3 GraphQL hooks become ordinary `githubFetch` calls. `netlify.toml` created. Vite dev proxy to `netlify dev`'s 8888. |
+| **P35** | CSP + `X-Content-Type-Options` + `Referrer-Policy` + `Permissions-Policy`; `/assets/*` immutable, `/index.html` must-revalidate; SPA fallback below `/api/*`; description, Open Graph and `theme-color` metadata in `index.html`. |
 
-1. `helper/githubFetch.ts` — drop `TOKEN` and `authHeaders`, point at the proxy.
-2. `helper/githubUrls.ts` — repoint the 4 builders' origin off `api.github.com`.
-3. `constants/graphqlQueries.ts` — **move the 3 documents server-side.** The
-   file carries this note already. A proxy that forwards a client-supplied
-   `query` string is exactly as vulnerable as the pre-P08 code, with a secret
-   token behind it. The client must send only `{ login }`.
+#### How it was verified
 
-Keep the encoding contract when rewriting the builders: path segments get
-`encodeURIComponent`, query params get `URLSearchParams` and must **not** be
-pre-encoded. Re-run S2's PoCs (`/user/x%2F..%2F..%2Forgs%2Fgithub`,
-`?query=a%26per_page=100`) against the proxy — a proxy that reassembles paths by
-string concatenation reintroduces **V03** server-side.
+Everything below is **executed**. `netlify-cli` was not installed (rule 5), so
+the functions ran under **Node 24's native type stripping** behind a ~40-line
+stand-in that applies `netlify.toml`'s redirect and header rules parsed out of
+the real file — the config under test is the config that ships. Requests went to
+the **live** `api.github.com` with the real token; the production `vite build`
+output was driven in **headless Chrome over CDP**.
 
-**Your manual step, before deploying:** add `GITHUB_TOKEN` in Netlify → Site
-settings → Environment variables. Revoke the old token *after* this ships.
+| Check | Result |
+|---|---|
+| All 7 endpoints, live GitHub | ✅ real data from every one |
+| **Contribution graph** | ✅ "3400 contributions" on `/user/torvalds` — **first time it has worked since S1 pulled the token**. This is decision B2's entire justification, and it had been unverifiable for three sessions |
+| `dist/`: token strings / `api.github.com` / `Authorization` | **0 / 0 / 0** |
+| `client/src`: token read / `Authorization` header | **0 / 0** (2 mentions remain **in prose comments** — see deviation 4) |
+| `GET /repos/facebook/react` 301 → `/repositories/10270250` | ✅ followed |
+| Smoke in Chrome: home, explore, profile, org profile, repo detail | ✅ all render real data, **one `/api` request per resource**, **zero** direct `github.com` requests, **zero** console errors |
+| Click "PUBLIC REPOS" (client-side nav) | ✅ one `/api/user-repos` call, no profile refetch — P10/P11 intact |
+| **CSP violations across all five pages** | **0** — and avatars *decode* (`naturalWidth > 0`), Roboto loads, `<style data-emotion>` present |
+| `/user/torvalds` cold request | **200**. The live site returns **404** for it today (measured), so every shared profile link is broken until this deploys |
 
-⚠️ **P35 must not merge before P34.** Its `connect-src 'self'` breaks a client
-still calling `api.github.com` directly.
+**The S2 PoCs, re-run against the proxy:**
 
-#### ⚠️ Inherited from S3 — five things that will bite
+| PoC | Result |
+|---|---|
+| `login=x/../../orgs/github` (encoded *and* raw) | **400 `bad_request`** — never reaches GitHub |
+| `login=a") { __typename } viewer { login email } …` | **400 `bad_request`** |
+| `POST /api/owner-type` with `{"query":"{viewer{login email}}"}` | **405 `method_not_allowed`** — no handler reads a body at all |
+| `q=a&per_page=100&sort=x` | one `q` value (`total_count: 0`), 20 items — not smuggled |
+| `page=abc` → 1 · `per_page=9999` → capped at 100 | ✅ |
+| `login=` / absent / `-lead` / 40 chars | 400 · 400 · 400 · 400 (39 chars passes) |
+| 404s: unknown user, unknown repo, unknown GraphQL login | all **404 `not_found`**, upstream body never forwarded |
 
-1. 🔴 **Forward GitHub's rate-limit response headers through the proxy.**
-   `assertOk` in `helper/githubFetch.ts` decides a 403 is a `RateLimitError` by
-   reading `x-ratelimit-remaining` and `x-ratelimit-reset` **off the response**.
-   P11's retry predicate then refuses to retry it. A Netlify function that
-   returns only a status and a body strips those headers, every 403 becomes a
-   generic `GitHubError`, and **the app silently starts retrying into the rate
-   limit again** — reopening the V07 amplification S3 just closed. Same for 404:
-   the status must survive, or `NotFoundError` stops being constructed.
-2. ⚠️ **`helper/githubFetch.ts` reads `import.meta.env` twice now.** One is the
-   token (delete it); one is `import.meta.env.DEV`, gating the schema-mismatch
-   console log (**keep it**). The S2-era note that there is exactly one read in
-   all of `client/src` is out of date. Re-grep, as always.
-3. **Do not validate GitHub's output in the function as well.** P09's Do-NOT is
-   explicit: validate once, at the client boundary. The function validates
-   *inputs* — login and repo name, via `helper/validateLogin.ts`, which is still
-   unimported and available.
-4. ⚠️ **Follow redirects.** `GET /repos/:owner/:name` 301s to
-   `/repositories/:id` (confirmed live on `facebook/react`). Browser `fetch`
-   follows it; a proxy that does not will break the repo detail page.
-5. ✅ **A same-origin proxy removes the CORS preflight.** Every GitHub call today
-   costs an extra `OPTIONS` round trip, because `X-GitHub-Api-Version` is not a
-   CORS-simple header. Worth stating in the PR — and worth remembering when
-   comparing network logs before and after, since the "before" numbers are
-   doubled by preflights that the "after" will not have.
+🔴 **The rate-limit path was proven against a real GitHub 403**, not reasoned
+about — the branch note below called this the thing most likely to bite, so the
+search endpoint's 30/min cap was tripped deliberately. The client sees
+**status 403 + `x-ratelimit-remaining: 0` + `x-ratelimit-reset`**, which is
+exactly what `assertOk` needs to construct `RateLimitError` and what P11's
+predicate needs to refuse the retry. Running the client's own branch logic
+against that live response printed `RateLimitError (retry:false)`. **V07 stays
+closed.**
 
-The three GraphQL documents still live in `constants/graphqlQueries.ts` and
-**still must move server-side** — S3 did not touch them beyond passing a schema
-alongside. The client must send only `{ login }`.
+#### ⚠️ Deviations from the plans — read before S5
+
+1. ⚠️ **No Zod in the functions.** P28 step 4 specifies a Zod schema; the
+   validator is ~25 lines of hand-written TypeScript instead. Reason: `netlify.toml`
+   sets `base = "client"`, so npm installs into `client/node_modules`, which is
+   **not on Node's resolution path from `netlify/functions/`** — `netlify/functions/`,
+   `netlify/`, and the repo root are, and none of them has a `node_modules`.
+   P28's own note ("functions resolve `zod` from the repo root or `client/`
+   depending on the bundler config; verify the function bundle includes it")
+   flagged exactly this, and it **cannot be verified from here** — only a real
+   Netlify build proves it. A one-field schema is not worth risking the deploy of
+   the critical security fix. All four of P28's acceptance criteria for the step
+   still hold, and the validator is exercised by **7 executed cases**, two of
+   which assert the value never reaches the message. **`netlify/functions/` now
+   has zero npm dependencies** — worth keeping that way.
+2. ⚠️ **Every parameter travels in the query string, not in a path segment.**
+   P34 sketches `/api/users/:login`; the endpoints are `/api/users?login=…`.
+   `URLSearchParams` round-trips a value exactly, whereas a path segment passes
+   through Netlify's router *and* the URL parser, either of which may normalise
+   `..` and `%2F` — and P34's own warning is that "a proxy that reassembles paths
+   by string concatenation reintroduces V03 server-side". This removes the
+   question rather than answering it: **there is no path to traverse.** It also
+   collapses the redirect table to the single `/api/*` rule P34 specifies, with
+   no placeholder-merging behaviour to depend on.
+3. **The functions import `client/src/helper/validateLogin.ts` directly** rather
+   than copying the regexes into `_shared/`. One definition guards both the
+   browser route and the upstream request; a second copy would be free to drift,
+   and these two regexes are the V03 fix. esbuild inlines it, so the bundle has
+   no cross-package reference at runtime — verified.
+4. ⚠️ **P34's grep criterion cannot be satisfied literally, and never could.**
+   `grep -rn "import.meta.env\|Authorization\|VITE_" client/src` still returns
+   3 hits: `import.meta.env.DEV` (which S3 requires be **kept**), and the strings
+   `VITE_GITHUB_AUTHENTICATION_TOKEN` and `Authorization` **inside doc comments
+   explaining the bug that was fixed**. S3 reworded comments to keep such greps
+   clean; that was not done here, because a comment saying "this file used to
+   read `VITE_GITHUB_AUTHENTICATION_TOKEN` and inline it into the bundle" is the
+   most valuable sentence in the file. **The code has zero.** If **P30** ever
+   automates this grep, scope it to non-comment lines.
+5. **`githubGraphQL` was deleted, not repointed.** P34 §5 describes changing a
+   URL. Since the query documents had to move server-side anyway, the three
+   GraphQL calls became ordinary REST-shaped GETs and the second response path
+   disappeared. The envelope unwrapping, the `errors`-at-HTTP-200 handling and
+   the "could not resolve to a" → 404 mapping all moved into `proxyGraphQL`
+   unchanged, so **client behaviour is identical** — including
+   `org-repos?login=<a user>` still producing a not-found, exactly as before.
+6. **P35's SPA fallback landed in P34's commit.** It sits in the same redirect
+   table as `/api/*` and the ordering between them is the load-bearing part, so
+   splitting them across two commits would have committed a broken intermediate
+   state. Small scope bleed, recorded here rather than hidden.
+7. **A fourth gate step exists now:** `npm run typecheck:functions`
+   (`client/package.json`). `tsc -b` does not see `netlify/functions/`, so
+   without it the functions were type-checked only at deploy. **Run it whenever
+   you touch `netlify/`.**
+8. **Import specifiers name the real file** (`./env.mts`, `validateLogin.ts`),
+   which needs `allowImportingTsExtensions` in the functions' tsconfig. The
+   canonical `.mjs` form was tried first and **fails under Node's type
+   stripping** — Node does not remap `.mjs` → `.mts`, only bundlers do. The `.mts`
+   form is the one where tsc, esbuild *and* Node all resolve identically, which
+   is what made local execution possible at all.
+9. **No anti-flash theme script** (P35 §4) — it needs a `script-src` SHA-256 hash
+   *and* must agree with **P17**'s `readMode()` on the `prefers-color-scheme`
+   fallback, or it flashes in the opposite direction. P17 has not landed. P35
+   explicitly permits skipping it. **Revisit in S6.**
+10. **No `og:image`** — the asset does not exist, and pointing at a missing image
+    renders a *broken* preview, which is worse than the text-only card that ships.
+    Needs a real 1200×630 capture. **P26/P36.**
+11. **`per_page` and `page` are capped server-side** (100 / 1000, and 100 for
+    search) — not in any plan. One line, and it stops a caller turning one page
+    view into a 100-item response against a shared quota.
+
+#### Observations that are nobody's plan
+
+- ✅ **The CORS preflight is gone.** S3 measured every GitHub call costing an
+  extra `OPTIONS` because `X-GitHub-Api-Version` is not a CORS-simple header.
+  Same-origin `/api/*` has no preflight — Chrome's network log now shows **one**
+  request per logical call, not two. Worth stating in the PR, and worth
+  remembering when comparing "before" numbers, which were doubled.
+- **`facebook/react` now reports `full_name: "react/react"`** — GitHub has
+  transferred the repository. Noticed while confirming the 301 follow; the page
+  renders correctly either way. Nothing to fix.
+- **P14's bug still reproduces.** `/user/zzzz-not-a-real-user-zzzz` renders a
+  blank body: one request, a correct 404, and `ProfileInfo`'s
+  `if (!userData) return null;` still running ahead of its error check. **S5's.**
+- **`npm audit` still reports 13 advisories.** Untouched, unowned.
+- **Bundle is essentially unchanged** (~641 kB raw). The proxy removed a little
+  code and added none.
+
+#### Seen but deliberately NOT fixed (still open for their owning plan)
+
+- `Pagination`'s `Math.ceil(totalRepos / 8)` `NaN` and `Repositories.tsx`'s
+  `as number` → **P15**
+- `ProfileInfo`'s `if (!userData) return null;` ahead of its error check → **P14**
+- The six raw `Error: {error.message}` / `String(error)` renders → **P13**
+  *(now more visible: every proxy error is a clean typed error, and the UI still
+  prints it raw — `/user/torvalds/repositories` renders "Error: Resource not found")*
+- The `"demoUserName"` fallbacks, still live in four files → **P16**
+- `LowerHomeUI`'s `alert()` and the `searchTerm.length` vs trimmed-length bug → **P20**
+- `PageButton` / `PageQuickButtons` render `<button>` + `navigate()` → **P23**
+
+#### 🔴 What is still on you after S4
+
+The code is done and verified. **V01 is not closed until you do these, in this
+order** — the site will 500 on every request if it deploys without step 2:
+
+1. **Create a new token** at <https://github.com/settings/tokens> — **no scopes**.
+   Public GitHub data needs none.
+2. **Netlify → Site settings → Environment variables → add `GITHUB_TOKEN`**
+   (no `VITE_` prefix — that prefix *is* the bug). The root `.env.development`
+   covers `netlify dev` only; Netlify's build and runtime do not read it.
+3. **Deploy this branch**, and confirm: a profile loads, the contribution graph
+   renders, and `curl -sI <site>/ | grep -i content-security` shows the CSP.
+4. **Only then revoke the old token.** ⚠️ **Check both lists** — the deployed
+   bundle's token is `ghp_`-prefixed (classic) while `.env.development` holds a
+   `github_pat_` one (fine-grained). **Different prefixes mean different
+   credentials**; revoking the one on your disk does not revoke the public one.
+   Classic and fine-grained are listed separately on that page.
+5. **Check <https://github.com/settings/security-log>** for anything the exposed
+   token did.
+
+If the first deploy 500s, the two likely causes in order: `GITHUB_TOKEN` missing
+(step 2), or the functions not deploying at all — check that Netlify's build log
+lists seven functions. `base = "client"` makes `[functions] directory` relative
+to `client/`, which is why it reads `../netlify/functions`.
+
+#### → How S5 branches from here
+
+```bash
+git checkout fix/token-proxy         # must be at 3523d8d
+git checkout -b fix/error-states
+```
+
+Same rule as before: **cut from the previous session's tip.** `rework/2026` is
+still at `27c9555` and has received none of S1, S2, S3 or S4.
+
+S5 touches render paths only and does **not** need the proxy running — but if
+you want to see real data while working, `npx netlify dev` from the repo root
+serves the functions and the client together on 8888, and `npm run dev` in
+`client/` proxies `/api` there.
 
 ---
 
-### 🟡 S5 — Error & empty states
-**Branch:** `fix/error-states` · **Risk:** medium · **~3 h**
+### 🟡 S5 — Error & empty states  ← next
+**Branch:** `fix/error-states`, off `fix/token-proxy`@`3523d8d` · **Risk:** medium · **~3 h**
 **Plans:** P12 → P13 → P14 → P15 → P16
 
 Render paths across `page/` and `components/`. Fixes the blank-profile-page bug
 (P14) and the pagination `NaN` bug (P15). P13's `<ErrorState>` is consumed by
 P14 and P16, so they belong together.
 
+#### ⚠️ Inherited from S4
+
+- **Errors now arrive from the proxy, not from GitHub.** The status is what
+  carries meaning: **404** → `NotFoundError`, **403 + `x-ratelimit-remaining: 0`**
+  → `RateLimitError` (with `resetAt`), **400** → a `GitHubError` with status 400
+  (bad login — P16's case), **502** → `GitHubError`. The response body is always
+  `{"error":"<code>"}` and **never** GitHub's text, so **P13 has nothing raw
+  left to leak** — `error.message` is now always one of the app's own strings.
+  That closes V09 more cleanly than the plan assumed; still replace the six raw
+  renders, and still branch on `instanceof`, not on message text.
+- **A 400 is reachable now and was not before.** An invalid login is rejected by
+  the proxy instead of becoming a GitHub 404. **P16** should gate at the route
+  boundary with `helper/validateLogin.ts` so the user sees a real "not a valid
+  GitHub username" page rather than a generic error after a round trip — the
+  helper is finally imported (by the functions), so it is proven, not theoretical.
+- **`client/src/constants/graphqlQueries.ts` no longer exists** and
+  `githubGraphQL` is gone from `helper/githubFetch.ts`. If a plan or an old note
+  tells you to import either, it is stale.
+- **The gate has a fourth step**, `npm run typecheck:functions`. S5 touches no
+  function code, so it should stay green for free — but run it if you do.
+
 #### ⚠️ Inherited from S2
 
-- **P14's bug is confirmed reproducible.** `/user/zzzz-not-a-real-user-zzzz`
+- **P14's bug is confirmed reproducible**, re-verified after S4. `/user/zzzz-not-a-real-user-zzzz`
   renders a blank body today: the request correctly throws `NotFoundError`, but
   `ProfileInfo`'s `if (!userData) return null;` runs before its error check, so
   nothing renders. S2 killed the *crash*, not the blank page.
@@ -676,23 +843,30 @@ is never linked (B7).
 rework/2026 (27c9555 — has received nothing yet)
     └── ✅ S1  quick-wins      ac4186a ─────┐
             └── ✅ S2  request-safety  914cf4a
-                    └── ✅ S3  data-layer  39a310b  ← branch from here next
-                            ├── S4  token-proxy  🔴 CRITICAL
-                            └── S5  error-states
-                                    ├── S7  feat/search
-                                    ├── S8  a11y ── S10  tooling
-                                    └── S9  perf/assets
+                    └── ✅ S3  data-layer  c3ec6a1
+                            └── ✅ S4  token-proxy  3523d8d  ← branch from here next
+                                    └── S5  error-states
+                                            ├── S7  feat/search
+                                            ├── S8  a11y ── S10  tooling
+                                            └── S9  perf/assets
     S6  context-storage  ← only needs S1
     S11 docs/readme      ← only needs S1
 ```
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Three sessions are done; the next branch is cut
-from `39a310b`.
+so far has not happened at all. Four sessions are done; the next branch is cut
+from `3523d8d`.
 
-**Critical path to the security fix: S1 → S2 → S3 → S4.** Three down, one to go —
-**S4 is the last hop, and it is the one that actually closes V01.**
+**Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
+— S4 landed first, and S5 is cut from it. Nothing forced that order (they share
+no files), but stacking keeps a single line of history instead of a second stack
+to reconcile later.
+
+~~**Critical path to the security fix: S1 → S2 → S3 → S4.**~~ ✅ **All four have
+landed. V01 is closed in code.** What remains is not a plan — it is the Netlify
+env var and the token revocation, both of which only you can do. See
+[What is still on you after S4](#-what-is-still-on-you-after-s4).
 
 **S6 and S11 are independent** — they only need S1, so they may be cut from
 `fix/quick-wins`@`ac4186a`. If you run them in parallel with the main line,
@@ -737,11 +911,16 @@ more than it saves.
 
 ## Outstanding action (blocks no plan)
 
-🔴 **Revoke the exposed PAT.** Confirmed live in the deployed bundle
-(`/assets/index-CnEJiIFO.js`, 4 occurrences). Sequence so the site never breaks:
-new no-scope token → add as `GITHUB_TOKEN` in Netlify → ship **S4** → revoke the
-old one at <https://github.com/settings/tokens>. Check
+🔴 **Add `GITHUB_TOKEN` in Netlify, then revoke the exposed PAT.** ✅ **S4 has
+landed**, so the code side is done — the full step-by-step is in
+[What is still on you after S4](#-what-is-still-on-you-after-s4). Short version:
+new no-scope token → add as `GITHUB_TOKEN` in Netlify (**no `VITE_` prefix**) →
+deploy `fix/token-proxy` → *then* revoke the old one at
+<https://github.com/settings/tokens>. Check
 <https://github.com/settings/security-log> too.
+
+⚠️ **This is now the only thing between the repo and V01 being genuinely
+closed.** It blocks no plan; S5 onward can proceed in parallel.
 
 ⚠️ **There are probably two different tokens — check both.** Noted during S1:
 the audit records the deployed bundle's token as **`ghp_`**-prefixed (classic
@@ -752,5 +931,8 @@ the one on your disk would not revoke the one that is public. Enumerate both at
 separately — before revoking anything.
 
 ✅ Not a new exposure: the locally built bundle at S1 contained **zero** token
-strings, because the `VITE_*` variable is no longer defined. The client is
-correspondingly broken (`Bearer undefined`) until **P34**, which is accepted.
+strings, because the `VITE_*` variable is no longer defined. ~~The client is
+correspondingly broken (`Bearer undefined`) until **P34**, which is accepted.~~
+**Fixed in S4** — the client works again, against `/api/*`, and the built bundle
+still contains zero token strings because it no longer contains a token read at
+all. Re-verify against the deployed bundle once the site ships.
