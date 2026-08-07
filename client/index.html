@@ -24,9 +24,9 @@
     />
 
     <!-- Link previews in Slack, Discord, iMessage and every social card.
-         og:image is deliberately absent: pointing at an image that does not
-         exist yet renders a broken preview, which is worse than a text-only
-         one. Add it with a real 1200x630 capture of the profile page. -->
+         og:image is a real 1200x630 capture of the profile page — the screen
+         that actually shows what this app does. It has to be an absolute URL:
+         scrapers do not resolve relative paths. -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="GitHub User Explorer" />
     <meta
@@ -34,7 +34,14 @@
       content="Search any GitHub user or organization and explore their profile, repositories, and contribution history."
     />
     <meta property="og:url" content="https://github-userexplorer.netlify.app/" />
-    <meta name="twitter:card" content="summary" />
+    <meta
+      property="og:image"
+      content="https://github-userexplorer.netlify.app/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A GitHub profile with its contribution graph, rendered by GitHub User Explorer" />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <!-- Matches theme.palette.background.default in theme/muiCustomTheme.ts,
          so the browser chrome agrees with the page instead of framing it. -->
