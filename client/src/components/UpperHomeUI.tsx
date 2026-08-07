@@ -1,4 +1,4 @@
-import StaredRepositories from "./StaredRepositories";
+import StarredUsersMenu from "./StarredUsersMenu";
 import Box from "@mui/material/Box";
 
 const UpperHomeUI = () => {
@@ -13,7 +13,7 @@ const UpperHomeUI = () => {
         marginTop: "50px",
       }}
     >
-      <StaredRepositories />
+      <StarredUsersMenu />
     </Box>
   );
 };

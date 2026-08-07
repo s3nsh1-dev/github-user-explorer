@@ -2,12 +2,12 @@ import { Box, Button, Menu, MenuItem, FormControl } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useMode from "../hooks/useMode";
-import useStartedUserList from "../hooks/useStaredUserList";
+import useStarredUsers from "../hooks/useStarredUsers";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
-const StaredRepositories = () => {
+const StarredUsersMenu = () => {
   const { mode } = useMode();
-  const { staredList } = useStartedUserList();
+  const { starredList } = useStarredUsers();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -27,7 +27,7 @@ const StaredRepositories = () => {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
-      <Box>Stared User Profiles</Box>
+      <Box>Starred User Profiles</Box>
       <FormControl
         sx={{ minWidth: 140 }}
         style={{
@@ -69,12 +69,12 @@ const StaredRepositories = () => {
           {/* An empty dropdown that opens onto nothing is the first
               interactive element a first-time visitor meets. Say what it is
               for instead. */}
-          {staredList.length === 0 ? (
+          {starredList.length === 0 ? (
             <MenuItem disabled sx={{ whiteSpace: "normal", maxWidth: 220 }}>
               Star a profile to pin it here.
             </MenuItem>
           ) : (
-            staredList.map((user) => (
+            starredList.map((user) => (
               <MenuItem key={user} onClick={() => handleClose(user)}>
                 {user}
               </MenuItem>
@@ -86,4 +86,4 @@ const StaredRepositories = () => {
   );
 };
 
-export default StaredRepositories;
+export default StarredUsersMenu;

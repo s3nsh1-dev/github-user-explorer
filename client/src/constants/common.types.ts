@@ -47,7 +47,7 @@ export type GitHubUser = {
   repos_url: string;
   login: string;
   email: string;
-  hirable: string;
+  hireable: string;
   accountType: string;
   blog: string | null;
   gists: number;

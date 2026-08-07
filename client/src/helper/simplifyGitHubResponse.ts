@@ -19,7 +19,7 @@ export function mapGitHubResponse(data: GitHubApiUser): GitHubUser {
     public_repos: data.public_repos,
     repos_url: data.repos_url,
     email: data.email || "🚫 Not Provided",
-    hirable: data.hireable ? "📨 Actively Applying" : "🧑‍💻 Busy Learning",
+    hireable: data.hireable ? "📨 Actively Applying" : "🧑‍💻 Busy Learning",
     accountType: data.type || "🚫 Not Provided",
     blog: data.blog || "⏳ Coming Soon ",
     gists: data.public_gists,

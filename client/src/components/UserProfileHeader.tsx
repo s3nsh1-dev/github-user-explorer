@@ -2,7 +2,7 @@ import { Avatar, Box, Typography, IconButton } from "@mui/material";
 import type { GitHubUser } from "../constants/common.types";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import StarIcon from "@mui/icons-material/Star";
-import useStartedUserList from "../hooks/useStaredUserList";
+import useStarredUsers from "../hooks/useStarredUsers";
 
 type UserProfileProps = {
   userProfile: GitHubUser;
@@ -34,7 +34,7 @@ const style4 = {
 };
 
 const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
-  const { checkStared, updateStaredList } = useStartedUserList();
+  const { checkStarred, toggleStarred } = useStarredUsers();
 
   return (
     <Box sx={style1}>
@@ -47,9 +47,9 @@ const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
         <Box sx={style3}>
           <Typography sx={style4}>{userProfile.username}</Typography>
           <IconButton
-            onClick={() => updateStaredList(userProfile.username)}
+            onClick={() => toggleStarred(userProfile.username)}
           >
-            {checkStared(userProfile.username) ? (
+            {checkStarred(userProfile.username) ? (
               <StarIcon color="warning" />
             ) : (
               <StarBorderIcon />

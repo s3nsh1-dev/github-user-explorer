@@ -30,7 +30,8 @@ import { isValidLogin } from "./validateLogin";
 /**
  * ⚠️ The misspelling is deliberate and load-bearing. This key is what every
  * existing visitor's list is stored under; renaming it silently discards their
- * data. The *code* spelling is fixed in P19 — this string is not.
+ * data. P19 fixed the spelling everywhere in the code and deliberately left
+ * this string alone.
  */
 const STARRED_KEY = "staredProfiles";
 const MODE_KEY = "mode";

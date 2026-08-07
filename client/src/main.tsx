@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App.tsx";
 import "./index.css";
 import ModeContextProvider from "./context/ModeContextProvider.tsx";
-import StaredUserContextProvider from "./context/StaredUserContextProvider.tsx";
+import StarredUsersProvider from "./context/StarredUsersProvider.tsx";
 import { NotFoundError, RateLimitError } from "./helper/githubErrors";
 
 /**
@@ -44,13 +44,13 @@ createRoot(document.getElementById("root")!).render(
       {/* One instance, at the root. It used to be mounted separately inside
           UpperHomeUI and ProfileInfo, so localStorage — not context — was
           sharing the state between them. */}
-      <StaredUserContextProvider>
+      <StarredUsersProvider>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <App />
           </BrowserRouter>
         </QueryClientProvider>
-      </StaredUserContextProvider>
+      </StarredUsersProvider>
     </ModeContextProvider>
   </StrictMode>
 );

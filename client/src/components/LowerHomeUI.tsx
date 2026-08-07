@@ -59,7 +59,7 @@ const LowerHomeUI = () => {
         <TextField
           inputRef={inputRef}
           value={searchTerm}
-          id="outlined-basic"
+          id="github-username-search"
           variant="outlined"
           placeholder="Enter the GitHub username..."
           sx={{

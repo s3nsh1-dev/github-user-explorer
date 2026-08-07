@@ -89,7 +89,7 @@ const ProfileInfo = () => {
       label: "🏢 Work",
       value: `${userProfile.company}`,
     },
-    { label: "💼 Hirable", value: userProfile.hirable },
+    { label: "💼 Hireable", value: userProfile.hireable },
     { label: "📧 Em@il", value: userProfile.email },
     {
       label: "🔗 Blog",
