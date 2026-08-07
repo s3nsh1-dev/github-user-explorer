@@ -46,3 +46,6 @@ server/.cache/
 # Optional: Lock files (if you're not committing them)
 # package-lock.json
 # yarn.lock
+
+# Local Netlify folder
+.netlify
