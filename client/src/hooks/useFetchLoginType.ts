@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-
-const TOKEN = import.meta.env.VITE_GITHUB_AUTHENTICATION_TOKEN;
+import { githubGraphQL } from "../helper/githubFetch";
+import type { LoginTypeResponse } from "../constants/common.types";
 
 const useFetchLoginType = (username: string) => {
   const queryBodyToFetchLoginType = `
@@ -11,22 +11,8 @@ const useFetchLoginType = (username: string) => {
       }`;
   const fetchedData = useQuery({
     queryKey: [username, "loginType"],
-    queryFn: async () => {
-      const response = await fetch("https://api.github.com/graphql", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query: queryBodyToFetchLoginType }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Response for LongType was not ok");
-      }
-      const responseData = await response.json();
-      return responseData;
-    },
+    queryFn: () =>
+      githubGraphQL<LoginTypeResponse>(queryBodyToFetchLoginType, {}),
     enabled: !!username,
     staleTime: 1000 * 60 * 5,
   });

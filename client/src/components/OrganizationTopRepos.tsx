@@ -29,7 +29,7 @@ const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
       </Alert>
     );
 
-  const repos = data?.data?.organization?.repositories?.nodes || [];
+  const repos = data?.organization?.repositories?.nodes || [];
 
   if (repos.length === 0 && !isLoading)
     return (

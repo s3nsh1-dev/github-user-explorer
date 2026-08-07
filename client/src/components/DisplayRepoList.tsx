@@ -5,6 +5,7 @@ import { Box, Typography } from "@mui/material";
 import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
 import { Link } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
+import type { Repo } from "../constants/common.types";
 
 type IncomingPropTypes = {
   totalRepos: number;
@@ -49,7 +50,8 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
           <b>{totalRepos}</b> <i>repositories</i>
         </Typography>
       </Box>
-      <UserProfileRepos repos={reposData} />
+      {/* Typed as of P05; the undefined case belongs to P09. */}
+      <UserProfileRepos repos={reposData as Repo[]} />
     </Box>
   );
 };

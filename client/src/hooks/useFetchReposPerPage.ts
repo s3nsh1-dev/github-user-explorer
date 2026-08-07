@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-
-const gitHub_authentication_token = import.meta.env
-  .VITE_GITHUB_AUTHENTICATION_TOKEN;
+import { githubFetch } from "../helper/githubFetch";
+import type { Repo } from "../constants/common.types";
 
 const useFetchReposPerPage = ({
   username,
@@ -16,19 +15,12 @@ const useFetchReposPerPage = ({
     error: reposError,
   } = useQuery({
     queryKey: ["userRepos", username, page],
-    queryFn: async () => {
+    queryFn: () => {
       const perPage = 8;
       if (!username) throw new Error("Username is required");
-      const response = await fetch(
-        `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}`,
-        {
-          headers: {
-            Authorization: `Bearer ${gitHub_authentication_token}`,
-          },
-        }
+      return githubFetch<Repo[]>(
+        `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}`
       );
-      if (!response.ok) throw new Error("Failed to fetch user repositories");
-      return await response.json();
     },
     enabled: !!username,
     // staleTime: 1000 * 60 * 5,

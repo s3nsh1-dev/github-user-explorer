@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-
-const gitHub_authentication_token = import.meta.env
-  .VITE_GITHUB_AUTHENTICATION_TOKEN;
+import { githubFetch } from "../helper/githubFetch";
+import type { GitHubApiUser } from "../constants/common.types";
 
 const useFetchUserData = ({ username }: { username: string }) => {
   const {
@@ -10,15 +9,11 @@ const useFetchUserData = ({ username }: { username: string }) => {
     error: userError,
   } = useQuery({
     queryKey: ["userProfile", username],
-    queryFn: async () => {
+    queryFn: () => {
       if (!username) throw new Error("Username is required");
-      const response = await fetch(`https://api.github.com/users/${username}`, {
-        headers: {
-          Authorization: `Bearer ${gitHub_authentication_token}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch user profile");
-      return await response.json();
+      return githubFetch<GitHubApiUser>(
+        `https://api.github.com/users/${username}`
+      );
     },
     enabled: !!username,
     // how long the data will be considered fresh = stale time(in this case 5min)

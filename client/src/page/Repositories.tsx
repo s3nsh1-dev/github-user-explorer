@@ -8,7 +8,10 @@ const Repositories = () => {
   const [searchParams] = useSearchParams();
   const pNum = parseInt(searchParams.get("page") || "1", 10);
   const fullRepoCall = useFetchRepositories(username || "demoUserName");
-  const totalRepos = fullRepoCall.data?.public_repos;
+  // The hook is typed as of P05, so `public_repos` is now visibly optional.
+  // Handling that absence (and the NaN it feeds into Pagination) is P15; the
+  // assertion keeps this plan transport-only and changes nothing at runtime.
+  const totalRepos = fullRepoCall.data?.public_repos as number;
 
   return (
     <>

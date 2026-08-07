@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-
-const gitHub_authentication_token = import.meta.env
-  .VITE_GITHUB_AUTHENTICATION_TOKEN;
+import { githubFetch } from "../helper/githubFetch";
+import type { GitHubRepo } from "../constants/common.types";
 
 type UseShowIndividualRepoProps = {
   username: string;
@@ -14,21 +13,12 @@ const useShowIndividualRepo = ({
 }: UseShowIndividualRepoProps) => {
   const { data, isLoading, error } = useQuery({
     queryKey: [repoName, "keyIsUnique"],
-    queryFn: async () => {
+    queryFn: () => {
       if (!username || !repoName)
         throw new Error("username or repoName is required");
-      const response = await fetch(
-        `https://api.github.com/repos/${username}/${repoName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${gitHub_authentication_token}`,
-          },
-        }
+      return githubFetch<GitHubRepo>(
+        `https://api.github.com/repos/${username}/${repoName}`
       );
-      if (!response.ok) {
-        throw new Error("Failed to fetch Individual repo from GitHub API");
-      }
-      return await response.json();
     },
     enabled: !!repoName && !!username,
     staleTime: 1000 * 60 * 5,

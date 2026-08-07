@@ -111,19 +111,25 @@ export interface GitHubUserSearchResult {
   incomplete_results: boolean;
   items: GitHubUser[];
 }
+// GraphQL payload types below describe `data`, not the `{ data, errors }`
+// envelope — githubGraphQL unwraps the envelope and throws on `errors`.
+export type LoginTypeResponse = {
+  repositoryOwner: {
+    __typename: string;
+  } | null;
+};
+
 export type OrganizationTop10ReposType = {
-  data: {
-    organization: {
-      repositories: {
-        nodes: {
-          name: string;
-          description: string;
-          stargazerCount: number | null;
-          updatedAt: string;
-        }[];
-      };
+  organization: {
+    repositories: {
+      nodes: {
+        name: string;
+        description: string;
+        stargazerCount: number | null;
+        updatedAt: string;
+      }[];
     };
-  };
+  } | null;
 };
 
 export type OrganizationRepoResponseType = {
@@ -134,19 +140,17 @@ export type OrganizationRepoResponseType = {
 
 // Type for GitHub user contribution calendar GraphQL response
 export type ContributionCalendarResponse = {
-  data: {
-    user: {
-      contributionsCollection: {
-        contributionCalendar: {
-          totalContributions: number;
-          weeks: Array<{
-            contributionDays: Array<{
-              date: string;
-              contributionCount: number;
-              color: string;
-            }>;
+  user: {
+    contributionsCollection: {
+      contributionCalendar: {
+        totalContributions: number;
+        weeks: Array<{
+          contributionDays: Array<{
+            date: string;
+            contributionCount: number;
+            color: string;
           }>;
-        };
+        }>;
       };
     };
   };

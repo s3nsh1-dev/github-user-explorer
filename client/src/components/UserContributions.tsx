@@ -26,10 +26,9 @@ const UserContributions: FC<PropType> = ({ username }) => {
   if (error) return <div>no data</div>;
   if (!data) return null;
   const totalContributions: number | null =
-    data.data.user.contributionsCollection.contributionCalendar
-      .totalContributions;
+    data.user.contributionsCollection.contributionCalendar.totalContributions;
   const weeks: Week[] =
-    data.data.user.contributionsCollection.contributionCalendar.weeks;
+    data.user.contributionsCollection.contributionCalendar.weeks;
 
   const renderContributionChart: React.ReactNode[] = weeks.map(
     (week: Week, index: number) => {
