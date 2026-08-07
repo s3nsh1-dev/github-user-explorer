@@ -8,20 +8,20 @@ several times, and verifies once. Splitting plans that share files across
 sessions means re-reading the same code, re-deriving the same context, and
 resolving conflicts with yourself.
 
-37 plans → **11 sessions**. Five have landed.
+37 plans → **11 sessions**. Six have landed.
 
 ---
 
 ## How to start a session
 
 ```
-Implement session S6 (plans P17 → P18 → P19) from
+Implement session S7 (plans P20 → P21 → P37) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: fix/context-storage, off fix/error-states.
+plan file in order. Branch: feat/search, off fix/context-storage.
 ```
 
-*(S1, S2, S3, S4 and S5 have landed — see `00.INDEX.md` for their SHAs and for
-what they changed that later sessions must account for.)*
+*(S1 through S6 have landed — see `00.INDEX.md` for their SHAs and for what
+they changed that later sessions must account for.)*
 
 Then, in order:
 
@@ -77,9 +77,13 @@ rework/2026 (27c9555)
                 8bd9e85  docs ┘
                  └─ 4e8cd8a  P12  ┐
                     7f93792  P13  │
-                    9370e9c  P14  ├─ S5  fix/error-states → 4ebeb89  ← HEAD
+                    9370e9c  P14  ├─ S5  fix/error-states → 924fbfb
                     9157683  P15  │
-                    4ebeb89  P16  ┘
+                    4ebeb89  P16  │
+                    924fbfb  docs ┘
+                     └─ 6987ada  P17  ┐
+                        f3fbd6a  P18  ├─ S6  fix/context-storage → 6220418  ← HEAD
+                        6220418  P19  ┘
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -119,9 +123,9 @@ Either way, **do not rebase any of these branches.** S3 was cut from
 `fix/request-safety` and S4 from `fix/data-layer`; rewriting their
 SHAs invalidates every SHA recorded in `00.INDEX.md` and in this file.
 
-*(Written before S3. Still accurate after S5 — `rework/2026` has received none of
-S1–S5, and a merge of `fix/error-states` into it remains a single fast-forward
-landing all five in order.)*
+*(Written before S3. Still accurate after S6 — `rework/2026` has received none of
+S1–S6, and a merge of `fix/context-storage` into it remains a single
+fast-forward landing all six in order.)*
 
 **S4 was cut from `c3ec6a1`, not `39a310b`.** Same situation as S3: the S3
 summary names `39a310b` because that was the tip when it was written, and a
@@ -149,7 +153,7 @@ single most likely way a session goes wrong:
 > - If a referenced bug appears already fixed — verify, note it, move on. Do not re-fix.
 > - If reality differs materially from the plan, adapt and **say so in the completion report**.
 
-This matters most in **S7, S8** (S1–S5 are done), which touch files that
+This matters most in **S7, S8** (S1–S6 are done), which touch files that
 **S1**, **S2** and **S3** have already rewritten. All three have landed, so this is no
 longer hypothetical: **every hook file, `common.types.ts`, `Repositories.tsx`,
 `DisplayRepoList.tsx`, `UserProfileRepos.tsx`, `LowerHomeUI.tsx` and the three
@@ -870,30 +874,135 @@ added to `StaredRepositories`. **P18 must keep that branch**: it renders when
 
 ---
 
-### 🟡 S6 — Context & storage  ← next
-**Branch:** `fix/context-storage`, off `fix/error-states`@`4ebeb89` · **Risk:** medium · **~2 h**
-**Plans:** P17 → P18 → P19
+### ✅ S6 — Context & storage — **landed 2026-08-07**
+**Branch:** `fix/context-storage`, tip `6220418` · **Risk:** medium
+**Cut from `fix/error-states`@`924fbfb`**, so it contains all of S1–S5.
+Nothing has been merged down to `rework/2026` yet; that still blocks nothing.
+**Plans:** P17 `6987ada` → P18 `f3fbd6a` → P19 `6220418`
 
-Self-contained: `context/`, `hooks/useStaredUserList.ts`, and the 4 components
-that consume them.
+Untrusted `localStorage` closed (V06), the starred-users context rebuilt, and
+the `stared`/`started`/`starred` spelling collapsed to one. Gate green before
+every commit; `npm run typecheck:functions` re-run at the end and still green.
 
-⚠️ **P18 fixes three bugs that currently cancel each other out.** Fixing the
-lazy-`useState` alone freezes the list and the star button stops toggling. Read
-P18's "Why" before touching anything. P19 is a pure rename — **zero behaviour
-change in that commit**.
+#### What shipped
 
-⚠️ **Inherited from S5:** `StaredRepositories`'s menu now branches on
-`staredList.length === 0` to say "Star a profile to pin it here." instead of
-opening onto nothing. **P18 changes where that list comes from — keep the
-branch.** Also: **P17 should import `helper/validateLogin.ts`**, which S5 wired
-into four route boundaries, rather than writing a second set of rules; the
-functions already import the same file, so a third definition would be the
-third place to keep in sync.
+| Plan | Result |
+|---|---|
+| **P17** | New `helper/storage.ts` — the only place `localStorage` is touched. `readStarred` parses in a `try`, checks `Array.isArray`, filters through `isValidLogin` and dedupes; `readMode` *checks* instead of asserting and falls back to `prefers-color-scheme`; both writers swallow quota throws. `ModeContextProvider` wired to it. |
+| **P18** | Provider rewritten: lazy initialiser, reads from state, write moved to an effect, `value` memoised. **Hoisted to `main.tsx` and mounted once** — it used to be mounted twice, independently. `useStarredUsers` throws instead of returning null, so every `?.` at the call sites is gone. Dropped the stale dropdown label. |
+| **P19** | Four files `git mv`d, symbols renamed, `hirable` → `hireable`, `id="outlined-basic"` → `id="github-username-search"`. **Zero non-rename lines in the diff.** |
+
+#### How it was verified
+
+`helper/storage.ts` was **executed** against a stubbed storage — 18 cases:
+malformed JSON, a non-array that parses (`"5"`), `null`, an absent key, an
+array of mixed junk, a GraphQL injection string, 39- vs 40-character logins,
+dedupe, `mode: "purple"` falling back to the system preference in both
+directions, a stored value winning over the system, and a quota throw being
+swallowed. The storage key was **asserted** to still be `staredProfiles`.
+
+Then the same claims in a real browser, against the production build behind the
+S4/S5 stand-in and live GitHub:
+
+| Poisoned storage | Result |
+|---|---|
+| `staredProfiles = '{'` | app loads, list empty, **0 console errors** |
+| `staredProfiles = '5'` | same |
+| `staredProfiles = '[1,null,{},"-bad-"]'` | same |
+| `mode = 'purple'` | coherent theme, **not half-dark**, and the valid starred entry survives |
+| no stored mode, system **dark** / **light** | dark / light — the fallback works both ways (`Emulation.setEmulatedMedia`) |
+
+**P18's acceptance list, all measured:**
+
+| Check | Result |
+|---|---|
+| Star → icon fills; unstar → empties | ✅ immediate, both directions |
+| **Toggle 5× in a row** | ✅ ends filled, `["torvalds","octocat"]` — **no duplicates** |
+| Star on a profile → home dropdown | ✅ lists it after navigating home |
+| Reload | ✅ list persists |
+| Dropdown button label | ✅ empty — no stale username after navigating away |
+| Storage key | ✅ still `staredProfiles` |
+| P17's sanitisation | ✅ seeded junk + a duplicate were gone after **one** load — the effect writes the cleaned list back |
+| One provider | ✅ `grep -rn "<StarredUsersProvider"` → one hit, `main.tsx` |
+
+**P19 was checked as a refactor, not as a feature:** filtering the staged diff
+for lines that are not a rename returns **nothing**, and the entire starred
+flow above was re-run after the rename with byte-identical results. The full
+S5 scenario sweep and the CSP check were also re-run — 15 routes, 8 pages,
+**zero CSP violations, zero unexpected console errors.**
+
+#### ⚠️ Deviations from the plans
+
+1. **MUI strips `data-testid` from its icons in a production build.** The first
+   attempt at the star-toggle test selected on `[data-testid="StarIcon"]` and
+   found nothing, which reads exactly like a broken star button. The test
+   classifies by the SVG path instead (the outlined star carries an inner
+   cutout). **Worth knowing before anyone writes a P30 test that selects on
+   `data-testid`** — it will pass in dev and find nothing in a built bundle.
+2. **`useStarredUsers` returns the context object directly** rather than
+   rebuilding `{ staredList, checkStared, updateStaredList }`. The old shape
+   allocated a new object on every call for no benefit; P18 §3 only asks that
+   it throw.
+3. **P19 also fixed the visible label "Stared User Profiles".** It is copy, not
+   code, so it is arguably a behaviour change in a "pure refactor" commit — but
+   P19's own acceptance grep is case-insensitive and would have failed on it.
+   Fixing a spelling in one word of UI text is the least surprising reading.
+4. **`staredValueType` became `StarredUsersContextType`** — the plan lists the
+   symbol renames but not this one, which was lowercase-typed as well as
+   misspelled.
+5. **The "Response for LongType was not ok" string was already gone**, removed
+   by P05. Verified, not re-fixed, exactly as P19 anticipates.
+6. **The anti-flash theme script was NOT added.** The index has been deferring
+   it to "S6, after P17", but it is **P35's** item and not in this session's
+   plan list — rule 4. P17 has now given it the contract it was waiting for:
+   it must read `mode` from `localStorage` and fall back to
+   `prefers-color-scheme`, matching `readMode` exactly, or it flashes in the
+   opposite direction. It also still needs a `script-src` SHA-256 hash in
+   `netlify.toml`. **Both files belong to S9's neighbourhood (`index.html`,
+   `netlify.toml`) — do it there, not as a stray commit.**
+
+#### Observations that are nobody's plan
+
+- ⚠️ **Cross-tab behaviour regressed, deliberately.** Storage is read once at
+  app start instead of on every page mount, so a second tab starring a profile
+  is no longer picked up on navigation. P18 names this and rules out fixing it;
+  a `storage` event listener in `StarredUsersProvider` is the two-line fix if
+  it ever matters.
+- **The theme still flashes on load.** Not new, and not in scope — see
+  deviation 6 for what closing it actually requires.
+- **`npm audit` still reports 13 advisories.** Untouched, unowned.
+- **Bundle: 646.22 kB → 646.35 kB raw.**
+- ✅ **B1 is done** — the owner confirmed the Netlify env var and the PAT
+  revocation. **V01 is closed in reality, not just in code.** The index's
+  "still outstanding" section is now empty.
+
+#### Seen but deliberately NOT fixed (still open for their owning plan)
+
+- `LowerHomeUI`'s `alert()` and the `searchTerm.length` vs trimmed-length bug
+  → **P20** (its `id` was already fixed here, as P19 instructs)
+- `Explorer`'s `IntersectionObserver` still fires unthrottled → **P21**
+- `PageButton` / `PageQuickButtons` still render `<button>` + `navigate()`
+  → **P23**
+- `StarredUsersMenu`'s trigger is a `<Button>` with no accessible name and no
+  `aria-haspopup` → **P22**
+- `OrganizationTopRepos` still interpolates `username` into a rendered
+  `github.com` href. Unowned; a rendered link, not an authenticated request
+
+#### → How S7 branches from here
+
+```bash
+git checkout fix/context-storage      # confirm with: git rev-parse --short HEAD
+git checkout -b feat/search
+```
+
+S7 needs **S5** (P37 fills the empty states P16 created) and inherits from S6
+only the search field's `id` and the `starred` spelling. `rework/2026` is still
+at `27c9555` and has received none of S1–S6.
 
 ---
 
-### 🟡 S7 — Search & scroll
-**Branch:** `feat/search` · **Risk:** medium · **~3 h**
+### 🟡 S7 — Search & scroll  ← next
+**Branch:** `feat/search`, off `fix/context-storage`@`6220418` · **Risk:** medium · **~3 h**
 **Plans:** P20 → P21 → P37
 
 `LowerHomeUI.tsx`, `Explorer.tsx`, `Navbar.tsx`, plus the new shared
@@ -907,6 +1016,19 @@ component, and both P21 and P37 touch `Explorer.tsx`.
 string. Its two actual bugs are untouched and still P20's: the `alert()`, and
 the guard testing `searchTerm.length` instead of the trimmed length. When P37
 extracts the shared `<SearchBar>`, `createSearchParams` goes with it.
+
+⚠️ **Inherited from S6:** the field is already `id="github-username-search"` —
+P19 did that, as its own plan instructs, so **P20 must not fight over the
+line.** Everything starred is spelled `starred` now
+(`components/StarredUsersMenu.tsx`, `hooks/useStarredUsers.ts`).
+
+⚠️ **Inherited from S5 — P37 has three components to build on, not zero:**
+`<EmptyState>`, `<ErrorState>` and a parameterised `<NotFound>`. `Explorer`
+already renders an empty state for "no query" and another for "no results";
+**P37 replaces their `message` with the shared `<SearchBar>` rather than
+adding a fourth treatment**, and `NotFound` deliberately shipped without one so
+P37 could add it in a single place. **P20 should also reuse the
+trimmed-length rule P37 will inherit** — write it once.
 
 ---
 
@@ -993,35 +1115,35 @@ rework/2026 (27c9555 — has received nothing yet)
             └── ✅ S2  request-safety  914cf4a
                     └── ✅ S3  data-layer  c3ec6a1
                             └── ✅ S4  token-proxy  8bd9e85
-                                    └── ✅ S5  error-states  4ebeb89  ← branch from here next
-                                            ├── S7  feat/search
-                                            ├── S8  a11y ── S10  tooling
-                                            └── S9  perf/assets
-    S6  context-storage  ← only needs S1 (recommend stacking on 4ebeb89 anyway)
-    S11 docs/readme      ← only needs S1
+                                    └── ✅ S5  error-states  924fbfb
+                                            └── ✅ S6  context-storage  6220418  ← branch from here next
+                                                    ├── S7  feat/search
+                                                    ├── S8  a11y ── S10  tooling
+                                                    └── S9  perf/assets
+    S11 docs/readme      ← only needs S1 (stack it on 6220418 anyway)
 ```
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Five sessions are done; the next branch is cut
-from `4ebeb89`.
+so far has not happened at all. Six sessions are done; the next branch is cut
+from `6220418`.
 
 **Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
 — S4 landed first, and S5 is cut from it. Nothing forced that order (they share
 no files), but stacking keeps a single line of history instead of a second stack
-to reconcile later. **The same argument applies to S6**, which the graph still
-shows detached: it only needs S1, but cutting it from `4ebeb89` costs nothing
-and avoids a second stack.
+to reconcile later. **S6 was drawn detached** — it only needs S1 — and was
+stacked on S5 anyway, for the same reason. **S11 is the last one still drawn
+that way; stack it too.** Six sessions, one line of history, no merge commits.
 
 ~~**Critical path to the security fix: S1 → S2 → S3 → S4.**~~ ✅ **All four have
 landed. V01 is closed in code.** What remains is not a plan — it is the Netlify
 env var and the token revocation, both of which only you can do. See
 [What is still on you after S4](#-what-is-still-on-you-after-s4).
 
-**S6 and S11 are independent** — they only need S1, so they may be cut from
-`fix/quick-wins`@`ac4186a`. If you run them in parallel with the main line,
-that is a second stack off S1: keep them there, and merge S1 down first so both
-stacks rebase-free onto a shared base.
+**S11 is independent** — it only needs S1, so it *may* be cut from
+`fix/quick-wins`@`ac4186a`. Cutting it from `6220418` instead keeps the single
+line every session so far has stayed on. ~~Same for S6~~ — **S6 has landed**,
+stacked on S5.
 
 ---
 
@@ -1059,30 +1181,19 @@ more than it saves.
 
 ---
 
-## Outstanding action (blocks no plan)
+## ✅ Outstanding action — cleared
 
-🔴 **Add `GITHUB_TOKEN` in Netlify, then revoke the exposed PAT.** ✅ **S4 has
-landed**, so the code side is done — the full step-by-step is in
-[What is still on you after S4](#-what-is-still-on-you-after-s4). Short version:
-new no-scope token → add as `GITHUB_TOKEN` in Netlify (**no `VITE_` prefix**) →
-deploy `fix/token-proxy` → *then* revoke the old one at
-<https://github.com/settings/tokens>. Check
-<https://github.com/settings/security-log> too.
+🔴 ~~**Add `GITHUB_TOKEN` in Netlify, then revoke the exposed PAT.**~~
+✅ **Done** — confirmed by the repo owner on 2026-08-07, after S5. **V01 is now
+closed in reality, not only in code.** The token no longer exists anywhere the
+browser can reach it, the exposed PAT is revoked, and the site's requests are
+served by `netlify/functions/` with a credential the bundle never sees.
 
-⚠️ **This is now the only thing between the repo and V01 being genuinely
-closed.** It blocks no plan; S5 onward can proceed in parallel.
+Kept here as history, because it is the finding this whole rework exists for:
+the deployed bundle contained **four occurrences of a live `ghp_`-prefixed
+token**, inlined by Vite because the variable was `VITE_`-prefixed. There was
+no client-side fix — a browser cannot hold a secret — so the credential moved
+(**S4**), and then the credential itself was rotated (this).
 
-⚠️ **There are probably two different tokens — check both.** Noted during S1:
-the audit records the deployed bundle's token as **`ghp_`**-prefixed (classic
-PAT), but the local `.env.development` holds a **`github_pat_`** one
-(fine-grained). Different prefixes mean **different credentials**, so revoking
-the one on your disk would not revoke the one that is public. Enumerate both at
-<https://github.com/settings/tokens> — classic and fine-grained are listed
-separately — before revoking anything.
-
-✅ Not a new exposure: the locally built bundle at S1 contained **zero** token
-strings, because the `VITE_*` variable is no longer defined. ~~The client is
-correspondingly broken (`Bearer undefined`) until **P34**, which is accepted.~~
-**Fixed in S4** — the client works again, against `/api/*`, and the built bundle
-still contains zero token strings because it no longer contains a token read at
-all. Re-verify against the deployed bundle once the site ships.
+**Nothing in this plan set is blocked on anything now.** Every remaining
+session is implementable end to end.
