@@ -15,12 +15,12 @@ resolving conflicts with yourself.
 ## How to start a session
 
 ```
-Implement session S3 (plans P06 → P09 → P10 → P11) from
+Implement session S4 (plans P28 step 4 → P34 → P35) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: fix/data-layer, off fix/request-safety.
+plan file in order. Branch: fix/token-proxy, off fix/data-layer.
 ```
 
-*(S1 and S2 have landed — see `00.INDEX.md` for their SHAs and for what they
+*(S1, S2 and S3 have landed — see `00.INDEX.md` for their SHAs and for what they
 changed that later sessions must account for.)*
 
 Then, in order:
@@ -61,13 +61,24 @@ rework/2026 (27c9555)
     07e7274  P28  │
     ac4186a  docs ┘
      └─ 05f757e  P05  ┐
-        b22c5dc  P07  ├─ S2  fix/request-safety → a8d7431   ← HEAD
+        b22c5dc  P07  ├─ S2  fix/request-safety → 914cf4a
         7dc2c03  P08  │
         d343bbe  docs │
-        a8d7431  docs ┘
+        a8d7431  docs │
+        914cf4a  docs ┘
+         └─ 44d69ef  P06  ┐
+            65f6110  P09  ├─ S3  fix/data-layer → 39a310b   ← HEAD
+            79ee65c  P10  │
+            39a310b  P11  ┘
 ```
 
 Completely linear. No merge commits, no divergence.
+
+**S3 was cut from `914cf4a`, not `a8d7431`.** The S2 summary below names
+`a8d7431` because that was the tip when it was written; a docs-only commit
+(`914cf4a`) landed on `fix/request-safety` afterwards. `914cf4a` is a descendant
+of `a8d7431`, so branching from it is the same instruction — "the previous
+session's tip" — and loses nothing.
 
 | Check | Result |
 |---|---|
@@ -94,9 +105,13 @@ definition — do not run it expecting a merge commit, and do not create one wit
   PR**: until the first merges, the second one's diff shows S1's commits too.
   Review S1 first, and merge in that order — never the reverse.
 
-Either way, **do not rebase either branch.** S3 will be cut from
-`fix/request-safety`, and rewriting its SHAs invalidates every SHA recorded in
-`00.INDEX.md` and in this file.
+Either way, **do not rebase any of these branches.** S3 was cut from
+`fix/request-safety` and S4 will be cut from `fix/data-layer`; rewriting their
+SHAs invalidates every SHA recorded in `00.INDEX.md` and in this file.
+
+*(Written before S3. Still accurate — `rework/2026` has now received neither S1,
+S2 nor S3, and a merge of `fix/data-layer` into it remains a single
+fast-forward landing all three in order.)*
 
 ---
 
@@ -115,9 +130,9 @@ single most likely way a session goes wrong:
 > - If a referenced bug appears already fixed — verify, note it, move on. Do not re-fix.
 > - If reality differs materially from the plan, adapt and **say so in the completion report**.
 
-This matters most in **S3, S5, S7, S8**, which touch files that **S1** and **S2**
-have already rewritten. S1 and S2 have both landed, so this is no longer
-hypothetical: **every hook file, `common.types.ts`, `Repositories.tsx`,
+This matters most in **S5, S7, S8** (S3 is done), which touch files that **S1**,
+**S2** and **S3** have already rewritten. All three have landed, so this is no
+longer hypothetical: **every hook file, `common.types.ts`, `Repositories.tsx`,
 `DisplayRepoList.tsx`, `UserProfileRepos.tsx`, `LowerHomeUI.tsx` and the three
 GraphQL consumer components have changed since the audit snapshot.** Each
 affected session below carries an "Inherited from S2" block listing what is
@@ -313,51 +328,161 @@ also fine and avoids a second stack.
 
 ---
 
-### 🔵 S3 — Data layer *(hook layer, part 2)*
-**Branch:** `fix/data-layer`, off `fix/request-safety`@`a8d7431` · **Risk:** medium · **~3 h**
-**Plans:** P06 → P09 → P10 → P11
+### ✅ S3 — Data layer *(hook layer, part 2)* — **landed 2026-08-07**
+**Branch:** `fix/data-layer`, tip `39a310b` · **Risk:** medium
+**Cut from `fix/request-safety`@`914cf4a`**, so it contains all of S1 and S2.
+Nothing has been merged down to `rework/2026` yet; that still blocks nothing.
+**Plans:** P06 `44d69ef` → P09 `65f6110` → P10 `79ee65c` → P11 `39a310b`
 
-Same 8 hook files again, plus `common.types.ts` and `main.tsx`. Fixes both
-confirmed cache bugs, adds Zod schemas, deletes the duplicate `/users/:login`
-hook, and sets the QueryClient retry policy.
+"Requests are safe" was S2; this is "data is correct". Both confirmed cache
+bugs fixed, Zod schemas at the fetch boundary, the duplicate `/users/:login`
+hook deleted, and a real retry policy. Gate (`npm run lint && npx tsc -b
+--noEmit && npm run build`) green before every commit.
 
-Split from S2 deliberately: S2 is "requests are safe", S3 is "data is correct".
-Two coherent PRs instead of one 6-hour context.
+#### What shipped
 
-⚠️ Needs `zod` from **P28** (S1).
+| Plan | Result |
+|---|---|
+| **P06** | New `constants/queryKeys.ts` (`qk.*`). All 8 hooks migrated; **zero inline `queryKey` arrays left**. Fixes the repo-detail collision (owner was in the URL but not the key) and the copy-pasted `["contributionInfo", …]` shared by two hooks with different response shapes. `useFetchUserData` / `useFetchRepositories` deliberately given the *same* key — the setup for P10. |
+| **P09** | New `constants/schemas.ts`: 12 Zod schemas, every API type `z.infer`red from one. `common.types.ts` reduced to a re-export plus the view model and prop types. `githubFetch` / `githubGraphQL` take an optional schema and `.safeParse` it. Every `useQuery` carries `<T, GitHubError>`. Every top-level GraphQL field is nullable. `Week` / `ContributionDay` deduped. Three hooks now return the whole `UseQueryResult`. |
+| **P10** | `useFetchRepositories.ts` deleted; `Repositories.tsx` reads `public_repos` from `useFetchUserData`. |
+| **P11** | `main.tsx` `QueryClient` gains `staleTime` 5 min, `gcTime` 30 min, `refetchOnWindowFocus: false` and an `instanceof`-based retry predicate. Six per-hook `staleTime` overrides removed; `useFetchReposPerPage` gains `placeholderData: keepPreviousData`. |
 
-#### ⚠️ Inherited from S2 — the hooks are not what the plans describe
+#### How it was verified
 
-- **The hooks no longer call `fetch`.** They call `githubFetch<T>(url)` /
-  `githubGraphQL<T>(query, variables)` from `helper/githubFetch.ts`, with URLs
-  from `helper/githubUrls.ts`. **P09**'s "generics at the fetch boundary" means
-  wrapping/validating inside those two functions — one place, not eight.
-- **`githubGraphQL` returns `data`, not the envelope.** `OrganizationTop10ReposType`
-  and `ContributionCalendarResponse` in `common.types.ts` already dropped their
-  outer `data:` wrapper, and `LoginTypeResponse` is new. Zod schemas must model
-  the unwrapped shape.
-- **P06's collision is still live and untouched:** `useFetchContributionInfo`
-  and `useFetchOrganizationRepos` both use `["contributionInfo", username]`.
-- **P10** deletes one of `useFetchUserData` / `useFetchRepositories`. Both now
-  call `githubFetch<GitHubApiUser>(usersUrl(username))` — genuinely identical
-  requests, differing only in query key and return shape.
-- **P11** should build its retry predicate on `instanceof NotFoundError` /
-  `RateLimitError` from `helper/githubErrors.ts` — not on message strings.
-  `RateLimitError` carries `resetAt`. Today an error costs **4 requests**
-  (3 default retries), which is worth fixing given V07.
-- **Delete, do not preserve, P05's two placeholder assertions:**
-  `Repositories.tsx` `as number` and `DisplayRepoList.tsx` `as Repo[]`.
-- ⚠️ **`erasableSyntaxOnly` bans constructor parameter properties.** Bites any
-  new class.
+Everything below is **executed**, not inspected. The client has no token, but
+`githubFetch` omits `Authorization` rather than sending `Bearer undefined`, so
+unauthenticated REST (60 req/hour) works against the **live** `api.github.com` —
+no stand-in server was needed this time. GraphQL still 401s, which turned out to
+be a useful failure to measure.
+
+- **P06 — against React Query's own `hashKey`.** The two colliding key pairs
+  hash apart after the change; the `userProfile` pair hashes together. Not a
+  reading of the diff — the actual hashing function the cache uses.
+- **P09 — 21 assertions against live payloads.** `torvalds` (rich), `github`
+  (Organization), `dependabot`, a repo list, `facebook/react` and
+  `torvalds/linux`, and a search page. Plus **every optional field forced to
+  `null`, and again forced absent** — the sparse-account test the plan asks for,
+  done exhaustively instead of hoping a chosen login is sparse. Plus a required
+  field deleted, to prove rejection still happens. Plus a check that the parsed
+  object still carries every field the UI reads, since `z.object` strips.
+- **P10 and P11 — headless Chrome (`--remote-debugging-port`, CDP over the
+  built-in `WebSocket`), against the production `vite build` output.** The same
+  scripts were replayed against a throwaway worktree built at the previous
+  commit, over identical time windows, for a real before/after.
+
+| Check | Before | After |
+|---|---|---|
+| `/user/torvalds` → click "PUBLIC REPOS" (client-side nav) | — | **0** further `/users/torvalds` requests; "12 repositories" still correct |
+| 404 profile, 14 s window | **4** requests | **1** |
+| GraphQL 401, 14 s window | **4** requests | **1** |
+| Errored query, 3 hide/show cycles | — | **0** refetches |
+| Paging to page 2 | spinner; list replaced by an empty frame for >500 ms | page 1 stays rendered until page 2 arrives; one request either way |
+| Smoke: profile, repos tab, repo detail, search, org view | — | all five render real data; **one request per resource** |
+
+#### ⚠️ Deviations from the plans — read before S4
+
+1. ⚠️ **`GitHubApiUserSchema.type` is `z.enum(["User", "Organization", "Bot"])`,
+   not the two-value enum P09 wrote.** `"Bot"` is real and live:
+   `/users/github-actions%5Bbot%5D` and `/users/copilot%5Bbot%5D` both return
+   `type: "Bot"`. The plan's enum would have turned those into a hard error page,
+   which contradicts its own instruction not to write a schema that rejects
+   accounts GitHub serves happily. (`/users/dependabot` returns
+   `type: "Organization"`, so it was not the counter-example it looks like.)
+2. ⚠️ **`Repositories.tsx`'s `as number` is still there — deliberately, and it
+   is P15's.** The index says "P09/P15 must delete them"; the plans themselves
+   draw the line more precisely, and every P09-legal way to remove this one is
+   forbidden by another rule: P09 §3 says keep `PaginationProps.totalRepos` as
+   `number`, P10's Do-NOT forbids fixing the `undefined → NaN` propagation, and
+   `?? NaN` would render a literal "NaN" in the repo count during load.
+   **P15 removes it, as part of adding the loading branch that stops `undefined`
+   reaching the prop at all.** `DisplayRepoList`'s `as Repo[]` *was* removed —
+   it became `reposData ?? []`, which routes a disabled/undefined query into the
+   "No repositories found." branch that already existed instead of throwing on
+   `repos.length`.
+3. **`ContributionDay.contributionCount` is `.nullable()`.** P09 §4 asks for one
+   `Week` / `ContributionDay` instead of two. The component pads short weeks with
+   `{ date: "", contributionCount: null, color: "grey" }` and renders `null` as a
+   blank cell, so a strict `z.number()` would have forced either a second local
+   type (no dedupe) or `0` (a visible change: "0" in every padding cell). The
+   nullable schema is the honest union of the wire row and the rendered cell.
+4. **The two `…ResponseType` wrappers were deleted, not retyped.** P09 §3 flags
+   `error: Error | unknown` in `OrganizationRepoResponseType` and
+   `ContributionCalenderResponseType`. Both existed only as annotations on hook
+   returns, and both discarded `refetch` — which §5 explicitly wants kept. The
+   call sites now infer from the hook.
+5. **GraphQL type names kept.** P09 §2 suggests `OwnerTypeData` /
+   `ContributionsData` / `OrgTopReposData`; the S2 names (`LoginTypeResponse`,
+   `ContributionCalendarResponse`, `OrganizationTop10ReposType`) were kept to
+   avoid churn across three hooks for no behavioural gain. The nullability the
+   plan actually cares about is in place.
+6. **`GitHubRepoSchema` added.** P09's schema list names four REST schemas but
+   omits the repo-detail one, which `useShowIndividualRepo` needs. Oversight in
+   the plan, not a decision.
+7. **`z.url()`, not `z.string().url()`.** Zod 4 moved string formats to the top
+   level; the plan's form still works but is the deprecated spelling.
+8. **`useInfiniteUsers` spells out all five `useInfiniteQuery` generics.** That
+   types `pageParam` as `number` and **removed** a pre-existing `as number`, plus
+   the `QueryFunctionContext` import. P09's "zero `as` casts added" is met; this
+   goes one better.
+9. ⚠️ **`helper/githubFetch.ts` now reads `import.meta.env` twice** — the token,
+   and `import.meta.env.DEV` to gate the schema-mismatch console log (P09 §6 asks
+   for exactly that). **The "exactly one `import.meta.env` read in all of
+   `client/src`" invariant from S2 no longer holds.** P34 removes the token read
+   and must keep the `DEV` one.
+10. **`String(error)` in `OrganizationTopRepos` was left alone.** The type that
+    caused it is fixed, but it is one of the six raw error renders **P13** owns.
+11. **Two comments were reworded so acceptance-criteria greps stay literally
+    clean** — P06's criterion greps for the old key literal and P09's for
+    `Error | unknown`, and prose explaining the bug would otherwise match. Worth
+    knowing if **P30** ever automates those greps.
+12. **P02's commented-out `staleTime` line in `useFetchReposPerPage` is gone**,
+    replaced by a comment explaining the inherited default. That was P11 step 3's
+    job.
+
+#### Observations that are nobody's plan (but S4 will trip over them)
+
+- 🔴 **Every GitHub request currently costs a CORS preflight.**
+  `X-GitHub-Api-Version` is not a CORS-simple header, so Chrome sends an
+  `OPTIONS` before every call — each logical request appears **twice** in a
+  network log. Two consequences: **(a)** do not read "2×" in DevTools as a
+  duplicate fetch; **(b)** **P34's same-origin proxy removes the preflight
+  entirely**, which is a real latency win the plan does not claim.
+- ⚠️ **`GET /repos/:owner/:name` 301-redirects** (`facebook/react` →
+  `/repositories/10270250`). `fetch` follows it transparently. **A proxy that
+  does not follow redirects breaks the repo detail page.**
+- **P14's bug still reproduces exactly as S2 described.**
+  `/user/zzzz-not-a-real-user-zzzz` renders an empty body — now with a single
+  request instead of four, but still blank. S5's.
+- **`npm audit` still reports 13 advisories.** Untouched, unowned.
+
+#### Seen but deliberately NOT fixed (still open for their owning plan)
+
+- `Pagination`'s `Math.ceil(totalRepos / 8)` `NaN` → **P15**
+- `ProfileInfo`'s `if (!userData) return null;` ahead of its error check → **P14**
+- The six raw `Error: {error.message}` / `String(error)` renders → **P13**
+- The `"demoUserName"` fallbacks, still live in four files → **P16**
+- `helper/validateLogin.ts` still imported by nothing → **P16**/**P17**/**P20**
+- `PageButton` / `PageQuickButtons` render `<button>` + `navigate()`, not links → **P23**
+
+#### → How S4 branches from here
+
+```bash
+git checkout fix/data-layer          # must be at 39a310b
+git checkout -b fix/token-proxy
+```
+
+Same rule as before: **cut from the previous session's tip.** `rework/2026` is
+still at `27c9555` and has received none of S1, S2 or S3.
 
 ---
 
-### 🔴 S4 — Proxy & deploy — **THE CRITICAL FIX**
-**Branch:** `fix/token-proxy` · **Risk:** high · **~5 h**
+### 🔴 S4 — Proxy & deploy — **THE CRITICAL FIX** ← next
+**Branch:** `fix/token-proxy`, off `fix/data-layer`@`39a310b` · **Risk:** high · **~5 h**
 **Plans:** P28 (step 4 only) → P34 → P35
 
 Closes **V01**, the exposed token. Earliest possible point — P34 depends on
-P05/P07/P08/P09, so it cannot run before S3.
+P05/P07/P08/P09, and **S3 has landed**, so every dependency is now met.
 
 New territory: `netlify/functions/**`, `netlify.toml`.
 
@@ -384,6 +509,37 @@ settings → Environment variables. Revoke the old token *after* this ships.
 
 ⚠️ **P35 must not merge before P34.** Its `connect-src 'self'` breaks a client
 still calling `api.github.com` directly.
+
+#### ⚠️ Inherited from S3 — five things that will bite
+
+1. 🔴 **Forward GitHub's rate-limit response headers through the proxy.**
+   `assertOk` in `helper/githubFetch.ts` decides a 403 is a `RateLimitError` by
+   reading `x-ratelimit-remaining` and `x-ratelimit-reset` **off the response**.
+   P11's retry predicate then refuses to retry it. A Netlify function that
+   returns only a status and a body strips those headers, every 403 becomes a
+   generic `GitHubError`, and **the app silently starts retrying into the rate
+   limit again** — reopening the V07 amplification S3 just closed. Same for 404:
+   the status must survive, or `NotFoundError` stops being constructed.
+2. ⚠️ **`helper/githubFetch.ts` reads `import.meta.env` twice now.** One is the
+   token (delete it); one is `import.meta.env.DEV`, gating the schema-mismatch
+   console log (**keep it**). The S2-era note that there is exactly one read in
+   all of `client/src` is out of date. Re-grep, as always.
+3. **Do not validate GitHub's output in the function as well.** P09's Do-NOT is
+   explicit: validate once, at the client boundary. The function validates
+   *inputs* — login and repo name, via `helper/validateLogin.ts`, which is still
+   unimported and available.
+4. ⚠️ **Follow redirects.** `GET /repos/:owner/:name` 301s to
+   `/repositories/:id` (confirmed live on `facebook/react`). Browser `fetch`
+   follows it; a proxy that does not will break the repo detail page.
+5. ✅ **A same-origin proxy removes the CORS preflight.** Every GitHub call today
+   costs an extra `OPTIONS` round trip, because `X-GitHub-Api-Version` is not a
+   CORS-simple header. Worth stating in the PR — and worth remembering when
+   comparing network logs before and after, since the "before" numbers are
+   doubled by preflights that the "after" will not have.
+
+The three GraphQL documents still live in `constants/graphqlQueries.ts` and
+**still must move server-side** — S3 did not touch them beyond passing a schema
+alongside. The client must send only `{ login }`.
 
 ---
 
@@ -519,8 +675,8 @@ is never linked (B7).
 ```
 rework/2026 (27c9555 — has received nothing yet)
     └── ✅ S1  quick-wins      ac4186a ─────┐
-            └── ✅ S2  request-safety  a8d7431  ← branch from here next
-                    └── S3  data-layer │
+            └── ✅ S2  request-safety  914cf4a
+                    └── ✅ S3  data-layer  39a310b  ← branch from here next
                             ├── S4  token-proxy  🔴 CRITICAL
                             └── S5  error-states
                                     ├── S7  feat/search
@@ -532,10 +688,11 @@ rework/2026 (27c9555 — has received nothing yet)
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Two sessions are done; the next branch is cut
-from `a8d7431`.
+so far has not happened at all. Three sessions are done; the next branch is cut
+from `39a310b`.
 
-**Critical path to the security fix: S1 → S2 → S3 → S4.** Two down, two to go.
+**Critical path to the security fix: S1 → S2 → S3 → S4.** Three down, one to go —
+**S4 is the last hop, and it is the one that actually closes V01.**
 
 **S6 and S11 are independent** — they only need S1, so they may be cut from
 `fix/quick-wins`@`ac4186a`. If you run them in parallel with the main line,
