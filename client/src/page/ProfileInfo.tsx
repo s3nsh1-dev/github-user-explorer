@@ -4,6 +4,8 @@ import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
 import { Alert, Box, Divider } from "@mui/material";
 import AppErrorBoundary from "../components/AppErrorBoundary";
 import ErrorState from "../components/ErrorState";
+import ProfileSkeleton from "../components/skeletons/ProfileSkeleton";
+import NotFound from "./NotFound";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import useFetchUserData from "../hooks/useFetchUserData";
@@ -52,11 +54,19 @@ const ProfileInfo = () => {
     username: username || "demoUserName",
   });
 
-  if (!userData) return null;
+  // Guard in the order the states actually occur. `if (!userData) return null`
+  // used to run first, and `userData` is undefined both while loading and
+  // after a failure — so the two branches below were unreachable and the
+  // visitor got a blank page under the navbar, during every cold load and
+  // permanently after any error. report/suggestions/03 §3a.
+  //
+  // `mapGitHubResponse` also has to run *after* the guards: on line one it
+  // threw on a malformed payload instead of the failure being reported.
+  if (userLoading) return <ProfileSkeleton />;
+  if (userError) return <ErrorState error={userError} onRetry={refetchUser} />;
+  if (!userData) return <NotFound />;
+
   const userProfile: GitHubUser = mapGitHubResponse(userData);
-  if (userLoading) return <div>Loading...</div>;
-  if (userError)
-    return <ErrorState error={userError} onRetry={refetchUser} />;
 
   const arrays = [
     { label: "📝 Bio", value: userProfile.bio },
