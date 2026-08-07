@@ -46,27 +46,35 @@ const Explorer = () => {
   const loadRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!hasNextPage || isFetchingNextPage) return;
+    const sentinel = loadRef.current;
+    if (!sentinel) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
+      ([entry]) => {
+        // The guard belongs here, not around the effect. Registering the
+        // observer under `if (!hasNextPage || isFetchingNextPage) return`
+        // only checks the condition once per registration: an already-live
+        // observer kept firing on every scroll event, so holding End walked
+        // pages as fast as the network allowed — against GitHub's tightest
+        // rate limit (10/min unauthenticated, 30 authenticated).
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
       },
       {
         root: null,
-        rootMargin: "0px",
-        threshold: 1.0,
+        // 200px of lead time, so the next page is usually there by the time
+        // the visitor reaches the bottom.
+        rootMargin: "200px",
+        // Was 1.0, which demanded the whole sentinel be visible. On a short
+        // viewport a sentinel taller than the visible area never reaches
+        // 100% and pagination silently stopped working.
+        threshold: 0,
       }
     );
 
-    const currentElement = loadRef.current;
-    if (currentElement) observer.observe(currentElement);
-
-    return () => {
-      if (currentElement) observer.unobserve(currentElement);
-    };
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Visiting /explore directly used to run a real GitHub search for the
