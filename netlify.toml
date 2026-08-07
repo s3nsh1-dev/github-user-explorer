@@ -15,6 +15,21 @@
   directory    = "../netlify/functions"
   node_bundler = "esbuild"
 
+# Local development only — Netlify's build and runtime ignore this section.
+#
+# ⚠️ `netlify dev` loads dotenv files relative to the **base** directory, not
+# the repository root: internally it resolves them against `buildDir`, which
+# `base = "client"` makes `client/`. The token lives in the root
+# `.env.development`, so without this line the CLI finds nothing and every
+# function dies at cold start with "GITHUB_TOKEN: required" — the env
+# validator working exactly as intended, on an environment that was never
+# loaded.
+#
+# Pointing at the root file keeps one env file in one place. Note this REPLACES
+# the CLI's default list, so a `client/.env*` would no longer be read.
+[dev]
+  envFiles = ["../.env.development"]
+
 # The proxy. Every /api/* request is served by the function of that name in
 # netlify/functions/, which is where — and only where — the GitHub token lives.
 #
