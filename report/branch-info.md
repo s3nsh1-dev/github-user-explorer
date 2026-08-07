@@ -8,7 +8,8 @@ several times, and verifies once. Splitting plans that share files across
 sessions means re-reading the same code, re-deriving the same context, and
 resolving conflicts with yourself.
 
-37 plans → **11 sessions**. Eight have landed, plus a loose-ends pass.
+37 plans → **11 sessions**. Eight have landed, plus a loose-ends pass and a
+simplification pass.
 
 ---
 
@@ -1185,21 +1186,20 @@ they stop being repeated in every summary.
 | Commit | What |
 |---|---|
 | `59a1c45` | `OrganizationTopRepos`'s `github.com` href encodes both segments — **the last raw interpolation of a route param into a URL anywhere in the client** |
-| `bba6ac5` | **The anti-flash theme script** (P35 §4, deferred three times). Inline in `index.html`, matching `readMode()`'s contract exactly, allowed by a `'sha256-…'` in `script-src` rather than `'unsafe-inline'`. Plus `npm run csp-hash`, which re-derives the hash from the built HTML and fails if `netlify.toml` is missing it |
+| `bba6ac5` | **The anti-flash theme script** (P35 §4, deferred three times) — 🚫 **later reverted**, see the simplification pass below |
 | `602417d` | `npm audit fix` — **13 advisories → 2**, entirely inside the ranges `package.json` already declares, so only the lockfile moved |
 | `91ba513` | `server/` deleted (V10 §10c) — one `npm init -y` manifest, no code, referenced nowhere |
 
-**How the theme script was verified:** five scenarios in headless Chrome behind
-the real CSP — stored dark on a light system, stored light on a dark system, no
-stored value on each system, and a junk stored value. The pre-JS background
-matches what React then paints in **all five**, so it cannot flash in either
-direction, and there are **zero CSP violations**.
-
-⚠️ **The hash is a trap by design** — a one-character edit to the script
-invalidates it and the browser drops the script *silently*. `npm run csp-hash`
-exists because that happened on the first attempt: the hash was computed from
-a regex that matched a `<script>` written inside an HTML comment. **Run it
-after touching `client/index.html`.**
+**The theme script did work** — five scenarios in headless Chrome behind the
+real CSP (stored dark on a light system, stored light on dark, no stored value
+on each, a junk value), pre-JS background matching what React then paints in
+all five, zero CSP violations. **It was removed anyway.** Making an inline
+script legal under `script-src 'self'` meant pinning it with a SHA-256, and
+keeping that hash honest meant a tool (`npm run csp-hash`) whose whole job was
+to notice when a one-character edit had silently invalidated it — which is
+exactly what happened on the first attempt. Three coupled parts, one failing
+silently, to remove a brief flash. Wrong trade for this project; see the
+simplification pass.
 
 **Also closed here, from S1:** P03's skeleton animation, which S1 shipped
 without the browser check its plan asked for. Measured in both themes with the
@@ -1225,7 +1225,7 @@ The app was fully usable with a mouse and close to unusable without one: no
 control that was an icon had a name, the current page was signalled by colour
 alone, the signature feature was 365 unlabelled divs, and the focus ring was
 either invisible or clipped away. Gate green before every commit, plus
-`npm run csp-hash` and `npm run typecheck:functions` at the end.
+`npm run typecheck:functions` at the end.
 
 #### What shipped
 
@@ -1301,9 +1301,6 @@ production build, behind the same function stand-in and the real CSP.
 
 #### Observations that are nobody's plan
 
-- **`npm run csp-hash` is now effectively a fifth gate step.** It costs
-  milliseconds and it is the only thing standing between an `index.html` edit
-  and a silently dropped script.
 - **The 371 tooltips cost ~7 kB** (654.11 → 661.52 kB raw, 204.77 kB gzip).
   **P27**'s code splitting is measured against P00's baseline, so subtract this
   and S7's ~8 kB before reading its gain.
@@ -1329,13 +1326,59 @@ git checkout fix/a11y                 # confirm with: git rev-parse --short HEAD
 git checkout -b perf/assets
 ```
 
-**What S9 inherits:** `client/index.html` now contains a hash-pinned inline
-script — **run `npm run build && npm run csp-hash` after touching it**, and
-remember P26 must re-check that `netlify.toml`'s `/assets/*` rule still matches
-after the image masters move. The contribution grid's cells are `role=gridcell`
-with tooltips and **no text**; do not restore the digits. And the contrast
-sweep is a repeatable check, not a one-off claim — re-run it after P26 changes
-images and P27 changes what renders when.
+**What S9 inherits:** P26 must re-check that `netlify.toml`'s `/assets/*` rule
+still matches after the image masters move. The contribution grid's cells are
+`role=gridcell` with tooltips and **no text**; do not restore the digits. And
+the contrast sweep is a repeatable check, not a one-off claim — re-run it after
+P26 changes images and P27 changes what renders when.
+
+---
+
+### ✅ Simplification pass — **landed 2026-08-08**
+**Branch:** `chore/simplify`, tip `c598359` · cut from `fix/a11y`@`38a0f55`
+
+Not a session, and not a fix — a deliberate reversal. **This is a portfolio
+project demonstrating solid basics, not a product with a threat model**, and
+four things had grown past what a MERN developer reading the repo should have
+to decode. One of them was added three commits earlier, in the loose-ends pass.
+
+| Removed | Replaced by | Why |
+|---|---|---|
+| The **anti-flash inline script**, its `'sha256-…'` in `script-src`, and `client/scripts/csp-hash.mjs` + its npm script | Nothing. `script-src` is plain `'self'` | Three coupled parts — script, hash, hash-checker — where the coupling **fails silently**: a one-character edit invalidates the hash and the browser drops the script with no error. To remove a brief flash on first load. The CSP is worth one line of config; it stops being worth it the moment it needs its own tooling |
+| **`env.mts`'s 61-line validator** — `TOKEN_SHAPE` regex over four PAT prefixes, `tokenIssue()`, `parseEnv()`, `ServerEnv` | 15 lines exporting `GITHUB_TOKEN`, throwing at cold start if it is empty | Netlify either has the variable or it does not. Validating that a string starts with `ghp_` does not make the deploy safer; it makes the file look like it is guarding something |
+| **`useInfiniteUsers`' five explicit generics**, including `InfiniteData<T, number>` and `ReturnType<typeof qk.searchUsers>` | `initialPageParam: 1`, and inference | React Query infers all five. The generics were a workaround that outlived its reason, and they are the most advanced TypeScript in the codebase for no gain |
+| **`SearchBar`'s `slotProps.input.endAdornment`** wrapper, and `Navbar`'s `onBlur` `relatedTarget` containment check | A sibling `IconButton`; Escape and submit already close the panel | Both were the clever version of something with an obvious version |
+
+**Kept, deliberately:** the CSP header itself, the Netlify function proxy, Zod
+schemas, the typed error classes, `queryKeys`, `paginate`, `storage`, and the
+`endpoint()` wrapper. None of those is exotic — they are the ordinary way these
+problems are solved, they each remove repetition rather than adding a layer,
+and every one of them is something a MERN developer meets in normal work.
+
+**Verified unchanged afterwards**, all executed: 8 routes rendering with one
+API request per resource; the full search sweep; the mobile navbar (icon,
+expand, autofocus, Escape, close-on-submit, **0 px** horizontal overflow);
+infinite scroll fetching exactly one page per scroll-to-bottom with exactly one
+end banner; and **zero** nameless controls, CSP violations or console errors
+anywhere. Gate green, including `npm run typecheck:functions`.
+
+#### The rule this sets for S9–S11
+
+**If a MERN beginner cannot read it once and see why it is there, it does not
+belong in this repo.** Concretely, for the sessions that remain:
+
+- **P27** (code splitting): `lazy` + `Suspense` is fine. A manual `manualChunks`
+  vendor-splitting config is not — measure first, and only if the number
+  justifies it.
+- **P29** (eslint): enable `jsx-a11y` and leave it there. No custom rule
+  authoring, no plugin-writing.
+- **P30** (tests): Vitest over the pure helpers — `paginate`, `parsePage`,
+  `githubUrls`, `validateLogin`, `repoPageLink`. **No MSW, no Playwright, no
+  test factories.** The plan already scopes it that way; keep it there.
+- **P31** (CI): lint, typecheck, test, build. Nothing else, and **`npm audit`
+  must not fail the build** while the react-router 8 decision is open.
+- **Anything that needs a second tool to keep the first tool honest is the
+  signal to stop and pick the boring option.**
 
 ---
 
@@ -1349,10 +1392,10 @@ both are measured against the same P00 bundle baseline — measure once.
 ⚠️ P26 uses `git mv`, **never `rm`**, for the image masters. After P26, re-check
 that `netlify.toml`'s `/assets/*` cache header from P35 still matches.
 
-⚠️ **Inherited from the loose-ends pass:** `client/index.html` now carries a
-hash-pinned inline script. **`npm run build && npm run csp-hash` after any edit
-to that file** — a one-character change invalidates the hash and the browser
-drops the script silently, bringing back the theme flash with no error anywhere.
+⚠️ **Inherited from the simplification pass:** `client/index.html` has **no
+inline script**, and `script-src` is plain `'self'`. Keep it that way — an
+inline script needs a CSP hash, and a CSP hash needs tooling to stay honest.
+That was tried and reverted.
 
 ⚠️ **Inherited from S8:** the contribution grid's cells render **no text** —
 the count is a tooltip and an `aria-label`. Do not restore the digits; no text
