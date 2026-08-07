@@ -6,6 +6,7 @@ import AppErrorBoundary from "../components/AppErrorBoundary";
 import ErrorState from "../components/ErrorState";
 import ProfileSkeleton from "../components/skeletons/ProfileSkeleton";
 import NotFound from "./NotFound";
+import { isValidLogin } from "../helper/validateLogin";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import useFetchUserData from "../hooks/useFetchUserData";
@@ -45,14 +46,29 @@ const ProfileInfo = () => {
   };
 
   const { username } = useParams();
+  // `useParams` gives `string | undefined`, and the old placeholder fallback
+  // did not paper over that — it fired a real request for a literal
+  // placeholder username. `isValidLogin` is a type predicate, so `username`
+  // narrows to `string` below and no fallback is needed. Passing "" while it
+  // is invalid keeps the query disabled, so nothing is requested at all:
+  // this is the client half of the V02/V03 defence, the proxy being the other.
+  const usernameIsValid = isValidLogin(username);
   const {
     data: userData,
     isLoading: userLoading,
     error: userError,
     refetch: refetchUser,
   } = useFetchUserData({
-    username: username || "demoUserName",
+    username: usernameIsValid ? username : "",
   });
+
+  if (!usernameIsValid)
+    return (
+      <NotFound
+        title="Invalid username"
+        message="That doesn’t look like a GitHub username."
+      />
+    );
 
   // Guard in the order the states actually occur. `if (!userData) return null`
   // used to run first, and `userData` is undefined both while loading and
@@ -152,7 +168,7 @@ const ProfileInfo = () => {
           </Alert>
         )}
       >
-        <ContributionChart username={username || "demoUserName"} />
+        <ContributionChart username={username} />
       </AppErrorBoundary>
     </Box>
   );

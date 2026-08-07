@@ -2,6 +2,8 @@ import { Typography, Stack, Paper, Button, Grid, Box } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import type { Repo } from "../constants/common.types";
 import { useNavigate } from "react-router-dom";
+import EmptyState from "./EmptyState";
+import FolderOffIcon from "@mui/icons-material/FolderOff";
 
 const style1 = {
   padding: 1,
@@ -53,7 +55,11 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
       {/* Repositories List */}
       <Stack spacing={0.5}>
         {repos.length === 0 ? (
-          <Typography variant="body2">No repositories found.</Typography>
+          <EmptyState
+            icon={<FolderOffIcon fontSize="large" />}
+            title="No public repositories"
+            message="This account hasn’t published anything yet."
+          />
         ) : (
           repos.map((repo) => (
             <Grid

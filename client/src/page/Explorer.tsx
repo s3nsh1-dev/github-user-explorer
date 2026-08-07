@@ -6,6 +6,9 @@ import useInfiniteUsers from "../hooks/useInfiniteUsers";
 import { useEffect, useRef } from "react";
 import { CircularProgress } from "@mui/material";
 import ErrorState from "../components/ErrorState";
+import EmptyState from "../components/EmptyState";
+import SearchIcon from "@mui/icons-material/Search";
+import SearchOffIcon from "@mui/icons-material/SearchOff";
 
 const style1 = { display: "flex", flexDirection: "column", gap: 2 };
 const style2 = {
@@ -38,7 +41,7 @@ const Explorer = () => {
     hasNextPage,
     fetchNextPage,
     refetch,
-  } = useInfiniteUsers(query || "noQueryToSearch");
+  } = useInfiniteUsers(query ?? "");
 
   const loadRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,6 +69,18 @@ const Explorer = () => {
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Visiting /explore directly used to run a real GitHub search for the
+  // placeholder string and render "Matching Results : 0" over an empty grid.
+  // The hook is disabled on an empty query, so this branch fires nothing.
+  if (!query)
+    return (
+      <EmptyState
+        icon={<SearchIcon fontSize="large" />}
+        title="Search for a GitHub user"
+        message="Enter a username on the home page to see matching profiles."
+      />
+    );
+
   if (isLoading)
     return (
       <Box sx={style6}>
@@ -73,6 +88,19 @@ const Explorer = () => {
       </Box>
     );
   if (error) return <ErrorState error={error} onRetry={refetch} />;
+
+  // A search that matched nothing is not a success worth celebrating, and it
+  // used to get both "Matching Results : 0" and the 🎉 end-of-results banner,
+  // because hasNextPage is false in that case too. Keep 🎉 for "you scrolled
+  // through everything".
+  if ((data?.pages[0]?.total_count ?? 0) === 0)
+    return (
+      <EmptyState
+        icon={<SearchOffIcon fontSize="large" />}
+        title="No users found"
+        message={`Nothing on GitHub matched “${query}”. Check the spelling, or try a different username.`}
+      />
+    );
 
   const renderUserCards = data?.pages.flatMap((page) =>
     page.items.map((user) => {

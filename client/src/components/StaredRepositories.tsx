@@ -68,11 +68,20 @@ const StaredRepositories = () => {
             },
           }}
         >
-          {staredList.map((user) => (
-            <MenuItem key={user} onClick={() => handleClose(user)}>
-              {user}
+          {/* An empty dropdown that opens onto nothing is the first
+              interactive element a first-time visitor meets. Say what it is
+              for instead. */}
+          {staredList.length === 0 ? (
+            <MenuItem disabled sx={{ whiteSpace: "normal", maxWidth: 220 }}>
+              Star a profile to pin it here.
             </MenuItem>
-          ))}
+          ) : (
+            staredList.map((user) => (
+              <MenuItem key={user} onClick={() => handleClose(user)}>
+                {user}
+              </MenuItem>
+            ))
+          )}
         </Menu>
       </FormControl>
     </Box>

@@ -27,11 +27,15 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explorer />} />
             <Route path="/user/:username" element={<LinkWrapper />} />
-            <Route path="*" element={<NotFound />} />
             <Route
               path="/user/:username/:repoName"
               element={<ShowSelectedRepo />}
             />
+            {/* React Router v6+ ranks by specificity, not declaration order,
+                so this worked where it was — above a more specific route. It
+                was never a bug, only something every reader had to stop and
+                verify. */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AppErrorBoundary>
       </ThemeProvider>

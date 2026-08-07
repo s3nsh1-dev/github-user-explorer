@@ -1,5 +1,5 @@
 import useFetchReposPerPage from "../hooks/useFetchReposPerPage";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import UserProfileRepos from "../components/UserProfileRepos";
 import { Box, Typography } from "@mui/material";
 import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
@@ -9,11 +9,15 @@ import { parsePage } from "../helper/parsePage";
 import ErrorState from "./ErrorState";
 
 type IncomingPropTypes = {
+  /** Already validated by `Repositories`, which owns the route param. */
+  username: string;
   totalRepos: number;
 };
 
-const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
-  const { username } = useParams();
+const DisplayRepoList: React.FC<IncomingPropTypes> = ({
+  username,
+  totalRepos,
+}) => {
   const [searchParams] = useSearchParams();
 
   const pNum = parsePage(searchParams.get("page"));
@@ -23,7 +27,7 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
     error: reposError,
     refetch: refetchRepos,
   } = useFetchReposPerPage({
-    username: username || "demoUserName",
+    username,
     page: pNum,
   });
 
@@ -51,7 +55,7 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
           to={`/user/${username}`}
           style={{ textDecoration: "none", cursor: "pointer" }}
         >
-          <ShowColorChangingUserName username={username || "demoUserName"} />
+          <ShowColorChangingUserName username={username} />
         </Link>
         <Typography>
           <b>{totalRepos}</b> <i>repositories</i>

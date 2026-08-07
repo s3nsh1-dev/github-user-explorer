@@ -17,21 +17,35 @@ import { useParams, useNavigate } from "react-router-dom";
 import useShowIndividualRepo from "../hooks/useShowIndividualRepo";
 import type { GitHubRepo } from "../constants/common.types";
 import ErrorState from "../components/ErrorState";
+import NotFound from "./NotFound";
+import { isValidLogin, isValidRepoName } from "../helper/validateLogin";
 
 const ShowSelectedRepo = () => {
   const { repoName, username } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
 
+  // Same reasoning as ProfileInfo: the old placeholder fallbacks were real
+  // requests for names nobody owns. Empty strings keep the query
+  // disabled, so an invalid route fires nothing.
+  const paramsAreValid = isValidLogin(username) && isValidRepoName(repoName);
   const {
     data: repo,
     isLoading,
     error,
     refetch,
   } = useShowIndividualRepo({
-    repoName: repoName || "demoRepo",
-    username: username || "demoUserName",
+    repoName: paramsAreValid ? repoName : "",
+    username: paramsAreValid ? username : "",
   });
+
+  if (!paramsAreValid)
+    return (
+      <NotFound
+        title="Invalid repository"
+        message="That doesn’t look like a GitHub owner and repository name."
+      />
+    );
 
   if (isLoading) {
     return (
@@ -42,7 +56,13 @@ const ShowSelectedRepo = () => {
     );
   }
   if (error) return <ErrorState error={error} onRetry={refetch} />;
-  if (!repo) return <div>No Data Found</div>;
+  if (!repo)
+    return (
+      <NotFound
+        title="Repository not found"
+        message="That repository doesn’t exist, or it isn’t public."
+      />
+    );
 
   const {
     name,
