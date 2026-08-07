@@ -16,6 +16,7 @@ import Skeleton from "@mui/material/Skeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import useShowIndividualRepo from "../hooks/useShowIndividualRepo";
 import type { GitHubRepo } from "../constants/common.types";
+import ErrorState from "../components/ErrorState";
 
 const ShowSelectedRepo = () => {
   const { repoName, username } = useParams();
@@ -26,6 +27,7 @@ const ShowSelectedRepo = () => {
     data: repo,
     isLoading,
     error,
+    refetch,
   } = useShowIndividualRepo({
     repoName: repoName || "demoRepo",
     username: username || "demoUserName",
@@ -39,7 +41,7 @@ const ShowSelectedRepo = () => {
       </Box>
     );
   }
-  if (error) return <div>Error: {error.message}</div>;
+  if (error) return <ErrorState error={error} onRetry={refetch} />;
   if (!repo) return <div>No Data Found</div>;
 
   const {

@@ -5,17 +5,14 @@ import {
   CardContent,
   Typography,
   CircularProgress,
-  Alert,
   Button,
 } from "@mui/material";
 import useFetchOrganizationRepos from "../hooks/useFetchOrganizationRepos";
+import ErrorState from "./ErrorState";
 
 const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
-  // Inferred from the hook. The old annotation declared the error as `Error`
-  // unioned with `unknown` — which collapses to plain `unknown`, and that is
-  // why the render below reaches for String(error) rather than error.message.
-  // The error is a GitHubError now; rewriting that render is P13's job.
-  const { data, isLoading, error } = useFetchOrganizationRepos(username);
+  const { data, isLoading, error, refetch } =
+    useFetchOrganizationRepos(username);
 
   if (isLoading)
     return (
@@ -24,12 +21,7 @@ const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
       </Box>
     );
 
-  if (error)
-    return (
-      <Alert severity="error" sx={{ mt: 4 }}>
-        Error loading repositories: {String(error)}
-      </Alert>
-    );
+  if (error) return <ErrorState error={error} onRetry={refetch} sx={{ mt: 4 }} />;
 
   const repos = data?.organization?.repositories?.nodes || [];
 

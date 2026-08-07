@@ -5,6 +5,7 @@ import UserCards from "../components/UserCards";
 import useInfiniteUsers from "../hooks/useInfiniteUsers";
 import { useEffect, useRef } from "react";
 import { CircularProgress } from "@mui/material";
+import ErrorState from "../components/ErrorState";
 
 const style1 = { display: "flex", flexDirection: "column", gap: 2 };
 const style2 = {
@@ -36,6 +37,7 @@ const Explorer = () => {
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
+    refetch,
   } = useInfiniteUsers(query || "noQueryToSearch");
 
   const loadRef = useRef<HTMLDivElement | null>(null);
@@ -70,7 +72,7 @@ const Explorer = () => {
         <CircularProgress />
       </Box>
     );
-  if (error) return <div>Error Message: {error.message}</div>;
+  if (error) return <ErrorState error={error} onRetry={refetch} />;
 
   const renderUserCards = data?.pages.flatMap((page) =>
     page.items.map((user) => {

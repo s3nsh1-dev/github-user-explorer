@@ -6,6 +6,7 @@ import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
 import { Link } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 import { parsePage } from "../helper/parsePage";
+import ErrorState from "./ErrorState";
 
 type IncomingPropTypes = {
   totalRepos: number;
@@ -20,6 +21,7 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
     data: reposData,
     isLoading: reposLoading,
     error: reposError,
+    refetch: refetchRepos,
   } = useFetchReposPerPage({
     username: username || "demoUserName",
     page: pNum,
@@ -39,7 +41,8 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
         <CircularProgress />
       </Box>
     );
-  if (reposError) return <div>Error: {reposError.message}</div>;
+  if (reposError)
+    return <ErrorState error={reposError} onRetry={refetchRepos} />;
 
   return (
     <Box maxWidth={1000} minHeight={"80vh"} mx="auto" px={3} py={1}>

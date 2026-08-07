@@ -3,6 +3,7 @@ import type { GitHubUser } from "../constants/common.types";
 import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
 import { Alert, Box, Divider } from "@mui/material";
 import AppErrorBoundary from "../components/AppErrorBoundary";
+import ErrorState from "../components/ErrorState";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import useFetchUserData from "../hooks/useFetchUserData";
@@ -46,6 +47,7 @@ const ProfileInfo = () => {
     data: userData,
     isLoading: userLoading,
     error: userError,
+    refetch: refetchUser,
   } = useFetchUserData({
     username: username || "demoUserName",
   });
@@ -53,7 +55,8 @@ const ProfileInfo = () => {
   if (!userData) return null;
   const userProfile: GitHubUser = mapGitHubResponse(userData);
   if (userLoading) return <div>Loading...</div>;
-  if (userError) return <div>Error: {userError.message}</div>;
+  if (userError)
+    return <ErrorState error={userError} onRetry={refetchUser} />;
 
   const arrays = [
     { label: "📝 Bio", value: userProfile.bio },

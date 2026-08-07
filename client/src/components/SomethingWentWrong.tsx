@@ -4,8 +4,8 @@ import { Link as RouterLink } from "react-router-dom";
 /**
  * The fallback an `AppErrorBoundary` renders when a render crashed.
  *
- * It deliberately says nothing about *what* crashed. A render error message is
- * an internal implementation string — see report/vulnerabilities/09 — and the
+ * It deliberately says nothing about *what* crashed. What a render error says
+ * is an internal implementation string — see report/vulnerabilities/09 — and the
  * boundary already logs the real one to the console in development, which is
  * where it is useful.
  */
