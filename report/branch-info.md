@@ -25,15 +25,78 @@ changed that later sessions must account for.)*
 
 Then, in order:
 
-1. `git checkout -b <branch>` off the previous session's branch (or `rework/2026` for S1)
+1. `git checkout -b <branch>` **off the previous session's tip** (or `rework/2026` for S1). This is the step that actually matters — see [Branch topology & merge state](#branch-topology--merge-state--verified-2026-08-07).
 2. Work the plans **in the listed order** — the order encodes dependencies
 3. **One commit per plan**, message referencing it: `fix(security): encode user input in GitHub API URLs (P07)`
 4. Verification gate after **every** plan: `cd client && npm run lint && npx tsc -b --noEmit && npm run build`
 5. At the end, update `00.INDEX.md` — add ✅ + commit SHA to each plan's row
-6. Merge before starting the next session
+6. Merge down to `rework/2026` when convenient. **This is publishing, not a
+   precondition.** As long as step 1 cut the branch from the previous session's
+   tip, the next session already has everything it needs and can start
+   immediately. Skipping the merge costs you a longer stacked PR, nothing more.
 
 **Sessions are sequential, not parallel.** Later sessions assume earlier ones
 landed. Running two at once on shared files will conflict.
+
+---
+
+## Branch topology & merge state — verified 2026-08-07
+
+**Nothing is wrong. There is no conflict, and nothing is missing.**
+
+S1 was never merged down into `rework/2026`, but **S2 was branched directly off
+`fix/quick-wins`**, so `fix/request-safety` already contains every S1 commit.
+Step 6 above ("merge before starting the next session") is about publishing a
+session to the integration branch — it is *not* a precondition for the next
+session, as long as the next branch is cut from the previous session's tip
+rather than from `rework/2026`. That is what happened.
+
+```
+rework/2026 (27c9555)
+ └─ d32addb  P00  ┐
+    928fad0  P01  │
+    f828f7a  P02  ├─ S1  fix/quick-wins → ac4186a
+    4cfac47  P03  │
+    9183b81  P04  │
+    07e7274  P28  │
+    ac4186a  docs ┘
+     └─ 05f757e  P05  ┐
+        b22c5dc  P07  ├─ S2  fix/request-safety → a8d7431   ← HEAD
+        7dc2c03  P08  │
+        d343bbe  docs │
+        a8d7431  docs ┘
+```
+
+Completely linear. No merge commits, no divergence.
+
+| Check | Result |
+|---|---|
+| `git merge-base --is-ancestor fix/quick-wins fix/request-safety` | ✅ exit 0 — S1 is an ancestor of S2 |
+| `git merge-base fix/quick-wins fix/request-safety` | `ac4186a` — **the tip of `fix/quick-wins`**, i.e. S2 was cut from it |
+| `git log fix/request-safety..fix/quick-wins` | empty — **no S1 commit is missing from S2** |
+| `git rev-list --left-right --count rework/2026...fix/request-safety` | `0  12` — S2 is 12 ahead, 0 behind |
+| S1 artefacts on `fix/request-safety` | ✅ `.env.example`, `helper/validateLogin.ts`, `_baseline.txt` present; `useFetchSearchUsers.ts` / `react.svg` / `vite.svg` still deleted; 3 × `rel="noopener noreferrer"`; `zod` in `package.json` |
+
+**`git merge fix/quick-wins` while on `fix/request-safety` would print
+"Already up to date." and do nothing.** Merging an ancestor is a no-op by
+definition — do not run it expecting a merge commit, and do not create one with
+`--no-ff` just to have a record. The history already is the record.
+
+### What this *does* leave outstanding
+
+`rework/2026` is still sitting at `27c9555` and has received **neither** S1
+**nor** S2. One decision, whenever you want to publish:
+
+- **Merge `fix/request-safety` into `rework/2026`** — a **fast-forward** that
+  lands S1 and S2 together, in order, in one move. Simplest, and correct.
+- **Or land them as two PRs** (`fix/quick-wins` → `rework/2026`, then
+  `fix/request-safety` → `rework/2026`). Also fine, but this is a **stacked
+  PR**: until the first merges, the second one's diff shows S1's commits too.
+  Review S1 first, and merge in that order — never the reverse.
+
+Either way, **do not rebase either branch.** S3 will be cut from
+`fix/request-safety`, and rewriting its SHAs invalidates every SHA recorded in
+`00.INDEX.md` and in this file.
 
 ---
 
@@ -64,32 +127,99 @@ actually true now.
 
 ## The 11 sessions
 
-### ✅ S1 — Quick wins & foundations — **landed**
-**Branch:** `fix/quick-wins` (off `rework/2026`) · **Risk:** none · **~1.5 h**
-**Plans:** P00 → P01 → P02 → P03 → P04 → P28
+### ✅ S1 — Quick wins & foundations — **landed 2026-08-07**
+**Branch:** `fix/quick-wins` (off `rework/2026`) · **Risk:** none
+**Plans:** P00 `d32addb` → P01 `928fad0` → P02 `f828f7a` → P03 `4cfac47` →
+P04 `9183b81` → P28 `07e7274` · docs `ac4186a`
 
 Scattered one-file edits plus two leaf modules nothing imports yet. Grouped
 because none of them interact, all are trivially verifiable, and together they
-shrink the files every later session has to read.
+shrink the files every later session has to read. Gate (`npm run lint && npx tsc
+-b --noEmit && npm run build`) green before every commit.
 
-| Plan | Touches |
+#### What shipped
+
+| Plan | Result |
 |---|---|
-| P00 | *(setup: `npm ci`, baseline capture, branch)* |
-| P01 | `ShowSelectedRepo.tsx` — 3 attributes |
-| P02 | dead code across 8 files, deletes `useFetchSearchUsers.ts`, `react.svg`, `vite.svg` |
-| P03 | `LoadingSkeleton.tsx` |
-| P04 | **new** `helper/validateLogin.ts` (leaf — nothing imports it yet) |
-| P28 | `.env.development`, **new** `.env.example`, `vite-env.d.ts`, `npm i zod` |
+| **P00** | `npm ci` in `client/` — 230 packages, **no lockfile drift**. **Baseline was green**: lint, `tsc -b --noEmit` and `vite build` all exit 0 at `27c9555`, so every later failure is attributable. Bundle baseline captured in [`implementation_plans/_baseline.txt`](implementation_plans/_baseline.txt): **3.0 MB** of `dist/assets` — 1.42 MB `github-logo-cropped.png`, 548 KB + 505 KB logos, 571 KB JS (179 KB gzip). That is the number **P26** and **P27** are measured against. |
+| **P01** | 3 × `rel="noopener noreferrer"` in `ShowSelectedRepo.tsx` (forks chip, issues chip, "Visit on GitHub"). All **6** `target="_blank"` sites in `client/src` now carry `rel`. |
+| **P02** | 13 files, **−85 lines**. `Explorer.tsx`: commented "Load More" `<Button>`, orphaned `style4`, commented `Button` import, and the `{!hasNextPage && …}` block nested inside `{hasNextPage && …}` that could never render — the page declared two end-of-results messages and could reach one. `useFetchUserData`: commented `cacheTime`. `seeRepos` prop removed from `UserCards` + `common.types.ts` + call site. `UserProfileRepos`: dead `navigate()` state object. 5 commented-out style one-liners. `git rm`: `useFetchSearchUsers.ts` (B4), `react.svg`, `vite.svg`. |
+| **P03** | `LoadingSkeleton.tsx` → MUI `<Skeleton>`. `@keyframes pulse` was referenced but **defined nowhere** (`grep -rn keyframes client/src` → 0 hits), so the contribution skeleton had always been a static grey grid. Also drops the hardcoded `#e0e0e0`, which read wrong in dark mode. |
+| **P04** | **new** `helper/validateLogin.ts` — `GITHUB_LOGIN`, `GITHUB_REPO_NAME`, `isValidLogin`, `isValidRepoName`. Leaf module, imported by nothing; P07/P16/P17/P20 each do their own wiring. |
+| **P28** ◑ | Steps 1-3, 5, 6. `.env.development` rewritten clean; `.env.example` committed; `!.env.example` added to `.gitignore`; `zod@^4.4.3` installed. |
 
-⚠️ **P28 is split.** Steps 1-3, 5, 6 run here — the `zod` install is what P09
-(S3) depends on. **Step 4** (server env schema) is deferred to **S4**, because
-`netlify/functions/` does not exist yet.
+#### How it was verified
+
+Beyond the gate: **P04's regex was executed, not eyeballed** — all 32 cases run
+through `node --experimental-strip-types`, including every pass/fail input the
+plan names (`torvalds`, `s3nsh1-dev`, a 39-char login, `microsoft` pass;
+`-lead`, `trail-`, `dou--ble`, 40-char, `""`, `undefined`,
+`x/../../orgs/github`, `a") { __typename } viewer { login }`, `a&per_page=100`
+fail). **P03 was verified in the built bundle**, where the animation now binds
+to a real emotion keyframes object (`${Kh} 2s ease-in-out 0.5s infinite`)
+instead of a dangling name. **P28's env file was verified by re-parsing its
+shape only** — key/value whitespace, quoting and token prefix as booleans. The
+value was never printed, and no tracked file matches a token pattern.
+
+#### ⚠️ Deviations from the plans
+
+1. **Branch-name conflict in the plans themselves.** P00's own text says
+   `fix/audit-remediation`; this file says `fix/quick-wins`. Went with **this
+   file**, since it is what governs sessions.
+2. **HEAD was `27c9555`, not the audit snapshot `1fa3e0f`.** The root
+   `guide.txt` / `package.json` / `package-lock.json` deletions were already
+   committed, and **`.github/dependabot.yml` already existed** — **P32 appears
+   to have landed early, outside its session.** Verify before re-doing it in
+   **S10**.
+3. **P02 cascaded further than written.** Dropping the dead `navigate()` state
+   object orphaned `UserProfileRepos`'s `username` prop and `noUnusedLocals`
+   failed the build. Since P02's own acceptance criteria require that check to
+   pass, the prop and its `DisplayRepoList` call site went too. P07 §5 rebuilds
+   the path from `owner`/`name` on the repo object, so it did not need the prop
+   back — and did not ask for it.
+4. **P02 also removed two commented style one-liners the plan did not name
+   individually** (`UserCards.tsx`, `CustomSwitchForModeTransition.tsx`) —
+   covered by step 5's "any similar one-liners".
+   `useFetchReposPerPage.ts`'s commented `staleTime` is **untouched**, as
+   instructed; it is a live behaviour bug owned by **P11**.
+5. **P03 was not checked in a browser.** The plan asks for a visual check in
+   both themes; only the bundle-level proof above was done. Worth ten seconds
+   the next time `npm run dev` is running.
+6. **P28 step 5 was a no-op.** `client/src/vite-env.d.ts` already contained only
+   the `vite/client` reference — no `VITE_GITHUB_AUTHENTICATION_TOKEN`
+   declaration to delete. Verified, not "re-fixed".
+7. **`.env.development` was worse than the plan described.** Not just the
+   trailing space in the key (`GITHUB_TOKEN =`) — the value was **also quoted
+   and whitespace-padded**. All three stripped.
+8. **`.env.example` really was being swallowed** by the `.env.*` rule, exactly
+   as P28 warned might happen. `!.env.example` now follows the env rules —
+   **order matters, do not reorder those lines.** A stray trailing space on the
+   `.env.*` line was dropped at the same time.
+9. **`npm i zod` also pruned an extraneous `yaml@2.8.0` optional-peer entry**
+   from `client/package-lock.json`. Unasked-for but harmless — the real
+   `yaml@1.10.2` under `cosmiconfig` is untouched, and the gate stayed green.
+   It is in the P28 diff.
+10. ❌ **S1's own index note said "7 hooks read `VITE_*`". That was wrong — it
+    was 8.** `useFetchLoginType` was miscounted. **S2 caught and corrected it**
+    while migrating all 8. Recorded here as the concrete case for rule 3:
+    re-grep, never trust a count written down in a previous session.
+
+#### Seen but deliberately NOT fixed (still open for their owning plan)
+
+- `useFetchReposPerPage`'s commented-out `staleTime` → **P11**
+- The `"demoUserName"` fallbacks, untouched and still live → **P16**
+- `helper/validateLogin.ts` left unimported on purpose → **P16**/**P17**/**P20**
+- `npm audit`'s 13 advisories (1 low, 2 moderate, 10 high). `npm audit fix` was
+  **not** run — P00 forbids it, since it can bump majors. Unowned by any plan.
 
 ---
 
 ### ✅ S2 — Request safety *(hook layer, part 1)* — **landed 2026-08-07**
-**Branch:** `fix/request-safety` (off `fix/quick-wins`, **not yet merged**) · **Risk:** medium
-**Plans:** P05 `05f757e` → P07 `b22c5dc` → P08 `7dc2c03` · docs `d343bbe`
+**Branch:** `fix/request-safety`, tip `a8d7431` · **Risk:** medium
+**Cut from `fix/quick-wins`@`ac4186a`, so it contains all of S1** — see
+[Branch topology & merge state](#branch-topology--merge-state--verified-2026-08-07).
+Neither session has been merged down to `rework/2026` yet; that blocks nothing.
+**Plans:** P05 `05f757e` → P07 `b22c5dc` → P08 `7dc2c03` · docs `d343bbe`, `a8d7431`
 
 Fixed the two highest-severity issues reachable without the proxy: **GraphQL
 injection (V02)** and **URL tampering (V03)**. Gate (`npm run lint && npx tsc -b
@@ -160,10 +290,31 @@ for a real before/after:
 - `OrganizationTopRepos` still interpolates into outbound `github.com` hrefs —
   a rendered link, not an authenticated request. Unowned; note it if it matters.
 
+#### → How S3 branches from here
+
+```bash
+git checkout fix/request-safety      # must be at a8d7431
+git checkout -b fix/data-layer
+```
+
+**Cut S3 from `fix/request-safety`, not from `rework/2026`.** `rework/2026` is
+still at `27c9555` and has neither S1 nor S2; branching from it would hand S3 a
+tree where `githubFetch`, `githubUrls`, `graphqlQueries` and `validateLogin` do
+not exist, and every plan below would fail on its first import.
+
+You do **not** need to merge anything first. `fix/request-safety` already
+contains S1 in full — the merge that was skipped was down to the integration
+branch, not up into this one, and it is not a precondition for S3.
+
+Same rule for every later session: **branch off the previous session's tip.**
+The one exception is **S6** and **S11**, which only need S1 and can be cut from
+`fix/quick-wins`@`ac4186a` directly — but cutting them from the latest tip is
+also fine and avoids a second stack.
+
 ---
 
 ### 🔵 S3 — Data layer *(hook layer, part 2)*
-**Branch:** `fix/data-layer` · **Risk:** medium · **~3 h**
+**Branch:** `fix/data-layer`, off `fix/request-safety`@`a8d7431` · **Risk:** medium · **~3 h**
 **Plans:** P06 → P09 → P10 → P11
 
 Same 8 hook files again, plus `common.types.ts` and `main.tsx`. Fixes both
@@ -366,9 +517,9 @@ is never linked (B7).
 ## Dependency graph between sessions
 
 ```
-rework/2026
-    └── S1  quick-wins ────────────────┐
-            └── S2  request-safety     │
+rework/2026 (27c9555 — has received nothing yet)
+    └── ✅ S1  quick-wins      ac4186a ─────┐
+            └── ✅ S2  request-safety  a8d7431  ← branch from here next
                     └── S3  data-layer │
                             ├── S4  token-proxy  🔴 CRITICAL
                             └── S5  error-states
@@ -379,10 +530,17 @@ rework/2026
     S11 docs/readme      ← only needs S1
 ```
 
-**Critical path to the security fix: S1 → S2 → S3 → S4.** Four sessions.
+This tree is **branch ancestry, not merge order**. Each session is cut from the
+one above it; merging down to `rework/2026` can happen at any point after, and
+so far has not happened at all. Two sessions are done; the next branch is cut
+from `a8d7431`.
 
-**S6 and S11 are independent** — they only need S1. Run them any time you want a
-short, low-risk session, or in parallel if you are careful to merge cleanly.
+**Critical path to the security fix: S1 → S2 → S3 → S4.** Two down, two to go.
+
+**S6 and S11 are independent** — they only need S1, so they may be cut from
+`fix/quick-wins`@`ac4186a`. If you run them in parallel with the main line,
+that is a second stack off S1: keep them there, and merge S1 down first so both
+stacks rebase-free onto a shared base.
 
 ---
 
@@ -408,7 +566,7 @@ more than it saves.
 
 1. **One plan, one commit.** Never bundle plans into one commit.
 2. **Verification gate after each plan.** Lint + tsc + build, all green. No exceptions.
-3. **Re-read files before editing.** The plans' line numbers are from the audit snapshot.
+3. **Re-read files before editing, and re-grep before trusting a count.** The plans' line numbers are from the audit snapshot, and a written-down number can be wrong — S1's index said "7 hooks"; there were 8.
 4. **Never touch anything outside the session's plan list.** Note it, move on.
 5. **Do not add dependencies** beyond those named in a plan. Pre-approved: `zod` (P28), dev deps in P29/P30.
 6. **`git mv`, never `rm`,** for anything that might be an only copy.
@@ -416,6 +574,7 @@ more than it saves.
 8. **Update `00.INDEX.md`** at session end with ✅ + SHA per landed plan.
 9. **Report honestly.** Half-landed = say which half. Build broken = say so, with output.
 10. **Do not commit to `main`.**
+11. **Branch from the previous session's tip; never rebase a landed session.** The SHAs in this file and in `00.INDEX.md` are the only record of what shipped where — rewriting history invalidates all of them.
 
 ---
 
@@ -426,3 +585,15 @@ more than it saves.
 new no-scope token → add as `GITHUB_TOKEN` in Netlify → ship **S4** → revoke the
 old one at <https://github.com/settings/tokens>. Check
 <https://github.com/settings/security-log> too.
+
+⚠️ **There are probably two different tokens — check both.** Noted during S1:
+the audit records the deployed bundle's token as **`ghp_`**-prefixed (classic
+PAT), but the local `.env.development` holds a **`github_pat_`** one
+(fine-grained). Different prefixes mean **different credentials**, so revoking
+the one on your disk would not revoke the one that is public. Enumerate both at
+<https://github.com/settings/tokens> — classic and fine-grained are listed
+separately — before revoking anything.
+
+✅ Not a new exposure: the locally built bundle at S1 contained **zero** token
+strings, because the `VITE_*` variable is no longer defined. The client is
+correspondingly broken (`Bearer undefined`) until **P34**, which is accepted.
