@@ -8,20 +8,20 @@ several times, and verifies once. Splitting plans that share files across
 sessions means re-reading the same code, re-deriving the same context, and
 resolving conflicts with yourself.
 
-37 plans → **11 sessions**. Nine have landed, plus a loose-ends pass and a
-simplification pass.
+37 plans → **11 sessions**. Ten have landed, plus a loose-ends pass and a
+simplification pass. **S11 is the last.**
 
 ---
 
 ## How to start a session
 
 ```
-Implement session S10 (plans P29 → P30 → P31 → P32) from
+Implement session S11 (plans P36 → P33) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: chore/tooling, off perf/assets.
+plan file in order. Branch: docs/readme, off chore/tooling.
 ```
 
-*(S1 through S9 have landed — see `00.INDEX.md` for their SHAs and for what
+*(S1 through S10 have landed — see `00.INDEX.md` for their SHAs and for what
 they changed that later sessions must account for.)*
 
 Then, in order:
@@ -29,7 +29,9 @@ Then, in order:
 1. `git checkout -b <branch>` **off the previous session's tip** (or `rework/2026` for S1). This is the step that actually matters — see [Branch topology & merge state](#branch-topology--merge-state--verified-2026-08-07).
 2. Work the plans **in the listed order** — the order encodes dependencies
 3. **One commit per plan**, message referencing it: `fix(security): encode user input in GitHub API URLs (P07)`
-4. Verification gate after **every** plan: `cd client && npm run lint && npx tsc -b --noEmit && npm run build`
+4. Verification gate after **every** plan:
+   `cd client && npm run lint && npx tsc -b --noEmit && npm run test:run && npm run build`
+   — plus `npm run typecheck:functions` whenever you touch `netlify/`
 5. At the end, update `00.INDEX.md` — add ✅ + commit SHA to each plan's row
 6. Merge down to `rework/2026` when convenient. **This is publishing, not a
    precondition.** As long as step 1 cut the branch from the previous session's
@@ -105,7 +107,11 @@ rework/2026 (27c9555)
                                         38a0f55  docs ┘
                                          └─ c598359  chore/simplify
                                              └─ 4586957  P26 ┐
-                                                c9e4b32  P27 ┴─ S9  perf/assets  ← HEAD
+                                                c9e4b32  P27 ┴─ S9  perf/assets → a45e1ae
+                                                 └─ 4a38f54  P29 ┐
+                                                    1a8969c  P30 ├─ S10  chore/tooling  ← HEAD
+                                                    180496c  P31 │
+                                                    0bf39e5  P32 ┘
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -145,9 +151,9 @@ Either way, **do not rebase any of these branches.** S3 was cut from
 `fix/request-safety` and S4 from `fix/data-layer`; rewriting their
 SHAs invalidates every SHA recorded in `00.INDEX.md` and in this file.
 
-*(Written before S3. Still accurate after S9 — `rework/2026` has received none
-of S1–S9, and a merge of `perf/assets` into it remains a single fast-forward
-landing all nine in order, plus `fix/netlify-dev-envfile`, `chore/loose-ends`
+*(Written before S3. Still accurate after S10 — `rework/2026` has received none
+of S1–S10, and a merge of `chore/tooling` into it remains a single fast-forward
+landing all ten in order, plus `fix/netlify-dev-envfile`, `chore/loose-ends`
 and `chore/simplify`.)*
 
 **S4 was cut from `c3ec6a1`, not `39a310b`.** Same situation as S3: the S3
@@ -1491,35 +1497,117 @@ build** while the react-router 8 decision is open.
 
 ---
 
-### 🟢 S10 — Tooling & CI  ← next
-**Branch:** `chore/tooling`, off `perf/assets`@`c9e4b32` · **Risk:** low · **~3 h**
-**Plans:** P29 → P30 → P31 → P32
+### ✅ S10 — Tooling & CI — **landed 2026-08-08**
+**Branch:** `chore/tooling`, tip `0bf39e5` · **Risk:** low
+**Cut from `perf/assets`@`c9e4b32`**, so it contains all of S1–S9 and both
+short passes. Nothing has been merged down to `rework/2026` yet.
+**Plans:** P29 `4a38f54` → P30 `1a8969c` → P31 `180496c` → P32 `0bf39e5`
 
-`eslint.config.js`, `vite.config.ts`, `package.json`, `.github/**`, new test
-files. Config-only; touches almost no application code.
+The repo had no accessibility lint rules, **zero test files**, no `.github/`
+directory at all, and nothing watching 4,000 lines of transitive dependencies.
+Gate green before every commit — now five steps, including the new
+`npm run test:run`.
 
-**Must run after S8** — P29 enables `jsx-a11y`, and it should land green rather
-than producing a wall of violations to triage. Same for P30: it runs after P15
-so the tests assert *corrected* pagination behaviour.
+#### What shipped
 
-⚠️ **Inherited from S5 — `helper/paginate.ts` is now the highest-value pure
-module after `githubUrls`.** `totalPageCount(undefined)` → `0`,
-`pageWindow(p, 0)` → `[]`, and the clamping at both ends. S5 executed 18 such
-cases plus an old-vs-new parity sweep; **P30 turns those into committed tests**,
-and they are the regression guard for the pagination `NaN`.
+| Plan | Result |
+|---|---|
+| **P29** | `jsx-a11y/recommended` + `react/jsx-no-target-blank` with `enforceDynamicLinks`, and the load-bearing `linkComponents` setting so the link rules can see MUI's `component=` form. |
+| **P30** | Vitest + jsdom, **5 suites / 84 tests / 1.2 s**: `validateLogin`, `paginate`, `githubUrls` + `parsePage`, `storage`, `simplifyGitHubResponse`. |
+| **P31** | `.github/workflows/ci.yml` — lint, client typecheck, **functions typecheck**, tests, build, plus an advisory audit, on Node 22. |
+| **P32** | `.github/dependabot.yml` — monthly, `directory: /client`, MUI/Emotion and dev deps grouped, plus the `github-actions` ecosystem. |
 
-⚠️ **Inherited from S2 — P30 has more pure logic to test than the plan lists:**
-`helper/parsePage.ts` (`"abc"`, `"0"`, `"-3"`, `null` → `1`), and
-`helper/githubUrls.ts`, where the highest-value assertions are the security
-ones — `usersUrl("x/../../orgs/github")` must contain `%2F` and must **not**
-normalise to `/orgs/github`, and `searchUsersUrl("a&per_page=100", 1)` must
-carry that as a single `q` value. Those two tests are the regression guard for
-**V03**; without them a later refactor can silently reopen it.
+#### How it was verified
+
+**Every claim below is a measurement, and two of them came back negative.**
+
+| Check | Result |
+|---|---|
+| Whole ruleset on the existing code | **4 errors**, all `jsx-a11y/no-autofocus`, nothing else — the P22–P25-first ordering did what it was for |
+| Delete one `rel="noopener noreferrer"` | ✅ **lint fails at that line**; restoring it goes green |
+| Delete the star button's `aria-label` | 🔴 **lint stays green** — see deviation 2 |
+| `npm run test:run` | **84 passed** in 1.16 s |
+| Restore the pre-P15 `totalPageCount`, re-run | ✅ **the NaN test fails**, the other 16 pass; restore → green. Index rule 8, checked rather than claimed |
+| All seven CI step commands, run locally in order from `client/`, starting at a clean `npm ci` | **every one passes** |
+| `ci.yml` / `dependabot.yml` parsed as YAML | ✅ both |
+| Browser sweep after the `autoFocus` → `focusOnMount` rename | home field and mobile panel still take focus; zero CSP violations, zero console errors |
+
+#### ⚠️ Deviations from the plans
+
+1. **P29's four `no-autofocus` errors were one decision, not four.**
+   `SearchBar`'s prop is renamed `autoFocus` → `focusOnMount`, which is a
+   better name and leaves exactly one site where this reaches the DOM. That
+   site carries the single `eslint-disable-next-line` **with its reason**; the
+   rule still fires on any real `autoFocus` added later. The alternative —
+   `ignoreNonDOM: true` — would have silenced the rule everywhere in a codebase
+   that renders no raw DOM controls, which is a rule that can never fire.
+2. 🔴 **P29's acceptance criterion "removing an `aria-label` → lint error"
+   cannot be met, and I could not make it true.** Every interactive element
+   here is a MUI component; `jsx-a11y` matches JSX element names, so
+   `control-has-associated-label` sees no `<button>` and reports nothing. This
+   was tested by actually deleting the label and running both the recommended
+   set and that rule explicitly. **Recorded rather than papered over** with a
+   rule that looks like coverage and provides none — the accessible-name
+   guarantee is S8's runtime sweep, and that is now written into the docs.
+3. **P30 installed two dev dependencies, not four.** `@testing-library/react`
+   and `jest-dom` are only needed for component tests, which the plan itself
+   rules out for now. Fewer moving parts, same coverage.
+4. **A `githubUrls` + `parsePage` suite was added**, which P30's file list does
+   not name — the branch notes flagged them as the highest-value security
+   regression tests, and they are: `usersUrl("x/../../orgs/github")` keeping
+   `%2F`, and `"a&per_page=100"` staying one `q` value.
+5. **CI has a sixth step the plan does not list:
+   `npm run typecheck:functions`.** `tsc -b` does not see
+   `netlify/functions/`, so without it the proxy is only typechecked at deploy.
+6. **P31's "first run is green" and "cache hit on the second run" could not be
+   observed.** There is no remote for this branch and pushing is not mine to
+   do. What *was* done instead: every step command run locally in order from a
+   clean `npm ci`. **The commands are green; the badge is unobserved.**
+7. **P32's `directory: /client` needed no decision.** The plan hedges it
+   against a root `package.json`/lockfile mismatch — the root has no
+   `package.json` at all now, so `/client` is simply the only tree.
+
+#### Observations that are nobody's plan
+
+- ✅ **`npm audit` now reports 0.** It went 13 → 2 in the loose-ends pass, then
+  **2 → 0 on the same installed `react-router@7.18.2`** — the advisory's
+  affected range was revised upstream, with no change here. **The
+  "react-router 8 decision" earlier reports flagged is moot.** It is also the
+  best possible argument for CI's audit step being advisory: the number moved
+  without a commit.
+- **The test files are typechecked by `tsc -b`**, so a test that stops
+  compiling is a red build rather than a silent skip.
+- **Bundle unchanged** — nothing shipped to the client in this session.
+
+#### 🔴 What is on you after S10
+
+Repo settings, which only the owner can click (V10 §10e):
+
+1. **Settings → Code security → Dependabot alerts** and **Dependabot security
+   updates** — the config file schedules version bumps; alerts are separate.
+2. **Settings → Code security → Secret scanning** and **Push protection.**
+   This is the one directly tied to
+   [`vulnerabilities/01`](vulnerabilities/01.exposed-github-token.md): push
+   protection would have made the original token uncommittable.
+3. **Watch the first CI run** and confirm it is green — see deviation 6.
+
+#### → How S11 branches from here
+
+```bash
+git checkout chore/tooling            # confirm with: git rev-parse --short HEAD
+git checkout -b docs/readme
+```
+
+**What S11 inherits:** `docs/` already exists — S9 put the image masters in
+`docs/assets-source/`, and **P36 should leave them there**; it is also where an
+`og:image` capture would be generated from. **P33's CI badge must match the
+workflow filename** (`ci.yml`). And describe the test suite honestly: it is
+pure-logic coverage, not component or end-to-end tests.
 
 ---
 
-### 🟢 S11 — Docs & licence
-**Branch:** `docs/readme` · **Risk:** none · **~1.5 h**
+### 🟢 S11 — Docs & licence  ← next, and last
+**Branch:** `docs/readme`, off `chore/tooling`@`0bf39e5` · **Risk:** none · **~1.5 h**
 **Plans:** P36 → P33
 
 `docs/`, `LICENSE`, `client/package.json`, `server/package.json`. P36 first — it
@@ -1545,23 +1633,24 @@ rework/2026 (27c9555 — has received nothing yet)
                                                          (+ chore/loose-ends  09f13d6)
                                                             └── ✅ S8  fix/a11y  38a0f55
                                                                  (+ chore/simplify  c598359)
-                                                                    └── ✅ S9  perf/assets  c9e4b32  ← branch from here next
+                                                                    └── ✅ S9  perf/assets  a45e1ae
+                                                                            └── ✅ S10  chore/tooling  0bf39e5  ← branch from here next
                                                                     ├── S9  perf/assets
                                                                     └── S10 tooling
-    S11 docs/readme      ← only needs S1 (stack it on c9e4b32 anyway)
+    S11 docs/readme      ← only needs S1 (stack it on 0bf39e5 anyway)
 ```
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Nine sessions are done; the next branch is cut
-from `c9e4b32`.
+so far has not happened at all. Ten sessions are done; the next branch is cut
+from `0bf39e5`, and it is the last one.
 
 **Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
 — S4 landed first, and S5 is cut from it. Nothing forced that order (they share
 no files), but stacking keeps a single line of history instead of a second stack
 to reconcile later. **S6 was drawn detached** — it only needs S1 — and was
 stacked on S5 anyway, for the same reason. **S11 is the last one still drawn
-that way; stack it too.** Nine sessions plus two short passes, a single line of
+that way; stack it too.** Ten sessions plus two short passes, a single line of
 history, no merge commits.
 
 ~~**Critical path to the security fix: S1 → S2 → S3 → S4.**~~ ✅ **All four have
@@ -1570,7 +1659,7 @@ env var and the token revocation, both of which only you can do. See
 [What is still on you after S4](#-what-is-still-on-you-after-s4).
 
 **S11 is independent** — it only needs S1, so it *may* be cut from
-`fix/quick-wins`@`ac4186a`. Cutting it from `c9e4b32` instead keeps the single
+`fix/quick-wins`@`ac4186a`. Cutting it from `0bf39e5` instead keeps the single
 line every session so far has stayed on. ~~Same for S6~~ — **S6 has landed**,
 stacked on S5.
 
