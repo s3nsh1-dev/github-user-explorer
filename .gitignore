@@ -21,9 +21,11 @@ yarn-error.log*
 
 # Environment variables
 .env
-.env.* 
+.env.*
 client/.env*
 server/.env*
+# ...but the template is committed on purpose. Keep this after the rules above.
+!.env.example
 
 # OS + Editor junk
 .DS_Store
