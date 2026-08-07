@@ -2,37 +2,38 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
-import {
-  useRef,
-  useState,
-  useEffect,
-  type FormEvent,
-  type ChangeEvent,
-} from "react";
+import { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate, createSearchParams } from "react-router-dom";
 
+/**
+ * The shortest string worth sending to GitHub's search endpoint. It is a
+ * product rule, not a GitHub one — a one-character query matches most of the
+ * site and is never what the visitor meant.
+ */
+const MIN_SEARCH_LENGTH = 3;
+
 const LowerHomeUI = () => {
-  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = (event: FormEvent) => {
     event.preventDefault();
-    const trimUserName = searchTerm.trim();
-    if (searchTerm.length <= 2) {
-      alert("Please enter at least 3 characters to search for a user.");
+    // The guard used to test `searchTerm.length` and then navigate with the
+    // trimmed value, so "  a  " passed at length 5 and searched for "a" — the
+    // single-character search the guard exists to prevent. Validate what is
+    // actually sent.
+    const trimmed = searchTerm.trim();
+    if (trimmed.length < MIN_SEARCH_LENGTH) {
+      setError(`Enter at least ${MIN_SEARCH_LENGTH} characters.`);
       return;
     }
+    setError(null);
     setSearchTerm("");
+    // createSearchParams encodes; do not pre-encode, or "C++" becomes "%252B".
     navigate({
       pathname: "/explore",
-      search: `?${createSearchParams({ query: trimUserName })}`,
+      search: `?${createSearchParams({ query: trimmed })}`,
     });
   };
   return (
@@ -51,25 +52,30 @@ const LowerHomeUI = () => {
         Github User Explorer
       </Typography>
       <Box
-        sx={{ display: "flex", gap: 2 }}
+        sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}
         component={"form"}
         onSubmit={(event) => handleSearch(event)}
         noValidate
       >
         <TextField
-          inputRef={inputRef}
           value={searchTerm}
           id="github-username-search"
+          label="GitHub username"
           variant="outlined"
-          placeholder="Enter the GitHub username..."
+          autoFocus
+          error={Boolean(error)}
+          // A non-breaking space keeps the helper row in the layout when there
+          // is no error, so showing one does not shove the page down.
+          helperText={error ?? " "}
           sx={{
             width: { xs: "55vw", sm: "300px" },
           }}
-          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-            setSearchTerm(event.target.value)
-          }
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            setSearchTerm(event.target.value);
+            setError(null);
+          }}
         />
-        <Button variant="contained" type="submit">
+        <Button variant="contained" type="submit" sx={{ height: 56 }}>
           Search
         </Button>
       </Box>
