@@ -10,6 +10,57 @@ the wrong order.
 
 ---
 
+## 📌 Current status — 2026-08-07
+
+Six of eleven implementation sessions have landed (**S1–S6**, plans P00–P19 plus
+P28/P34/P35). Every finding below now carries its own **Current status** section
+with a per-item breakdown; this is the roll-up.
+
+| Finding | Status |
+|---|---|
+| **V01** PAT in the bundle | ✅ **Finished** — proxy shipped *and* the exposed token revoked |
+| **V02** GraphQL injection | ✅ Finished |
+| **V03** URL tampering | ✅ Finished |
+| **V04** Security headers | ✅ Finished |
+| **V05** Unhandled API errors | ✅ Finished |
+| **V06** Untrusted localStorage | ✅ Finished |
+| **V07** Rate-limit exhaustion | 🟡 Partial — everything except request throttling (7a) |
+| **V08** Reverse tabnabbing | ✅ Finished in code; the lint guard is pending |
+| **V09** Error-message disclosure | ✅ Finished |
+| **V10** Secret & dependency hygiene | 🟡 Partial — secrets done, dependency automation not |
+| **S01** Backend proxy | ✅ Finished (as Netlify Functions, not Express) |
+| **S02** Cache-key collisions | ✅ Finished |
+| **S03** Loading/error ordering | ✅ Finished |
+| **S04** Fetch-boundary types | ✅ Finished (Zod) |
+| **S05** Search UX | ⏳ Pending — S7 |
+| **S06** Starred-users state | ✅ Finished |
+| **S07** Assets & bundle | ⏳ Pending — S9 |
+| **S08** README & portfolio | ⏳ Pending — S11 |
+| **S09** Accessibility | ⏳ Pending — S8 |
+| **S10** Empty & 404 states | ✅ Finished (bar the shared search box, deferred to S7) |
+| **S11** Tests & CI | ⏳ Pending — S10 |
+| **S12** Dead code & hygiene | 🟡 Partial — code clean, repo root not yet |
+| **S13** Deployment config | ✅ Mostly — the anti-flash script (13d) is open |
+
+**Seven of the eight "confirmed bugs found along the way" below are fixed** —
+the repo-detail cache key, the blank profile page, the pagination `NaN`, the
+skeleton animation, the unreachable JSX, the duplicate profile request, and the
+white screen on a non-existent user. The eighth, the search box validating an
+untrimmed length, is **still open** and owned by S7.
+
+**Not owned by any plan, and still open:** `npm audit`'s 13 advisories, the dead
+`server/` stub, the offline/`navigator.onLine` state, and the repo's own GitHub
+security settings.
+
+The **"Suggested order"** section below was written before any of this and is
+kept as the original reasoning. What actually happened is recorded in
+[`branch-info.md`](branch-info.md) and
+[`implementation_plans/00.INDEX.md`](implementation_plans/00.INDEX.md); steps 1,
+2, 3 and 5 are done, step 4 is half done, and steps 6 and 7 are what remains.
+
+---
+
+
 ## Vulnerabilities
 
 | # | Finding | Severity |
