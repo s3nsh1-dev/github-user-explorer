@@ -34,7 +34,7 @@ const style4 = {
 };
 
 const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
-  const staredContext = useStartedUserList();
+  const { checkStared, updateStaredList } = useStartedUserList();
 
   return (
     <Box sx={style1}>
@@ -47,11 +47,9 @@ const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
         <Box sx={style3}>
           <Typography sx={style4}>{userProfile.username}</Typography>
           <IconButton
-            onClick={() =>
-              staredContext?.updateStaredList(userProfile.username)
-            }
+            onClick={() => updateStaredList(userProfile.username)}
           >
-            {staredContext?.checkStared(userProfile.username) ? (
+            {checkStared(userProfile.username) ? (
               <StarIcon color="warning" />
             ) : (
               <StarBorderIcon />

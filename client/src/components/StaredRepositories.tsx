@@ -7,12 +7,10 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 const StaredRepositories = () => {
   const { mode } = useMode();
-  const staredUserList = useStartedUserList();
-  const staredList = staredUserList?.staredList ?? [];
+  const { staredList } = useStartedUserList();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  const [selectValue, setSelectValue] = useState<string>("");
   const navigate = useNavigate();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -21,10 +19,10 @@ const StaredRepositories = () => {
 
   const handleClose = (user?: string) => {
     setAnchorEl(null);
-    if (user) {
-      setSelectValue(user);
-      navigate(`/user/${user}`);
-    }
+    // The last-clicked user used to be kept in local state and shown as the
+    // button's label forever, including after navigating somewhere else. The
+    // chevron is always correct.
+    if (user) navigate(`/user/${user}`);
   };
 
   return (
@@ -50,7 +48,7 @@ const StaredRepositories = () => {
             color: mode === "dark" ? "white" : "#23272b",
           }}
         >
-          {selectValue || <KeyboardArrowDownIcon />}
+          <KeyboardArrowDownIcon />
         </Button>
         <Menu
           anchorEl={anchorEl}

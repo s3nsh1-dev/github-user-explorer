@@ -14,7 +14,6 @@ import Paper from "@mui/material/Paper";
 import useMode from "../hooks/useMode";
 import Grid from "@mui/material/Grid";
 import ContributionChart from "../components/ContributionChart";
-import StaredUserContextProvider from "../context/StaredUserContextProvider";
 
 const style1 = { my: 1, p: 1, display: "flex" };
 const style2 = {
@@ -150,9 +149,7 @@ const ProfileInfo = () => {
   return (
     <Box sx={style4}>
       <Box sx={style5}>
-        <StaredUserContextProvider>
-          <UserProfileHeader userProfile={userProfile} />
-        </StaredUserContextProvider>
+        <UserProfileHeader userProfile={userProfile} />
         <UserProfileStats userProfile={userProfile} />
       </Box>
       <Divider sx={{ my: 2 }} />

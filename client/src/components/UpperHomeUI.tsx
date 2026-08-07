@@ -1,4 +1,3 @@
-import StaredUserContextProvider from "../context/StaredUserContextProvider";
 import StaredRepositories from "./StaredRepositories";
 import Box from "@mui/material/Box";
 
@@ -14,9 +13,7 @@ const UpperHomeUI = () => {
         marginTop: "50px",
       }}
     >
-      <StaredUserContextProvider>
-        <StaredRepositories />
-      </StaredUserContextProvider>
+      <StaredRepositories />
     </Box>
   );
 };
