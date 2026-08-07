@@ -8,7 +8,7 @@ several times, and verifies once. Splitting plans that share files across
 sessions means re-reading the same code, re-deriving the same context, and
 resolving conflicts with yourself.
 
-37 plans → **11 sessions**. Eight have landed, plus a loose-ends pass and a
+37 plans → **11 sessions**. Nine have landed, plus a loose-ends pass and a
 simplification pass.
 
 ---
@@ -16,12 +16,12 @@ simplification pass.
 ## How to start a session
 
 ```
-Implement session S9 (plans P26 → P27) from
+Implement session S10 (plans P29 → P30 → P31 → P32) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: perf/assets, off fix/a11y.
+plan file in order. Branch: chore/tooling, off perf/assets.
 ```
 
-*(S1 through S8 have landed — see `00.INDEX.md` for their SHAs and for what
+*(S1 through S9 have landed — see `00.INDEX.md` for their SHAs and for what
 they changed that later sessions must account for.)*
 
 Then, in order:
@@ -103,7 +103,9 @@ rework/2026 (27c9555)
                                         33d9461  P24  │
                                         56dae26  P25  │
                                         38a0f55  docs ┘
-                                         └─ c598359  chore/simplify  ← HEAD
+                                         └─ c598359  chore/simplify
+                                             └─ 4586957  P26 ┐
+                                                c9e4b32  P27 ┴─ S9  perf/assets  ← HEAD
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -143,10 +145,10 @@ Either way, **do not rebase any of these branches.** S3 was cut from
 `fix/request-safety` and S4 from `fix/data-layer`; rewriting their
 SHAs invalidates every SHA recorded in `00.INDEX.md` and in this file.
 
-*(Written before S3. Still accurate after S8 — `rework/2026` has received none
-of S1–S8, and a merge of `fix/a11y` into it remains a single fast-forward
-landing all eight in order, plus `fix/netlify-dev-envfile` and
-`chore/loose-ends`.)*
+*(Written before S3. Still accurate after S9 — `rework/2026` has received none
+of S1–S9, and a merge of `perf/assets` into it remains a single fast-forward
+landing all nine in order, plus `fix/netlify-dev-envfile`, `chore/loose-ends`
+and `chore/simplify`.)*
 
 **S4 was cut from `c3ec6a1`, not `39a310b`.** Same situation as S3: the S3
 summary names `39a310b` because that was the tip when it was written, and a
@@ -1384,31 +1386,113 @@ belong in this repo.** Concretely, for the sessions that remain:
 
 ---
 
-### 🟢 S9 — Assets & performance  ← next
-**Branch:** `perf/assets`, off `chore/simplify`@`c598359` · **Risk:** medium · **~1.5 h**
-**Plans:** P26 → P27
+### ✅ S9 — Assets & performance — **landed 2026-08-08**
+**Branch:** `perf/assets`, tip `c9e4b32` · **Risk:** medium
+**Cut from `chore/simplify`@`c598359`**, so it contains all of S1–S8 plus both
+passes. Nothing has been merged down to `rework/2026` yet; that still blocks
+nothing.
+**Plans:** P26 `4586957` → P27 `c9e4b32`
 
-`client/src/assets/`, `client/public/`, `index.html`, `App.tsx`. Batched because
-both are measured against the same P00 bundle baseline — measure once.
+The most visible problem after the token: **3.0 MB of images**, a 1.4 MB
+favicon declared `type="image/svg+xml"`, and every page in one JavaScript
+bundle. Gate green before both commits, plus `npm run typecheck:functions`.
 
-⚠️ P26 uses `git mv`, **never `rm`**, for the image masters. After P26, re-check
-that `netlify.toml`'s `/assets/*` cache header from P35 still matches.
+#### What shipped
 
-⚠️ **Inherited from the simplification pass:** `client/index.html` has **no
-inline script**, and `script-src` is plain `'self'`. Keep it that way — an
-inline script needs a CSP hash, and a CSP hash needs tooling to stay honest.
-That was tried and reverted.
+| Plan | Result |
+|---|---|
+| **P26** | Favicons generated with PIL into `client/public/` — 16/32/180 px at **884 B / 2.7 kB / 36 kB**, correctly typed, served from the site root. Navbar logos resampled **in place** to 240×100 (2× their 120×50 display size): **505 kB → 14 kB** and **548 kB → 30 kB**. Four masters `git mv`d to `docs/assets-source/`. |
+| **P27** | `Explorer`, `LinkWrapper` and `ShowSelectedRepo` are `lazy()`, behind one `<Suspense>` inside the `<main>` landmark and inside `AppErrorBoundary`. |
 
-⚠️ **Inherited from S8:** the contribution grid's cells render **no text** —
-the count is a tooltip and an `aria-label`. Do not restore the digits; no text
-colour works across GitHub's green ramp. The contrast sweep S8 used is
-repeatable and should be re-run after P26 and P27, since both change what is
-painted.
+#### The numbers, against the P00 baseline
+
+| | P00 baseline | After S9 |
+|---|---|---|
+| `dist/assets` | **3.0 MB** | **704 kB** |
+| Images in the bundle | 2,475,201 B | **43,533 B** |
+| JS on `/` | 571,526 B · 179.10 kB gzip | **492,546 B · 155.60 kB gzip** |
+
+The JS figure is a real reduction *despite* the bundle having grown between the
+audit and now — Zod (~19 kB gzip) and everything S5–S8 added. Immediately
+before P27 it was **659,630 B**; splitting took **167 kB** off the landing page.
+
+#### How it was verified
+
+**Measured in headless Chrome against the production build, not read off the
+build output** — P27 warns that silent non-splitting is the normal failure mode.
+
+| Check | Result |
+|---|---|
+| Cold `/` | **one chunk**, `index-*.js`, **492,546 B** of JS |
+| → `/explore` | `+ EmptyState`, `+ Explorer`, `+ ErrorState` |
+| → `/user/torvalds` | `+ LinkWrapper`, `+ Star` |
+| → `/user/torvalds/linux` | `+ ShowSelectedRepo` |
+| Deep link straight to a lazy route | renders, 631,208 B total |
+| Logo, `deviceScaleFactor: 2`, both themes | natural **239×100 / 240×99**, displayed **120×50** — exactly 2×, and screenshots show a clean resample |
+| `/favicon-32.png`, `/favicon-16.png`, `/apple-touch-icon.png` | **200 `image/png`** |
+| Failed requests / console errors / CSP violations | **0 / 0 / 0** |
+| Re-run of the S8 sweeps | 8 routes with one API request per resource, zero nameless controls |
+
+✅ **`netlify.toml`'s `/assets/*` rule still matches**, including the six new
+chunks. The favicons sit at the site root, unfingerprinted and **deliberately
+outside** that `immutable` rule.
+
+#### ⚠️ Deviations from the plans
+
+1. **`github-logo-cropped.png` was moved to `docs/assets-source/` too** — P26
+   names three masters, but once `index.html` points at `/favicon-*.png` the
+   1.4 MB cropped logo is unused, and it is a master by the same argument. That
+   move *is* most of P26's gain.
+2. **The favicon source is padded to a square before resizing**, not resized
+   into one. The master is 959×973; the plan's `resize((32, 32))` would squash
+   it 1.5%. Three lines to avoid.
+3. **`NotFound` was deliberately left static**, against P27 §1's list.
+   `ProfileInfo`, `Repositories` and `ShowSelectedRepo` all import it directly
+   for invalid params, so it is in the graph regardless — `lazy()` there would
+   have split nothing while looking like it had. This is precisely the failure
+   P27 §3 tells you to check for, so it was checked rather than assumed.
+4. **The `<Suspense>` fallback is a two-line inline skeleton in `App.tsx`**, not
+   a new component file. It is on screen for a few milliseconds; a dedicated
+   file would be more surface than the thing it renders.
+5. 🚫 **No prefetch-on-hover** (P27 §4, optional) and **no
+   `rollup-plugin-visualizer`** (suggestion 7e). Both are optimisations of an
+   optimisation. `vite build` already prints raw and gzip per chunk, which is
+   where every number above came from, and 7e is now recorded as won't-do.
+6. **No `.webp` variants** — P26 says skip unless the PNG is still large. At
+   14 kB and 30 kB they are not.
+
+#### Observations that are nobody's plan
+
+- **The favicons have no cache header**, because they are outside `/assets/*`
+  and there is no rule for the site root. Netlify's default is fine for files
+  requested once per visit; worth a `max-age` line only if it ever shows up in
+  a Lighthouse run.
+- **`docs/assets-source/` is 7.2 MB in the working tree.** The history already
+  carries those bytes and P26 forbids rewriting it, so this changes clone size
+  by nothing — it only takes them out of the deployed bundle, which was the
+  point.
+- **`npm audit` still reports 2 advisories**, both the react-router RSC one.
+
+#### → How S10 branches from here
+
+```bash
+git checkout perf/assets              # confirm with: git rev-parse --short HEAD
+git checkout -b chore/tooling
+```
+
+**What S10 inherits:** the routes are `lazy()`, so **P30 and P31 must read the
+chunk list rather than trusting a green build** — a stray static import
+silently un-splits a page. `client/public/` and `docs/assets-source/` are new
+directories; **P36 should leave `docs/assets-source/` where it is.** And the
+simplification pass's rule applies hardest here: P29 enables `jsx-a11y` and
+writes no custom rules, P30 tests the pure helpers with no MSW or Playwright,
+P31's CI is lint/typecheck/test/build, and **`npm audit` must not fail the
+build** while the react-router 8 decision is open.
 
 ---
 
-### 🟢 S10 — Tooling & CI
-**Branch:** `chore/tooling` · **Risk:** low · **~3 h**
+### 🟢 S10 — Tooling & CI  ← next
+**Branch:** `chore/tooling`, off `perf/assets`@`c9e4b32` · **Risk:** low · **~3 h**
 **Plans:** P29 → P30 → P31 → P32
 
 `eslint.config.js`, `vite.config.ts`, `package.json`, `.github/**`, new test
@@ -1460,24 +1544,25 @@ rework/2026 (27c9555 — has received nothing yet)
                                                     └── ✅ S7  feat/search  a536151
                                                          (+ chore/loose-ends  09f13d6)
                                                             └── ✅ S8  fix/a11y  38a0f55
-                                                                 (+ chore/simplify  c598359)  ← branch from here next
+                                                                 (+ chore/simplify  c598359)
+                                                                    └── ✅ S9  perf/assets  c9e4b32  ← branch from here next
                                                                     ├── S9  perf/assets
                                                                     └── S10 tooling
-    S11 docs/readme      ← only needs S1 (stack it on c598359 anyway)
+    S11 docs/readme      ← only needs S1 (stack it on c9e4b32 anyway)
 ```
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Eight sessions are done; the next branch is cut
-from `c598359`.
+so far has not happened at all. Nine sessions are done; the next branch is cut
+from `c9e4b32`.
 
 **Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
 — S4 landed first, and S5 is cut from it. Nothing forced that order (they share
 no files), but stacking keeps a single line of history instead of a second stack
 to reconcile later. **S6 was drawn detached** — it only needs S1 — and was
 stacked on S5 anyway, for the same reason. **S11 is the last one still drawn
-that way; stack it too.** Eight sessions and one loose-ends pass, a single line
-of history, no merge commits.
+that way; stack it too.** Nine sessions plus two short passes, a single line of
+history, no merge commits.
 
 ~~**Critical path to the security fix: S1 → S2 → S3 → S4.**~~ ✅ **All four have
 landed. V01 is closed in code.** What remains is not a plan — it is the Netlify
@@ -1485,7 +1570,7 @@ env var and the token revocation, both of which only you can do. See
 [What is still on you after S4](#-what-is-still-on-you-after-s4).
 
 **S11 is independent** — it only needs S1, so it *may* be cut from
-`fix/quick-wins`@`ac4186a`. Cutting it from `c598359` instead keeps the single
+`fix/quick-wins`@`ac4186a`. Cutting it from `c9e4b32` instead keeps the single
 line every session so far has stayed on. ~~Same for S6~~ — **S6 has landed**,
 stacked on S5.
 
