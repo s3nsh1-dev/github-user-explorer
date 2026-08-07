@@ -6,10 +6,7 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import PageButton from "./PageButton";
 import type { PaginationProps } from "../constants/common.types";
 import PageQuickButtons from "./PageQuickButtons";
-import { pageWindow, totalPageCount } from "../helper/paginate";
-
-const pageLink = (username: string, page: number) =>
-  `/user/${username}?tab=repositories&page=${page}`;
+import { pageWindow, repoPageLink, totalPageCount } from "../helper/paginate";
 
 const Pagination: React.FC<PaginationProps> = ({
   page,
@@ -36,13 +33,13 @@ const Pagination: React.FC<PaginationProps> = ({
       sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
     >
       <PageQuickButtons
-        link={pageLink(username, 1)}
+        link={repoPageLink(username, 1)}
         icon={<FirstPageIcon />}
         disabled={isFirst}
         label="Go to first page"
       />
       <PageQuickButtons
-        link={pageLink(username, Math.max(current - 1, 1))}
+        link={repoPageLink(username, Math.max(current - 1, 1))}
         icon={<KeyboardArrowLeftIcon />}
         disabled={isFirst}
         label="Previous page"
@@ -56,13 +53,13 @@ const Pagination: React.FC<PaginationProps> = ({
         />
       ))}
       <PageQuickButtons
-        link={pageLink(username, Math.min(current + 1, totalPages))}
+        link={repoPageLink(username, Math.min(current + 1, totalPages))}
         icon={<KeyboardArrowRightIcon />}
         disabled={isLast}
         label="Next page"
       />
       <PageQuickButtons
-        link={pageLink(username, totalPages)}
+        link={repoPageLink(username, totalPages)}
         icon={<LastPageIcon />}
         disabled={isLast}
         label="Go to last page"

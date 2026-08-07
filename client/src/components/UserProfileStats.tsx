@@ -1,7 +1,8 @@
 import Typography from "@mui/material/Typography";
 import type { GitHubUser } from "../constants/common.types";
 import Box from "@mui/material/Box";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
+import { repoPageLink } from "../helper/paginate";
 import Button from "@mui/material/Button";
 
 type UserProfileStatsProps = {
@@ -22,13 +23,17 @@ const style2 = {
 };
 
 const UserProfileStats: React.FC<UserProfileStatsProps> = ({ userProfile }) => {
-  const navigate = useNavigate();
-  const handleClick = () => {
-    navigate(`/user/${userProfile.username}?tab=repositories`);
-  };
   return (
     <Box sx={style1}>
-      <Button variant="outlined" onClick={handleClick} sx={style2}>
+      {/* A real link, not a button that navigates: ⌘-click opens the
+          repository list in a new tab, which is the whole point of a card
+          people click while comparing profiles. */}
+      <Button
+        variant="outlined"
+        component={RouterLink}
+        to={repoPageLink(userProfile.username, 1)}
+        sx={style2}
+      >
         <Typography fontWeight={600}>{userProfile.public_repos}</Typography>
         <Typography variant="body2" color="text.secondary">
           Public Repos

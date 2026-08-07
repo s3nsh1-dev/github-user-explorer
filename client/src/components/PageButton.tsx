@@ -1,6 +1,7 @@
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
 import useMode from "../hooks/useMode";
+import { repoPageLink } from "../helper/paginate";
 
 const PageButton = ({
   username,
@@ -46,14 +47,10 @@ const PageButton = ({
     },
   };
 
-  const navigate = useNavigate();
-  const handlePageChange = () => {
-    navigate(`/user/${username}?tab=repositories&page=${pageNum}`);
-  };
-
   return (
     <IconButton
-      onClick={handlePageChange}
+      component={RouterLink}
+      to={repoPageLink(username, pageNum)}
       sx={style}
       // The current page was signalled by colour alone. aria-current is what
       // says "you are here" to everything that cannot see the colour.

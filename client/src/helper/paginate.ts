@@ -22,6 +22,21 @@ export const totalPageCount = (totalRepos: number): number =>
     ? Math.ceil(totalRepos / PER_PAGE)
     : 0;
 
+/**
+ * The URL a page control points at.
+ *
+ * One definition, because there are now two components rendering these as
+ * real `<a href>`s (P23) and a third computing the same string is how the
+ * shapes drift. The login is encoded for the reason P07 encodes it in the API
+ * URLs: it arrives from a route param, and a raw `/` in it would silently
+ * become a different route.
+ */
+export const repoPageLink = (username: string, page: number): string =>
+  `/user/${encodeURIComponent(username)}?${new URLSearchParams({
+    tab: "repositories",
+    page: String(page),
+  })}`;
+
 /** The (up to 3) page numbers to show around `page`. */
 export const pageWindow = (page: number, totalPages: number): number[] => {
   if (!Number.isFinite(totalPages) || totalPages < 1) return [];
