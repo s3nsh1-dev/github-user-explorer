@@ -77,13 +77,6 @@ const Navbar = () => {
           onKeyDown={(event) => {
             if (event.key === "Escape") setMobileSearchOpen(false);
           }}
-          onBlur={(event) => {
-            // Only when focus leaves the panel entirely — moving from the
-            // field to its own submit button must not close it.
-            if (!event.currentTarget.contains(event.relatedTarget)) {
-              setMobileSearchOpen(false);
-            }
-          }}
           sx={{ px: 2, pb: 1 }}
         >
           <SearchBar

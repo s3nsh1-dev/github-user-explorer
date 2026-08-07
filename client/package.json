@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "csp-hash": "node scripts/csp-hash.mjs",
     "typecheck:functions": "tsc -p ../netlify/functions/tsconfig.json",
     "preview": "vite preview"
   },

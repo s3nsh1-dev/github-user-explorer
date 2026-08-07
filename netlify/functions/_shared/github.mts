@@ -31,7 +31,7 @@
  * so a repeated profile view has to be answered by Netlify's CDN rather than
  * by GitHub. See report/vulnerabilities/07.
  */
-import { env } from "./env.mts";
+import { GITHUB_TOKEN } from "./env.mts";
 // The client's copy is the single source of truth for these rules — the same
 // regexes guard the route boundary in the browser and the request here, and a
 // second copy would be free to drift.
@@ -136,7 +136,7 @@ const restHeaders = (): Record<string, string> => ({
   Accept: "application/vnd.github+json",
   "X-GitHub-Api-Version": "2022-11-28",
   // No VITE_ prefix, and no way for this value to reach a browser.
-  Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+  Authorization: `Bearer ${GITHUB_TOKEN}`,
 });
 
 /**

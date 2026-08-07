@@ -69,12 +69,7 @@
 
   [headers.values]
     # script-src 'self' with no 'unsafe-inline' is the directive doing the
-    #   real work: an injected <script> or an inline handler cannot run. The
-    #   one sha256 is the anti-flash theme script in client/index.html — a
-    #   hash allows exactly that byte sequence and nothing else, which is why
-    #   it is not 'unsafe-inline'. ⚠️ Editing that script by one character
-    #   invalidates the hash and the browser drops it silently; the file
-    #   carries the re-hash command.
+    #   real work: an injected <script> or an inline handler cannot run.
     # style-src 'unsafe-inline' is MANDATORY — Emotion, which is MUI's
     #   styling engine, injects every rule at runtime. Removing it blanks the
     #   entire UI. Inline styles are not the XSS risk inline scripts are.
@@ -85,7 +80,7 @@
     # form-action 'none': the one <form> in the app (the search box) calls
     #   preventDefault unconditionally and navigates through the router, so
     #   no native submission ever happens.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-zN4ymy9el/IQa9BBrBwoDMd3Xx2G3JFE5yXR23PUcW4='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.githubusercontent.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.githubusercontent.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'"
     X-Content-Type-Options  = "nosniff"
     Referrer-Policy         = "strict-origin-when-cross-origin"
     Permissions-Policy      = "camera=(), microphone=(), geolocation=()"

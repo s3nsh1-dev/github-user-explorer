@@ -1,25 +1,15 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { InfiniteData } from "@tanstack/react-query";
-import type { GitHubUserSearchResult } from "../constants/common.types";
 import { githubFetch } from "../helper/githubFetch";
 import { searchUsersUrl } from "../helper/githubUrls";
 import { qk } from "../constants/queryKeys";
 import { UserSearchResultSchema } from "../constants/schemas";
-import type { GitHubError } from "../helper/githubErrors";
 
 const USERS_PER_PAGE = 20;
 
 const useInfiniteUsers = (query: string) => {
-  // All five generics are spelled out so `pageParam` arrives as a number.
-  // Left to default it is `unknown`, which is why the page number used to need
-  // an `as number` assertion on the way into the request URL.
-  return useInfiniteQuery<
-    GitHubUserSearchResult,
-    GitHubError,
-    InfiniteData<GitHubUserSearchResult, number>,
-    ReturnType<typeof qk.searchUsers>,
-    number
-  >({
+  // `initialPageParam: 1` is what types `pageParam` as a number — React Query
+  // infers the rest, so no generics are needed here.
+  return useInfiniteQuery({
     queryKey: qk.searchUsers(query),
     queryFn: ({ pageParam }) =>
       githubFetch(

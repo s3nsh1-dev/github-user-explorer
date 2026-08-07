@@ -1,7 +1,6 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import { useState, type ChangeEvent, type FormEvent } from "react";
@@ -85,7 +84,7 @@ const SearchBar = ({
       noValidate
       sx={{
         display: "flex",
-        gap: compact ? 0 : 2,
+        gap: compact ? 0.5 : 2,
         alignItems: "flex-start",
         justifyContent: "center",
         width: compact ? "100%" : "auto",
@@ -112,28 +111,15 @@ const SearchBar = ({
             ? { width: { xs: "100%", sm: 220, md: 280 } }
             : { width: { xs: "55vw", sm: "300px" } }
         }
-        slotProps={
-          compact
-            ? {
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        type="submit"
-                        aria-label="Search"
-                        edge="end"
-                        size="small"
-                      >
-                        <SearchIcon fontSize="small" />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }
-            : undefined
-        }
       />
-      {!compact && (
+      {/* A labelled button where there is room for one, a search icon where
+          there is not. Both are type="submit", so Enter in the field works
+          either way. */}
+      {compact ? (
+        <IconButton type="submit" aria-label="Search" sx={{ mt: 0.5 }}>
+          <SearchIcon />
+        </IconButton>
+      ) : (
         <Button variant="contained" type="submit" sx={{ height: 56 }}>
           Search
         </Button>
