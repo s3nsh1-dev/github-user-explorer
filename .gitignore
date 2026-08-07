@@ -1,17 +1,14 @@
-# Centralized .gitignore for fullstack (client + server)
+# Centralized .gitignore (client + netlify functions)
 
 # Node modules
 node_modules/
 client/node_modules/
-server/node_modules/
 
 # Build output
 dist/
 build/
 client/dist/
-server/dist/
 client/build/
-server/build/
 
 # Logs
 *.log
@@ -23,7 +20,6 @@ yarn-error.log*
 .env
 .env.*
 client/.env*
-server/.env*
 # ...but the template is committed on purpose. Keep this after the rules above.
 !.env.example
 
@@ -41,7 +37,6 @@ Thumbs.db
 *.cache/
 .cache/
 client/.cache/
-server/.cache/
 
 # Optional: Lock files (if you're not committing them)
 # package-lock.json
