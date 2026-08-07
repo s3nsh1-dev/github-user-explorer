@@ -43,3 +43,45 @@
   from   = "/*"
   to     = "/index.html"
   status = 200
+
+# Security headers. The site currently sends none of these.
+#
+# Each directive below is here because something in the app needs it, or
+# because nothing does and the default is worth closing. The two that will
+# break the UI if "tightened" are called out — resist the urge.
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    # script-src 'self' with no 'unsafe-inline' is the directive doing the
+    #   real work: an injected <script> or an inline handler cannot run.
+    # style-src 'unsafe-inline' is MANDATORY — Emotion, which is MUI's
+    #   styling engine, injects every rule at runtime. Removing it blanks the
+    #   entire UI. Inline styles are not the XSS risk inline scripts are.
+    # img-src needs data: for the theme switch's inline SVG thumb, and
+    #   *.githubusercontent.com for every avatar.
+    # connect-src 'self' is only correct because P34 landed — the client now
+    #   calls this site's /api/*, never api.github.com directly.
+    # form-action 'none': the one <form> in the app (the search box) calls
+    #   preventDefault unconditionally and navigates through the router, so
+    #   no native submission ever happens.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.githubusercontent.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'"
+    X-Content-Type-Options  = "nosniff"
+    Referrer-Policy         = "strict-origin-when-cross-origin"
+    Permissions-Policy      = "camera=(), microphone=(), geolocation=()"
+
+# Vite fingerprints every filename in /assets, so the content at a given URL
+# can never change — a year is safe, and `immutable` stops revalidation.
+[[headers]]
+  for = "/assets/*"
+
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# The one file that is NOT fingerprinted, and the one that points at the
+# fingerprinted names. Caching it is how a deploy goes unnoticed.
+[[headers]]
+  for = "/index.html"
+
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
