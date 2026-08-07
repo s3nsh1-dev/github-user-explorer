@@ -1586,9 +1586,16 @@ Repo settings, which only the owner can click (V10 §10e):
 1. **Settings → Code security → Dependabot alerts** and **Dependabot security
    updates** — the config file schedules version bumps; alerts are separate.
 2. **Settings → Code security → Secret scanning** and **Push protection.**
-   This is the one directly tied to
-   [`vulnerabilities/01`](vulnerabilities/01.exposed-github-token.md): push
-   protection would have made the original token uncommittable.
+   ⚠️ **Correction to what P32 claims about these.** P32 says push protection
+   "would have blocked the token from ever being committable". It would not
+   have — this repo's own verified facts say **no token was ever committed on
+   any branch**. `.env.development` was gitignored the whole time; V01 happened
+   because the variable carried a `VITE_` prefix, so Vite inlined it into the
+   bundle Netlify served. That leak path never passed through git, and nothing
+   GitHub scans could have seen it. What closed it was moving the credential
+   server-side (**P34**). Enable both anyway — they cover the *other* mistake,
+   the one where a `.env` gets committed — but do not read them as protection
+   against V01.
 3. **Watch the first CI run** and confirm it is green — see deviation 6.
 
 #### → How S11 branches from here
