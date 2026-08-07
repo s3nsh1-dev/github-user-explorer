@@ -87,7 +87,7 @@ const Explorer = () => {
         icon={<SearchIcon fontSize="large" />}
         title="Search for a GitHub user"
         message="Enter a username to see matching profiles."
-        action={<SearchBar variant="hero" autoFocus />}
+        action={<SearchBar variant="hero" focusOnMount />}
       />
     );
 

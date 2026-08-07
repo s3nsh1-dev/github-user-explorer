@@ -82,7 +82,7 @@ const Navbar = () => {
           <SearchBar
             variant="compact"
             id="navbar-username-search"
-            autoFocus
+            focusOnMount
             onSubmitted={() => setMobileSearchOpen(false)}
           />
         </Box>

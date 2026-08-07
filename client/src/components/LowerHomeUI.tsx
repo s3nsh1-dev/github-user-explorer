@@ -21,7 +21,7 @@ const LowerHomeUI = () => {
       {/* The form itself lives in SearchBar, which the navbar, the /explore
           empty states and the 404 page render too — one validation rule, not
           four copies of it. */}
-      <SearchBar variant="hero" autoFocus />
+      <SearchBar variant="hero" focusOnMount />
       <Typography fontSize={25} fontWeight={300} color="textSecondary">
         Search for GitHub user to view their profile and repositories
       </Typography>

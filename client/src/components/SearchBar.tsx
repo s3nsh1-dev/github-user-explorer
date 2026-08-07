@@ -33,7 +33,12 @@ const MIN_SEARCH_LENGTH = 3;
 type Props = {
   /** `hero` is the full-size home-page form; `compact` fits a toolbar. */
   variant?: "hero" | "compact";
-  autoFocus?: boolean;
+  /**
+   * Take focus on mount. Named for what it does rather than `autoFocus`, so
+   * the one place this becomes a real DOM attribute is the one place
+   * `jsx-a11y/no-autofocus` reports — see the disable below.
+   */
+  focusOnMount?: boolean;
   /**
    * Must be unique on the page — the navbar box and a hero box can be
    * rendered together, and two fields sharing an id break the `<label for>`
@@ -46,7 +51,7 @@ type Props = {
 
 const SearchBar = ({
   variant = "hero",
-  autoFocus = false,
+  focusOnMount = false,
   id = "github-username-search",
   onSubmitted,
 }: Props) => {
@@ -96,7 +101,12 @@ const SearchBar = ({
         label="GitHub username"
         variant="outlined"
         size={compact ? "small" : "medium"}
-        autoFocus={autoFocus}
+        // The rule guards against stealing focus from page content. Here the
+        // field IS the content: every screen that renders it focused — home,
+        // /explore with no query, the mobile panel a tap just opened — exists
+        // to be typed into, and only one field is focused per page.
+        // eslint-disable-next-line jsx-a11y/no-autofocus
+        autoFocus={focusOnMount}
         error={Boolean(error)}
         // A non-breaking space keeps the helper row in the layout at all
         // times, so showing an error does not shove the page (or the toolbar)
