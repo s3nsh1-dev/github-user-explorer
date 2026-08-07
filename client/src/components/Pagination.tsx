@@ -6,88 +6,62 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import PageButton from "./PageButton";
 import type { PaginationProps } from "../constants/common.types";
 import PageQuickButtons from "./PageQuickButtons";
+import { pageWindow, totalPageCount } from "../helper/paginate";
+
+const pageLink = (username: string, page: number) =>
+  `/user/${username}?tab=repositories&page=${page}`;
 
 const Pagination: React.FC<PaginationProps> = ({
   page,
   username,
   totalRepos,
 }) => {
-  const totalPages = Math.ceil(totalRepos / 8);
-  let renderNumericButtons;
-  if (totalPages <= 3) {
-    const pageCountArray = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pageCountArray.push(i);
-    }
-    renderNumericButtons = pageCountArray.map((pages) => {
-      return (
-        <PageButton
-          key={pages}
-          username={username}
-          pageNum={pages}
-          active={pages === page}
-        />
-      );
-    });
-  }
-  if (totalPages > 3) {
-    let pageNumberOne = 1;
-    let pageNumberTwo = 2;
-    let pageNumberThree = 3;
-    if (page >= 1 && page <= totalPages - 2) {
-      pageNumberOne = page;
-      pageNumberTwo = page + 1;
-      pageNumberThree = page + 2;
-    } else {
-      pageNumberOne = totalPages - 2;
-      pageNumberTwo = totalPages - 1;
-      pageNumberThree = totalPages;
-    }
-    renderNumericButtons = [pageNumberOne, pageNumberTwo, pageNumberThree].map(
-      (pages) => {
-        return (
-          <PageButton
-            key={pages}
-            username={username}
-            pageNum={pages}
-            active={pages === page}
-          />
-        );
-      }
-    );
-  }
+  const totalPages = totalPageCount(totalRepos);
+
+  // Nothing to page through: a bar with one page on it is noise, and a bar
+  // with zero pages used to be a row of arrows with no numbers between them.
+  if (totalPages <= 1) return null;
+
+  const current = Math.min(Math.max(page, 1), totalPages);
+  const isFirst = current <= 1;
+  const isLast = current >= totalPages;
 
   return (
-    <>
-      <Box
-        gap={1}
-        mt={4}
-        mb={2}
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-      >
-        <PageQuickButtons
-          link={`/user/${username}?tab=repositories&page=${1}`}
-          icon={<FirstPageIcon />}
-          disabled={page === 1}
+    <Box
+      gap={1}
+      mt={4}
+      mb={2}
+      sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+    >
+      <PageQuickButtons
+        link={pageLink(username, 1)}
+        icon={<FirstPageIcon />}
+        disabled={isFirst}
+      />
+      <PageQuickButtons
+        link={pageLink(username, Math.max(current - 1, 1))}
+        icon={<KeyboardArrowLeftIcon />}
+        disabled={isFirst}
+      />
+      {pageWindow(current, totalPages).map((pageNum) => (
+        <PageButton
+          key={pageNum}
+          username={username}
+          pageNum={pageNum}
+          active={pageNum === current}
         />
-        <PageQuickButtons
-          link={`/user/${username}?tab=repositories&page=${page - 1}`}
-          icon={<KeyboardArrowLeftIcon />}
-          disabled={page === 1}
-        />
-        {renderNumericButtons}
-        <PageQuickButtons
-          link={`/user/${username}?tab=repositories&page=${page + 1}`}
-          icon={<KeyboardArrowRightIcon />}
-          disabled={page === totalPages}
-        />
-        <PageQuickButtons
-          link={`/user/${username}?tab=repositories&page=${totalPages}`}
-          icon={<LastPageIcon />}
-          disabled={page === totalPages}
-        />
-      </Box>
-    </>
+      ))}
+      <PageQuickButtons
+        link={pageLink(username, Math.min(current + 1, totalPages))}
+        icon={<KeyboardArrowRightIcon />}
+        disabled={isLast}
+      />
+      <PageQuickButtons
+        link={pageLink(username, totalPages)}
+        icon={<LastPageIcon />}
+        disabled={isLast}
+      />
+    </Box>
   );
 };
 

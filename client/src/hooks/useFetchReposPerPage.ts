@@ -5,8 +5,9 @@ import { qk } from "../constants/queryKeys";
 import { RepoListSchema } from "../constants/schemas";
 import type { Repo } from "../constants/common.types";
 import type { GitHubError } from "../helper/githubErrors";
-
-const REPOS_PER_PAGE = 8;
+// One page size, shared with the bar that counts the pages. It was a magic 8
+// here and a magic 8 in Pagination; diverging would break paging silently.
+import { PER_PAGE } from "../helper/paginate";
 
 const useFetchReposPerPage = ({
   username,
@@ -20,7 +21,7 @@ const useFetchReposPerPage = ({
     queryFn: () => {
       if (!username) throw new Error("Username is required");
       return githubFetch(
-        userReposUrl(username, page, REPOS_PER_PAGE),
+        userReposUrl(username, page, PER_PAGE),
         RepoListSchema
       );
     },
