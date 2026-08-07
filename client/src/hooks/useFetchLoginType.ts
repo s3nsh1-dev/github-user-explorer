@@ -1,18 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { githubGraphQL } from "../helper/githubFetch";
+import { OWNER_TYPE_QUERY } from "../constants/graphqlQueries";
 import type { LoginTypeResponse } from "../constants/common.types";
 
 const useFetchLoginType = (username: string) => {
-  const queryBodyToFetchLoginType = `
-      {
-        repositoryOwner(login: "${username}") {
-          __typename
-        }
-      }`;
   const fetchedData = useQuery({
     queryKey: [username, "loginType"],
     queryFn: () =>
-      githubGraphQL<LoginTypeResponse>(queryBodyToFetchLoginType, {}),
+      githubGraphQL<LoginTypeResponse>(OWNER_TYPE_QUERY, { login: username }),
     enabled: !!username,
     staleTime: 1000 * 60 * 5,
   });
