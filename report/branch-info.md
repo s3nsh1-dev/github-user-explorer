@@ -99,9 +99,11 @@ rework/2026 (27c9555)
                                     91ba513  server │
                                     09f13d6  docs   ┘
                                      └─ 3a5aeea  P22  ┐
-                                        035089c  P23  ├─ S8  fix/a11y → 56dae26  ← HEAD
+                                        035089c  P23  ├─ S8  fix/a11y → 38a0f55
                                         33d9461  P24  │
-                                        56dae26  P25  ┘
+                                        56dae26  P25  │
+                                        38a0f55  docs ┘
+                                         └─ c598359  chore/simplify  ← HEAD
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -1322,7 +1324,7 @@ production build, behind the same function stand-in and the real CSP.
 #### → How S9 branches from here
 
 ```bash
-git checkout fix/a11y                 # confirm with: git rev-parse --short HEAD
+git checkout chore/simplify           # confirm with: git rev-parse --short HEAD
 git checkout -b perf/assets
 ```
 
@@ -1383,7 +1385,7 @@ belong in this repo.** Concretely, for the sessions that remain:
 ---
 
 ### 🟢 S9 — Assets & performance  ← next
-**Branch:** `perf/assets`, off `fix/a11y`@`56dae26` · **Risk:** medium · **~1.5 h**
+**Branch:** `perf/assets`, off `chore/simplify`@`c598359` · **Risk:** medium · **~1.5 h**
 **Plans:** P26 → P27
 
 `client/src/assets/`, `client/public/`, `index.html`, `App.tsx`. Batched because
@@ -1457,16 +1459,17 @@ rework/2026 (27c9555 — has received nothing yet)
                                                  (+ fix/netlify-dev-envfile  39b40dc)
                                                     └── ✅ S7  feat/search  a536151
                                                          (+ chore/loose-ends  09f13d6)
-                                                            └── ✅ S8  fix/a11y  56dae26  ← branch from here next
+                                                            └── ✅ S8  fix/a11y  38a0f55
+                                                                 (+ chore/simplify  c598359)  ← branch from here next
                                                                     ├── S9  perf/assets
                                                                     └── S10 tooling
-    S11 docs/readme      ← only needs S1 (stack it on 56dae26 anyway)
+    S11 docs/readme      ← only needs S1 (stack it on c598359 anyway)
 ```
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
 so far has not happened at all. Eight sessions are done; the next branch is cut
-from `56dae26`.
+from `c598359`.
 
 **Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
 — S4 landed first, and S5 is cut from it. Nothing forced that order (they share
@@ -1482,7 +1485,7 @@ env var and the token revocation, both of which only you can do. See
 [What is still on you after S4](#-what-is-still-on-you-after-s4).
 
 **S11 is independent** — it only needs S1, so it *may* be cut from
-`fix/quick-wins`@`ac4186a`. Cutting it from `56dae26` instead keeps the single
+`fix/quick-wins`@`ac4186a`. Cutting it from `c598359` instead keeps the single
 line every session so far has stayed on. ~~Same for S6~~ — **S6 has landed**,
 stacked on S5.
 
