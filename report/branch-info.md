@@ -8,20 +8,20 @@ several times, and verifies once. Splitting plans that share files across
 sessions means re-reading the same code, re-deriving the same context, and
 resolving conflicts with yourself.
 
-37 plans → **11 sessions**.
+37 plans → **11 sessions**. Five have landed.
 
 ---
 
 ## How to start a session
 
 ```
-Implement session S5 (plans P12 → P13 → P14 → P15 → P16) from
+Implement session S6 (plans P17 → P18 → P19) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: fix/error-states, off fix/token-proxy.
+plan file in order. Branch: fix/context-storage, off fix/error-states.
 ```
 
-*(S1, S2, S3 and S4 have landed — see `00.INDEX.md` for their SHAs and for what
-they changed that later sessions must account for.)*
+*(S1, S2, S3, S4 and S5 have landed — see `00.INDEX.md` for their SHAs and for
+what they changed that later sessions must account for.)*
 
 Then, in order:
 
@@ -72,8 +72,14 @@ rework/2026 (27c9555)
             39a310b  P11  │
             c3ec6a1  docs ┘
              └─ 4e04276  P28.4 ┐
-                2babbf0  P34   ├─ S4  fix/token-proxy → 3523d8d   ← HEAD
-                3523d8d  P35   ┘
+                2babbf0  P34   ├─ S4  fix/token-proxy → 8bd9e85
+                3523d8d  P35   │
+                8bd9e85  docs ┘
+                 └─ 4e8cd8a  P12  ┐
+                    7f93792  P13  │
+                    9370e9c  P14  ├─ S5  fix/error-states → 4ebeb89  ← HEAD
+                    9157683  P15  │
+                    4ebeb89  P16  ┘
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -113,14 +119,18 @@ Either way, **do not rebase any of these branches.** S3 was cut from
 `fix/request-safety` and S4 from `fix/data-layer`; rewriting their
 SHAs invalidates every SHA recorded in `00.INDEX.md` and in this file.
 
-*(Written before S3. Still accurate after S4 — `rework/2026` has received none of
-S1, S2, S3 or S4, and a merge of `fix/token-proxy` into it remains a single
-fast-forward landing all four in order.)*
+*(Written before S3. Still accurate after S5 — `rework/2026` has received none of
+S1–S5, and a merge of `fix/error-states` into it remains a single fast-forward
+landing all five in order.)*
 
 **S4 was cut from `c3ec6a1`, not `39a310b`.** Same situation as S3: the S3
 summary names `39a310b` because that was the tip when it was written, and a
 docs-only commit landed after. `c3ec6a1` is a descendant, so "the previous
 session's tip" is the same instruction and loses nothing.
+
+**S5 was cut from `8bd9e85`, not `3523d8d`** — the same pattern for the fourth
+time. It is now the norm, not the exception: **read the branch tip with
+`git rev-parse`, never the SHA a previous summary happens to name.**
 
 ---
 
@@ -139,7 +149,7 @@ single most likely way a session goes wrong:
 > - If a referenced bug appears already fixed — verify, note it, move on. Do not re-fix.
 > - If reality differs materially from the plan, adapt and **say so in the completion report**.
 
-This matters most in **S5, S7, S8** (S3 and S4 are done), which touch files that
+This matters most in **S7, S8** (S1–S5 are done), which touch files that
 **S1**, **S2** and **S3** have already rewritten. All three have landed, so this is no
 longer hypothetical: **every hook file, `common.types.ts`, `Repositories.tsx`,
 `DisplayRepoList.tsx`, `UserProfileRepos.tsx`, `LowerHomeUI.tsx` and the three
@@ -689,60 +699,179 @@ serves the functions and the client together on 8888, and `npm run dev` in
 
 ---
 
-### 🟡 S5 — Error & empty states  ← next
-**Branch:** `fix/error-states`, off `fix/token-proxy`@`3523d8d` · **Risk:** medium · **~3 h**
-**Plans:** P12 → P13 → P14 → P15 → P16
+### ✅ S5 — Error & empty states — **landed 2026-08-07**
+**Branch:** `fix/error-states`, tip `4ebeb89` · **Risk:** medium
+**Cut from `fix/token-proxy`@`8bd9e85`**, so it contains all of S1–S4.
+Nothing has been merged down to `rework/2026` yet; that still blocks nothing.
+**Plans:** P12 `4e8cd8a` → P13 `7f93792` → P14 `9370e9c` → P15 `9157683` →
+P16 `4ebeb89`
 
-Render paths across `page/` and `components/`. Fixes the blank-profile-page bug
-(P14) and the pagination `NaN` bug (P15). P13's `<ErrorState>` is consumed by
-P14 and P16, so they belong together.
+The app's remaining user-visible bugs. The blank profile page (P14) and the
+pagination `NaN` (P15) are both closed, every failure now renders through one
+themed component, and an invalid username no longer becomes a request at all.
+Gate (`npm run lint && npx tsc -b --noEmit && npm run build`) green before
+every commit; `npm run typecheck:functions` re-run at the end and still green
+(S5 touched no function code).
 
-#### ⚠️ Inherited from S4
+#### What shipped
 
-- **Errors now arrive from the proxy, not from GitHub.** The status is what
-  carries meaning: **404** → `NotFoundError`, **403 + `x-ratelimit-remaining: 0`**
-  → `RateLimitError` (with `resetAt`), **400** → a `GitHubError` with status 400
-  (bad login — P16's case), **502** → `GitHubError`. The response body is always
-  `{"error":"<code>"}` and **never** GitHub's text, so **P13 has nothing raw
-  left to leak** — `error.message` is now always one of the app's own strings.
-  That closes V09 more cleanly than the plan assumed; still replace the six raw
-  renders, and still branch on `instanceof`, not on message text.
-- **A 400 is reachable now and was not before.** An invalid login is rejected by
-  the proxy instead of becoming a GitHub 404. **P16** should gate at the route
-  boundary with `helper/validateLogin.ts` so the user sees a real "not a valid
-  GitHub username" page rather than a generic error after a round trip — the
-  helper is finally imported (by the functions), so it is proven, not theoretical.
-- **`client/src/constants/graphqlQueries.ts` no longer exists** and
-  `githubGraphQL` is gone from `helper/githubFetch.ts`. If a plan or an old note
-  tells you to import either, it is stale.
-- **The gate has a fourth step**, `npm run typecheck:functions`. S5 touches no
-  function code, so it should stay green for free — but run it if you do.
+| Plan | Result |
+|---|---|
+| **P12** | New `AppErrorBoundary` (class — `getDerivedStateFromError` still has no hook equivalent) + `SomethingWentWrong` fallback. Wired at the root **inside `ThemeProvider`**, and again around `<ContributionChart>`. Keyed on `location.pathname`, which is what makes "Back to home" recover. |
+| **P13** | New `ErrorState` — classifies by `instanceof` (`RateLimitError` → the reset time, `NotFoundError` → "Not found", else generic), themed MUI `Alert`, Retry wired to each query's own `refetch`. All six raw renders replaced. `grep -rn "error.message\|String(error)" client/src` → **0**. |
+| **P14** | `ProfileInfo` reordered to `isLoading → error → !data`; `mapGitHubResponse` moved below the guards. New `components/skeletons/ProfileSkeleton`, which reuses `LoadingSkeleton` for the contribution grid rather than redrawing it. |
+| **P15** | New `helper/paginate.ts` (`PER_PAGE`, `totalPageCount`, `pageWindow`). `Repositories` gains explicit loading/error branches and **drops S2's `as number`**. `Pagination` rewritten around `pageWindow` and returns `null` below two pages. `useFetchReposPerPage` now imports `PER_PAGE` — the magic `8` existed in two files. New `RepoListSkeleton`. |
+| **P16** | `NotFound` rebuilt themed and parameterised; new `EmptyState`; **all five placeholder-login fallbacks replaced by `isValidLogin` / `isValidRepoName` gates**; `/explore` with no query, zero-result search, zero public repos and the empty starred dropdown all get real states; catch-all route moved last. `grep -rn "demoUserName\|demoRepo\|noQueryToSearch" client/src` → **0**. |
 
-#### ⚠️ Inherited from S2
+#### How it was verified
 
-- **P14's bug is confirmed reproducible**, re-verified after S4. `/user/zzzz-not-a-real-user-zzzz`
-  renders a blank body today: the request correctly throws `NotFoundError`, but
-  `ProfileInfo`'s `if (!userData) return null;` runs before its error check, so
-  nothing renders. S2 killed the *crash*, not the blank page.
-- **P13 has real error types to render:** `GitHubError` / `NotFoundError` /
-  `RateLimitError` (`helper/githubErrors.ts`). Branch on `instanceof`, and use
-  `RateLimitError.resetAt` for the "try again at …" case. This is also what
-  closes **V09** — never render a raw `error.message` again.
-- **P15 must delete the two S2 placeholder assertions**, not work around them:
-  `Repositories.tsx` (`as number`) and `DisplayRepoList.tsx` (`as Repo[]`).
-  `Pagination`'s `Math.ceil(totalRepos / 8)` still yields `NaN` — untouched on
-  purpose.
-- **`?page=abc` no longer reaches the network as `NaN`** — `helper/parsePage.ts`
-  clamps it to 1 in `Repositories.tsx` and `DisplayRepoList.tsx`. P15 owns what
-  `Pagination` does with a missing `totalRepos`, which is a different bug.
-- **P16:** the `"demoUserName"` fallbacks are all still present and still the
-  reason a bad login silently becomes a request. `helper/validateLogin.ts`
-  (P04) is still an unimported leaf — P16 is where it finally gets used.
+Everything below is **executed**. `netlify-cli` is still not installed (rule 5),
+so the seven functions ran under **Node 24's native type stripping** behind the
+same ~50-line stand-in S4 used, with the CSP parsed out of the real
+`netlify.toml`. Requests went to the **live** `api.github.com` with the real
+token; the production `vite build` output was driven in **headless Chrome over
+CDP**.
+
+| Check | Result |
+|---|---|
+| `/user/torvalds` | ✅ full profile, **"3400 contributions"** — the graph still works after the guard reorder |
+| `/user/zzzz-not-a-real-user-zzzz` | ✅ **"Not found — That GitHub user or repository doesn't exist." + RETRY.** This is P14's bug, blank since before S2, now closed |
+| `/user/-invalid-` and `/user/x%2F..%2F..%2Forgs%2Fgithub` | ✅ themed "Invalid username", **zero API requests** — the guard fires before the query is enabled |
+| `/user/torvalds/..%2F..%2Fetc` | ✅ "Invalid repository", **zero API requests** |
+| `/explore` with no query | ✅ prompt, **zero API requests** |
+| Zero-result search | ✅ "No users found… check the spelling", **no 🎉** |
+| `/nonexistent-route` | ✅ themed 404 |
+| Retry button | ✅ exactly **one** `/api/users` request per click |
+| CSP violations + console errors across 8 pages | **0 / 0** |
+
+🔴 **The pagination bar was measured, not reasoned about.** Rendered button
+labels and `disabled` flags were read out of the DOM for eight cases:
+
+| Case | Result |
+|---|---|
+| 6 repos / 8 repos → 1 page | **no bar at all** (was: arrows with no numbers) |
+| 12 repos, page 1 → page 2 | `[1][2]`, back arrows disabled → forward arrows disabled |
+| 169 repos (22 pages), page 1 / 10 / 22 | `[1][2][3]` → `[10][11][12]` → `[20][21][22]`, arrows correct at both ends |
+| `?page=999` on a 22-page user | clamps to `[20][21][22]`, forward arrows disabled |
+| `?page=abc` | requests `page=1` (P07's `parsePage`, verified still holding) |
+| **the literal string `NaN` anywhere in the DOM** | **absent** |
+
+The pure helpers were also executed directly — 18 cases plus an **exhaustive
+old-vs-new parity check** of the page window for every page of `totalPages`
+4/7/13/40, so the numbers shown are provably unchanged wherever the old code
+produced numbers at all.
+
+**Both boundaries were proven with a real throw, then reverted:**
+
+| Case | Result |
+|---|---|
+| `throw` inside `UserContributions` | ✅ profile renders in full; only the chart area shows "Couldn't display the contribution graph." |
+| `throw` inside `Explorer` (root boundary) | ✅ themed "Something went wrong" + TRY AGAIN + BACK TO HOME, **`#root` not empty** |
+| "Back to home" | ✅ recovers — this is what the `key={location.pathname}` is for |
+| "Try again" | ✅ resets and re-renders the subtree, which then renders normally |
+
+⚠️ **A note for whoever tests a boundary next.** React 19 **re-runs the render
+synchronously** after catching, so a throw guarded by a "only once" flag never
+shows its fallback — the retry succeeds and it looks like the boundary is not
+working. The throw has to persist across that second attempt (a time window
+works) or the test is measuring nothing.
+
+#### ⚠️ Deviations from the plans — read before S6
+
+1. **`ThemeProvider` was not hoisted to `main.tsx`.** P12 §3 suggests it as
+   "probably cleaner", but `App` calls `useMode()`, which must run *inside*
+   `ModeContextProvider` — hoisting would need a new wrapper component in
+   `main.tsx` to call the hook. Putting the boundary inside the existing
+   `ThemeProvider` is a three-line diff and gets the same themed fallback.
+   **Trade-off:** a crash *above* `ThemeProvider` (in `ModeContextProvider` or
+   `getTheme`) is still uncaught. That is a much smaller surface than the one
+   now covered.
+2. **The boundary wraps `<Navbar>` as well as `<Routes>`,** so a caught error
+   replaces the navbar too. Wrapping only `<Routes>` would keep the navbar
+   usable, but then a Navbar crash is still a white screen — which is the
+   exact thing P12 exists to stop. Chose coverage; the fallback carries its
+   own "Back to home".
+3. **The boundary is keyed on `location.pathname`.** Not in the plan, and
+   without it the plan's own "Back to home" button is decorative: the URL
+   changes and the boundary keeps rendering its fallback, because `error`
+   state survives the route change. One prop.
+4. **`ErrorState` is a default export, not the named `export const` P13
+   sketches**, and `describe` is not exported. Matches the rest of the
+   codebase and keeps `react-refresh/only-export-components` quiet.
+5. ⚠️ **The guards pass an empty string, they do not skip the hook.** P16 §3
+   shows `if (!isValidLogin(username)) return <NotFound … />` before the hook —
+   which is a conditional hook call and illegal. The validity check runs first,
+   the hook receives `""` when it fails (leaving the query `enabled: false`, so
+   **no request is fired**), and the `return` follows. Same user-visible result,
+   legal React. **Verified: zero requests on an invalid param.**
+6. **`DisplayRepoList` takes `username` as a prop** rather than growing its own
+   `isValidLogin` guard. It only ever renders under `Repositories`, which owns
+   and validates that param; a second guard would be a second place to keep in
+   sync. Not in the plan.
+7. **`ShowSelectedRepo`'s `<div>No Data Found</div>` also became a `NotFound`.**
+   P13 does not list it among the six (it is not an error render) and P16 does
+   not name it either, but it is the same unstyled-div problem in the same
+   file, one line away from two edits both plans do ask for.
+8. **Comments were worded to keep the acceptance greps literally clean** —
+   both P13's and P16's criteria grep for strings that prose explaining the fix
+   would otherwise match. Same choice S3 made, and the opposite of S4's
+   deviation 4. Worth settling if **P30** ever automates these greps.
+9. **P15 step 2's early return serialises two requests on one cold path.**
+   `Repositories` now returns a skeleton while the *profile* query is in
+   flight, so `DisplayRepoList` — and therefore the repos request — does not
+   mount until it resolves. Only affects a cold deep-link to
+   `?tab=repositories`; arriving from the profile page hits P10/P11's cache and
+   the branch never runs. Followed the plan; noting the cost.
+10. **No user with exactly 0 public repos was found to test with**, so the
+    `EmptyState` in `UserProfileRepos` was exercised by requesting a page past
+    the end (`/user/dhh?tab=repositories&page=4` → empty list). Same branch,
+    same render — "No public repositories | This account hasn't published
+    anything yet."
+
+#### Observations that are nobody's plan
+
+- **`?page=999` on a 22-page user renders the clamped bar over an empty list.**
+  The arrows work and nothing crashes, but the page number in the URL is not
+  reconciled with reality. Deciding whether that should redirect is **P23**'s
+  natural moment, since it is rewriting these controls as links.
+- **`npm audit` still reports 13 advisories.** Untouched, unowned.
+- **Bundle: 641.10 kB → 646.22 kB raw.** ~5 kB for five new components.
+- 🔴 **`GITHUB_TOKEN` in Netlify and the old PAT's revocation are still
+  outstanding** — S4's list, unchanged. S5 did not touch it and cannot.
+
+#### Seen but deliberately NOT fixed (still open for their owning plan)
+
+- `StaredUserContextProvider` reads `localStorage` unvalidated, and
+  `checkStared` reads `initialList` rather than state → **P17**/**P18**
+- `LowerHomeUI`'s `alert()` and the `searchTerm.length` vs trimmed-length bug
+  → **P20**
+- `PageButton` / `PageQuickButtons` still render `<button>` + `navigate()`
+  → **P23**
+- `Explorer`'s `IntersectionObserver` still fires unthrottled → **P21**
+- `OrganizationTopRepos` still interpolates `username` into a rendered
+  `github.com` href. Unowned; a rendered link, not an authenticated request
+
+#### → How S6 branches from here
+
+```bash
+git checkout fix/error-states        # confirm with: git rev-parse --short HEAD
+git checkout -b fix/context-storage
+```
+
+**S6 only needs S1**, so it *may* be cut from `fix/quick-wins`@`ac4186a` — but
+cutting it from `4ebeb89` keeps one line of history instead of a second stack
+to reconcile. Recommend the latter. `rework/2026` is still at `27c9555` and has
+received none of S1–S5.
+
+S6 touches `context/`, `hooks/useStaredUserList.ts` and the four components
+that consume them — none of which S5 changed, apart from the empty-menu branch
+added to `StaredRepositories`. **P18 must keep that branch**: it renders when
+`staredList.length === 0`, and P18 changes where that list comes from.
 
 ---
 
-### 🟡 S6 — Context & storage
-**Branch:** `fix/context-storage` · **Risk:** medium · **~2 h**
+### 🟡 S6 — Context & storage  ← next
+**Branch:** `fix/context-storage`, off `fix/error-states`@`4ebeb89` · **Risk:** medium · **~2 h**
 **Plans:** P17 → P18 → P19
 
 Self-contained: `context/`, `hooks/useStaredUserList.ts`, and the 4 components
@@ -752,6 +881,14 @@ that consume them.
 lazy-`useState` alone freezes the list and the star button stops toggling. Read
 P18's "Why" before touching anything. P19 is a pure rename — **zero behaviour
 change in that commit**.
+
+⚠️ **Inherited from S5:** `StaredRepositories`'s menu now branches on
+`staredList.length === 0` to say "Star a profile to pin it here." instead of
+opening onto nothing. **P18 changes where that list comes from — keep the
+branch.** Also: **P17 should import `helper/validateLogin.ts`**, which S5 wired
+into four route boundaries, rather than writing a second set of rules; the
+functions already import the same file, so a third definition would be the
+third place to keep in sync.
 
 ---
 
@@ -763,7 +900,7 @@ change in that commit**.
 `SearchBar.tsx`. Batched because P37 extracts P20's fixed form into the shared
 component, and both P21 and P37 touch `Explorer.tsx`.
 
-Must run **after S5** — P37 fills the empty states P16 creates.
+**S5 has landed**, so P37's dependency is satisfied — `<EmptyState>`, `<ErrorState>` and the parameterised `<NotFound>` all exist, and P37 fills them with the shared `<SearchBar>` (`NotFound` deliberately ships without one).
 
 ⚠️ **Inherited from S2:** `LowerHomeUI`'s submit handler already navigates via
 `createSearchParams` — **P20 must keep that** and not regress to a template
@@ -790,6 +927,11 @@ that shape** when it turns pagination and repo buttons into real `<Link>`s —
 a `to` built from `repo.full_name` would reintroduce the segment escape that
 P07 closed.
 
+⚠️ **Inherited from S5:** `Pagination` consumes `pageWindow` from
+`helper/paginate.ts` and returns `null` below two pages. **P23 should keep both**
+— recomputing the window inline is how the `NaN` got there the first time, and
+a link-based bar for a single page is still noise.
+
 ---
 
 ### 🟢 S9 — Assets & performance
@@ -814,6 +956,12 @@ files. Config-only; touches almost no application code.
 **Must run after S8** — P29 enables `jsx-a11y`, and it should land green rather
 than producing a wall of violations to triage. Same for P30: it runs after P15
 so the tests assert *corrected* pagination behaviour.
+
+⚠️ **Inherited from S5 — `helper/paginate.ts` is now the highest-value pure
+module after `githubUrls`.** `totalPageCount(undefined)` → `0`,
+`pageWindow(p, 0)` → `[]`, and the clamping at both ends. S5 executed 18 such
+cases plus an old-vs-new parity sweep; **P30 turns those into committed tests**,
+and they are the regression guard for the pagination `NaN`.
 
 ⚠️ **Inherited from S2 — P30 has more pure logic to test than the plan lists:**
 `helper/parsePage.ts` (`"abc"`, `"0"`, `"-3"`, `null` → `1`), and
@@ -844,24 +992,26 @@ rework/2026 (27c9555 — has received nothing yet)
     └── ✅ S1  quick-wins      ac4186a ─────┐
             └── ✅ S2  request-safety  914cf4a
                     └── ✅ S3  data-layer  c3ec6a1
-                            └── ✅ S4  token-proxy  3523d8d  ← branch from here next
-                                    └── S5  error-states
+                            └── ✅ S4  token-proxy  8bd9e85
+                                    └── ✅ S5  error-states  4ebeb89  ← branch from here next
                                             ├── S7  feat/search
                                             ├── S8  a11y ── S10  tooling
                                             └── S9  perf/assets
-    S6  context-storage  ← only needs S1
+    S6  context-storage  ← only needs S1 (recommend stacking on 4ebeb89 anyway)
     S11 docs/readme      ← only needs S1
 ```
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Four sessions are done; the next branch is cut
-from `3523d8d`.
+so far has not happened at all. Five sessions are done; the next branch is cut
+from `4ebeb89`.
 
 **Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
 — S4 landed first, and S5 is cut from it. Nothing forced that order (they share
 no files), but stacking keeps a single line of history instead of a second stack
-to reconcile later.
+to reconcile later. **The same argument applies to S6**, which the graph still
+shows detached: it only needs S1, but cutting it from `4ebeb89` costs nothing
+and avoids a second stack.
 
 ~~**Critical path to the security fix: S1 → S2 → S3 → S4.**~~ ✅ **All four have
 landed. V01 is closed in code.** What remains is not a plan — it is the Netlify
