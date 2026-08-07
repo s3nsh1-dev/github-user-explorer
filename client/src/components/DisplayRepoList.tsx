@@ -6,6 +6,7 @@ import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
 import { Link } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 import type { Repo } from "../constants/common.types";
+import { parsePage } from "../helper/parsePage";
 
 type IncomingPropTypes = {
   totalRepos: number;
@@ -15,7 +16,7 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
   const { username } = useParams();
   const [searchParams] = useSearchParams();
 
-  const pNum = parseInt(searchParams.get("page") || "1", 10);
+  const pNum = parsePage(searchParams.get("page"));
   const { reposData, reposLoading, reposError } = useFetchReposPerPage({
     username: username || "demoUserName",
     page: pNum,

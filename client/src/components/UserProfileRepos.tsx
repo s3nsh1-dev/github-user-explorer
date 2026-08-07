@@ -39,7 +39,13 @@ type UserProfileReposProps = {
 const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
   const navigate = useNavigate();
   const handleOpenRepository = (repo: Repo) => {
-    navigate(`/user/${repo.full_name}`);
+    // `full_name` is "owner/name". Passing it whole relied on the raw "/"
+    // surviving into the URL and the router happening to split it into the two
+    // route segments. Split it here and encode each segment instead, so the
+    // route shape is explicit and neither part can escape its segment.
+    const [owner, ...rest] = repo.full_name.split("/");
+    const name = rest.join("/") || repo.name;
+    navigate(`/user/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`);
   };
 
   return (

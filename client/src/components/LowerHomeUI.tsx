@@ -9,7 +9,7 @@ import {
   type FormEvent,
   type ChangeEvent,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, createSearchParams } from "react-router-dom";
 
 const LowerHomeUI = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,7 +30,10 @@ const LowerHomeUI = () => {
       return;
     }
     setSearchTerm("");
-    navigate(`/explore?query=${trimUserName}`);
+    navigate({
+      pathname: "/explore",
+      search: `?${createSearchParams({ query: trimUserName })}`,
+    });
   };
   return (
     <Box

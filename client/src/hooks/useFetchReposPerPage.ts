@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { githubFetch } from "../helper/githubFetch";
+import { userReposUrl } from "../helper/githubUrls";
 import type { Repo } from "../constants/common.types";
+
+const REPOS_PER_PAGE = 8;
 
 const useFetchReposPerPage = ({
   username,
@@ -16,10 +19,9 @@ const useFetchReposPerPage = ({
   } = useQuery({
     queryKey: ["userRepos", username, page],
     queryFn: () => {
-      const perPage = 8;
       if (!username) throw new Error("Username is required");
       return githubFetch<Repo[]>(
-        `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}`
+        userReposUrl(username, page, REPOS_PER_PAGE)
       );
     },
     enabled: !!username,

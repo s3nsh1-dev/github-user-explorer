@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { githubFetch } from "../helper/githubFetch";
+import { usersUrl } from "../helper/githubUrls";
 import type { GitHubApiUser } from "../constants/common.types";
 
 const useFetchUserData = ({ username }: { username: string }) => {
@@ -11,9 +12,7 @@ const useFetchUserData = ({ username }: { username: string }) => {
     queryKey: ["userProfile", username],
     queryFn: () => {
       if (!username) throw new Error("Username is required");
-      return githubFetch<GitHubApiUser>(
-        `https://api.github.com/users/${username}`
-      );
+      return githubFetch<GitHubApiUser>(usersUrl(username));
     },
     enabled: !!username,
     // how long the data will be considered fresh = stale time(in this case 5min)
