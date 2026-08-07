@@ -15,10 +15,13 @@ resolving conflicts with yourself.
 ## How to start a session
 
 ```
-Implement session S2 (plans P05 → P07 → P08) from
+Implement session S3 (plans P06 → P09 → P10 → P11) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: fix/request-safety, off fix/quick-wins.
+plan file in order. Branch: fix/data-layer, off fix/request-safety.
 ```
+
+*(S1 and S2 have landed — see `00.INDEX.md` for their SHAs and for what they
+changed that later sessions must account for.)*
 
 Then, in order:
 
@@ -56,7 +59,7 @@ have already rewritten.
 
 ## The 11 sessions
 
-### 🟢 S1 — Quick wins & foundations
+### ✅ S1 — Quick wins & foundations — **landed**
 **Branch:** `fix/quick-wins` (off `rework/2026`) · **Risk:** none · **~1.5 h**
 **Plans:** P00 → P01 → P02 → P03 → P04 → P28
 
@@ -79,9 +82,9 @@ shrink the files every later session has to read.
 
 ---
 
-### 🔵 S2 — Request safety *(hook layer, part 1)*
+### ✅ S2 — Request safety *(hook layer, part 1)* — **landed**
 **Branch:** `fix/request-safety` · **Risk:** medium · **~2.5 h**
-**Plans:** P05 → P07 → P08
+**Plans:** P05 `05f757e` → P07 `b22c5dc` → P08 `7dc2c03`
 
 Fixes the two highest-severity issues reachable without the proxy: **GraphQL
 injection (V02)** and **URL tampering (V03)**.
