@@ -1,5 +1,5 @@
-import { Box, Button, Typography } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
+import SearchBar from "../components/SearchBar";
 
 /**
  * One page for every "that isn't a thing" state: a bad route, a username the
@@ -10,9 +10,10 @@ import { Link as RouterLink } from "react-router-dom";
  * Parameterised rather than duplicated, so "user not found", "repository not
  * found" and "page not found" stay one component and one design.
  *
- * No search box here on purpose: the shared `<SearchBar>` is P37's, and
- * inlining a second copy of the home-page form now would fork the design
- * before that lands.
+ * The "Back to search" button that used to sit here only moved the visitor to
+ * the home page to start again; P37's shared `<SearchBar>` lets them search
+ * from the dead end itself, which is the whole reason the button was left as
+ * a placeholder rather than designed.
  */
 type Props = {
   title?: string;
@@ -38,9 +39,7 @@ const NotFound = ({
       {title}
     </Typography>
     <Typography color="text.secondary">{message}</Typography>
-    <Button component={RouterLink} to="/" variant="contained">
-      Back to search
-    </Button>
+    <SearchBar variant="hero" />
   </Box>
 );
 

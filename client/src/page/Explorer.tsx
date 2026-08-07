@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { CircularProgress } from "@mui/material";
 import ErrorState from "../components/ErrorState";
 import EmptyState from "../components/EmptyState";
+import SearchBar from "../components/SearchBar";
 import SearchIcon from "@mui/icons-material/Search";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
 
@@ -85,7 +86,8 @@ const Explorer = () => {
       <EmptyState
         icon={<SearchIcon fontSize="large" />}
         title="Search for a GitHub user"
-        message="Enter a username on the home page to see matching profiles."
+        message="Enter a username to see matching profiles."
+        action={<SearchBar variant="hero" autoFocus />}
       />
     );
 
@@ -107,6 +109,7 @@ const Explorer = () => {
         icon={<SearchOffIcon fontSize="large" />}
         title="No users found"
         message={`Nothing on GitHub matched “${query}”. Check the spelling, or try a different username.`}
+        action={<SearchBar variant="hero" />}
       />
     );
 
