@@ -6,12 +6,6 @@ export const getTheme = (mode: ModeType) =>
     typography: {},
     palette: {
       mode,
-      // primary: {
-      //   main: "#0B1D51",
-      // },
-      // secondary: {
-      //   main: "#ff4081",
-      // },
       background: {
         default: mode === "dark" ? "#23272b" : "#e0e0e0", // dark gray for dark mode, light gray for light mode
         paper: mode === "dark" ? "#333446" : "#f5f5f5", // optional: slightly lighter for paper

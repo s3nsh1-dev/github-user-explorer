@@ -36,7 +36,6 @@ const ProfileInfo = () => {
     py: 0.5,
     borderRadius: 1,
     wordWrap: "break-word",
-    // wordBreak: "break-all",
     fontSize: { xs: ".9rem", sm: "1rem" },
     fontFamily: "monospace",
   };

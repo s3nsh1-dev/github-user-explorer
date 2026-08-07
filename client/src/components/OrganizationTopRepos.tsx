@@ -50,7 +50,6 @@ const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
           gap: 2,
           flexWrap: "wrap",
           justifyContent: "space-evenly",
-          // width: "50%",
         }}
       >
         {repos.map((repo, index) => (

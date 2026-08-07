@@ -35,18 +35,11 @@ const style5 = {
 
 type UserProfileReposProps = {
   repos: Repo[];
-  username: string;
 };
-const UserProfileRepos: React.FC<UserProfileReposProps> = ({
-  repos,
-  username,
-}) => {
+const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
   const navigate = useNavigate();
   const handleOpenRepository = (repo: Repo) => {
-    const repoName = repo.name;
-    navigate(`/user/${repo.full_name}`, {
-      state: { repoName, username },
-    });
+    navigate(`/user/${repo.full_name}`);
   };
 
   return (

@@ -23,7 +23,6 @@ const UserCards: FC<UserCardsProps> = ({ userName, imageURL, githubURL }) => {
         sx={{
           display: "flex",
           alignItems: "center",
-          // margin: 1,
         }}
       >
         <Box

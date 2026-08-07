@@ -49,10 +49,7 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
           <b>{totalRepos}</b> <i>repositories</i>
         </Typography>
       </Box>
-      <UserProfileRepos
-        repos={reposData}
-        username={username || "demoUserName"}
-      />
+      <UserProfileRepos repos={reposData} />
     </Box>
   );
 };

@@ -1,7 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-// import Button from "@mui/material/Button";
 import UserCards from "../components/UserCards";
 import useInfiniteUsers from "../hooks/useInfiniteUsers";
 import { useEffect, useRef } from "react";
@@ -18,7 +17,6 @@ const style3 = {
   flexWrap: "wrap",
   justifyContent: "center",
 };
-// const style4 = { mt: 2, alignSelf: "center", mb: 2 };
 const style5 = { textAlign: "center", mt: 2 };
 const style6 = {
   height: "40px",
@@ -82,7 +80,6 @@ const Explorer = () => {
           userName={user.login}
           githubURL={user.html_url}
           imageURL={user.avatar_url}
-          seeRepos={user.repos_url}
         />
       );
     })
@@ -94,25 +91,9 @@ const Explorer = () => {
       </Typography>
       <Box sx={style3}>{renderUserCards}</Box>
       {hasNextPage && (
-        // <Button
-        //   variant="contained"
-        //   onClick={() => fetchNextPage()}
-        //   disabled={isFetchingNextPage}
-        //   sx={style4}
-        // >
-        //   {isFetchingNextPage ? "Loading more..." : "Load More"}
-        // </Button>
-        <>
-          <Box ref={loadRef} sx={style6}>
-            {isFetchingNextPage && <CircularProgress color="inherit" />}
-          </Box>
-
-          {!hasNextPage && (
-            <Box sx={{ textAlign: "center" }}>
-              🎉 You’ve reached the end of results!
-            </Box>
-          )}
-        </>
+        <Box ref={loadRef} sx={style6}>
+          {isFetchingNextPage && <CircularProgress color="inherit" />}
+        </Box>
       )}
 
       {!hasNextPage && (

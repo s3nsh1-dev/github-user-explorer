@@ -71,7 +71,6 @@ export type UserCardsProps = {
   userName: string;
   imageURL: string;
   githubURL: string;
-  seeRepos: string;
 };
 
 export type Repo = {

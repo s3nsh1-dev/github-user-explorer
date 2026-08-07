@@ -23,11 +23,6 @@ const useFetchUserData = ({ username }: { username: string }) => {
     enabled: !!username,
     // how long the data will be considered fresh = stale time(in this case 5min)
     staleTime: 1000 * 60 * 5,
-    /*
-      // 10 mins in memory, the default is 5 min
-      // using to not hit the api again and again if the request is frequent
-      cacheTime: 1000 * 60 * 10
-      */
   });
   return { userData, userLoading, userError };
 };
