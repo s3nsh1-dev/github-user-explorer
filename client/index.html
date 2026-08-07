@@ -46,6 +46,41 @@
       content="#23272b"
       media="(prefers-color-scheme: dark)"
     />
+
+    <!-- Anti-flash. The page is white until React mounts, mounts the theme and
+         CssBaseline paints the background, so a dark-mode visitor got a white
+         flash on every load and every hard refresh.
+
+         ⚠️ This MUST agree with readMode() in src/helper/storage.ts: same
+         "mode" key, same accepted values, same prefers-color-scheme fallback.
+         Disagree and it flashes in the *opposite* direction, which is worse
+         than not having it. The two colours are theme.palette.background.default
+         from src/theme/muiCustomTheme.ts.
+
+         ⚠️ It is inline, so netlify.toml's script-src carries its SHA-256.
+         Editing a single character here — including whitespace — invalidates
+         that hash, and the browser then drops the script silently: no error,
+         no console warning, just the flash back. After changing anything in
+         here run `npm run build && npm run csp-hash`, which prints the hash
+         and fails if netlify.toml is missing it. -->
+    <script>
+      (function () {
+        try {
+          var m = localStorage.getItem("mode");
+          if (m !== "light" && m !== "dark") {
+            m =
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          }
+          document.documentElement.style.backgroundColor =
+            m === "dark" ? "#23272b" : "#e0e0e0";
+        } catch (e) {
+          /* storage disabled: fall through to the default paint */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
