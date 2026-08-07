@@ -8,19 +8,19 @@ several times, and verifies once. Splitting plans that share files across
 sessions means re-reading the same code, re-deriving the same context, and
 resolving conflicts with yourself.
 
-37 plans → **11 sessions**. Seven have landed.
+37 plans → **11 sessions**. Eight have landed, plus a loose-ends pass.
 
 ---
 
 ## How to start a session
 
 ```
-Implement session S8 (plans P22 → P23 → P24 → P25) from
+Implement session S9 (plans P26 → P27) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: fix/a11y, off feat/search.
+plan file in order. Branch: perf/assets, off fix/a11y.
 ```
 
-*(S1 through S7 have landed — see `00.INDEX.md` for their SHAs and for what
+*(S1 through S8 have landed — see `00.INDEX.md` for their SHAs and for what
 they changed that later sessions must account for.)*
 
 Then, in order:
@@ -89,8 +89,18 @@ rework/2026 (27c9555)
                             34a7a40  dev  │
                             39b40dc  dev  ┘
                              └─ dae9883  P20  ┐
-                                69880dc  P21  ├─ S7  feat/search → 6f1bd78  ← HEAD
-                                6f1bd78  P37  ┘
+                                69880dc  P21  ├─ S7  feat/search → a536151
+                                6f1bd78  P37  │
+                                a536151  docs ┘
+                                 └─ 59a1c45  href   ┐
+                                    bba6ac5  theme  ├─ chore/loose-ends → 09f13d6
+                                    602417d  deps   │
+                                    91ba513  server │
+                                    09f13d6  docs   ┘
+                                     └─ 3a5aeea  P22  ┐
+                                        035089c  P23  ├─ S8  fix/a11y → 56dae26  ← HEAD
+                                        33d9461  P24  │
+                                        56dae26  P25  ┘
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -130,10 +140,10 @@ Either way, **do not rebase any of these branches.** S3 was cut from
 `fix/request-safety` and S4 from `fix/data-layer`; rewriting their
 SHAs invalidates every SHA recorded in `00.INDEX.md` and in this file.
 
-*(Written before S3. Still accurate after S7 — `rework/2026` has received none of
-S1–S7, and a merge of `feat/search` into it remains a single fast-forward
-landing all seven in order, plus the two-commit `fix/netlify-dev-envfile` that
-S7 was cut from.)*
+*(Written before S3. Still accurate after S8 — `rework/2026` has received none
+of S1–S8, and a merge of `fix/a11y` into it remains a single fast-forward
+landing all eight in order, plus `fix/netlify-dev-envfile` and
+`chore/loose-ends`.)*
 
 **S4 was cut from `c3ec6a1`, not `39a310b`.** Same situation as S3: the S3
 summary names `39a310b` because that was the tip when it was written, and a
@@ -161,7 +171,8 @@ single most likely way a session goes wrong:
 > - If a referenced bug appears already fixed — verify, note it, move on. Do not re-fix.
 > - If reality differs materially from the plan, adapt and **say so in the completion report**.
 
-This matters most in **S8** (S1–S7 are done), which touches files that
+This mattered most in **S7** and **S8**, both now done. It still applies to
+**S9–S11**, which touch files that
 **S1**, **S2** and **S3** have already rewritten. All three have landed, so this is no
 longer hypothetical: **every hook file, `common.types.ts`, `Repositories.tsx`,
 `DisplayRepoList.tsx`, `UserProfileRepos.tsx`, `LowerHomeUI.tsx` and the three
@@ -1164,32 +1175,172 @@ no longer has a `<Button>` to relabel. The one search form is
 
 ---
 
-### 🟡 S8 — Accessibility  ← next
-**Branch:** `fix/a11y`, off `feat/search`@`6f1bd78` · **Risk:** low-medium · **~2.5 h**
-**Plans:** P22 → P23 → P24 → P25
+### ✅ Loose ends — **landed 2026-08-07**
+**Branch:** `chore/loose-ends`, tip `09f13d6` · cut from `feat/search`@`a536151`
 
-Heavily overlapping files: `PageButton.tsx` appears in P22, P23 and P25;
-`UserProfileStats.tsx` in P23 and P24. Splitting these would mean editing the
-same components three times.
+Not a session. Four items that every report since S2 had carried forward with
+no owner, plus one thrice-deferred plan item, done in one pass before S8 so
+they stop being repeated in every summary.
 
-P25 makes one deliberate visual change (contribution-grid numbers → tooltips).
+| Commit | What |
+|---|---|
+| `59a1c45` | `OrganizationTopRepos`'s `github.com` href encodes both segments — **the last raw interpolation of a route param into a URL anywhere in the client** |
+| `bba6ac5` | **The anti-flash theme script** (P35 §4, deferred three times). Inline in `index.html`, matching `readMode()`'s contract exactly, allowed by a `'sha256-…'` in `script-src` rather than `'unsafe-inline'`. Plus `npm run csp-hash`, which re-derives the hash from the built HTML and fails if `netlify.toml` is missing it |
+| `602417d` | `npm audit fix` — **13 advisories → 2**, entirely inside the ranges `package.json` already declares, so only the lockfile moved |
+| `91ba513` | `server/` deleted (V10 §10c) — one `npm init -y` manifest, no code, referenced nowhere |
 
-⚠️ **Inherited from S2:** `UserProfileRepos` now navigates to
-`/user/:owner/:repoName` with both segments `encodeURIComponent`-ed, instead of
-letting `full_name`'s raw `/` split itself across the route. **P23 must preserve
-that shape** when it turns pagination and repo buttons into real `<Link>`s —
-a `to` built from `repo.full_name` would reintroduce the segment escape that
-P07 closed.
+**How the theme script was verified:** five scenarios in headless Chrome behind
+the real CSP — stored dark on a light system, stored light on a dark system, no
+stored value on each system, and a junk stored value. The pre-JS background
+matches what React then paints in **all five**, so it cannot flash in either
+direction, and there are **zero CSP violations**.
 
-⚠️ **Inherited from S5:** `Pagination` consumes `pageWindow` from
-`helper/paginate.ts` and returns `null` below two pages. **P23 should keep both**
-— recomputing the window inline is how the `NaN` got there the first time, and
-a link-based bar for a single page is still noise.
+⚠️ **The hash is a trap by design** — a one-character edit to the script
+invalidates it and the browser drops the script *silently*. `npm run csp-hash`
+exists because that happened on the first attempt: the hash was computed from
+a regex that matched a `<script>` written inside an HTML comment. **Run it
+after touching `client/index.html`.**
+
+**Also closed here, from S1:** P03's skeleton animation, which S1 shipped
+without the browser check its plan asked for. Measured in both themes with the
+profile request held open: a real emotion keyframes animation (2 s) with
+theme-aware colours. Not re-fixed — verified.
+
+**What the audit left:** one advisory, on react-router 7.12–8.2, for **RSC
+mode**. This app is a plain `BrowserRouter` SPA with no server components, so
+it is not reachable, and clearing it means react-router **8** — a decision, not
+a chore. **P31's CI audit step must not fail the build on a bare `npm audit`
+until that is settled.**
 
 ---
 
-### 🟢 S9 — Assets & performance
-**Branch:** `perf/assets` · **Risk:** medium · **~1.5 h**
+### ✅ S8 — Accessibility — **landed 2026-08-07**
+**Branch:** `fix/a11y`, tip `56dae26` · **Risk:** low-medium
+**Cut from `chore/loose-ends`@`09f13d6`**, so it contains all of S1–S7 plus the
+pass above. Nothing has been merged down to `rework/2026` yet; that still
+blocks nothing.
+**Plans:** P22 `3a5aeea` → P23 `035089c` → P24 `33d9461` → P25 `56dae26`
+
+The app was fully usable with a mouse and close to unusable without one: no
+control that was an icon had a name, the current page was signalled by colour
+alone, the signature feature was 365 unlabelled divs, and the focus ring was
+either invisible or clipped away. Gate green before every commit, plus
+`npm run csp-hash` and `npm run typecheck:functions` at the end.
+
+#### What shipped
+
+| Plan | Result |
+|---|---|
+| **P22** | `aria-label` on every icon-only control; `aria-pressed` on the star toggle; `aria-current="page"` on the active page; distinct `alt` per avatar; a `<main>` landmark and a `<nav>` around the pagination bar; `aria-haspopup`/`aria-expanded` on the starred menu. Two focus fixes: an inset ring for the diamond `PageButton` (its `clipPath` clips an outline away) and a **theme-wide 3px ring on every `ButtonBase`**, because MUI's default focus-visible is a 4%-opacity tint. |
+| **P23** | `PageButton`, `PageQuickButtons` and the "Public Repos" card render `RouterLink` anchors; disabled arrows stay plain disabled buttons. New `repoPageLink()` in `helper/paginate.ts` — one definition of the URL, with the login encoded. |
+| **P24** | Followers/Following become `Paper` cards sharing one shape constant with the link card. Same 90×90 geometry, full-contrast counts, and the affordance now only on the card that navigates. |
+| **P25** | `role="grid"`/`row`/`gridcell` with a one-line summary and a per-cell "N contributions on Sat, 3 Aug 2025" used as both tooltip and accessible name; padding cells `aria-hidden`; the digits removed from the cells. Plus a whole-app contrast sweep. |
+
+#### How it was verified
+
+Everything below is **executed** in headless Chrome over CDP against the
+production build, behind the same function stand-in and the real CSP.
+
+| Check | Result |
+|---|---|
+| Controls with **no accessible name**, six routes | **0** (name computed as a screen reader does: text, `aria-label`, `aria-labelledby`, `title`, image `alt`) |
+| `<main>` landmarks per page | **exactly 1** on all six |
+| Avatar `alt` values in a results list | **21 images, 21 distinct** |
+| Star toggle | `Star torvalds`/`aria-pressed=false` → click → `Unstar torvalds`/`true` + `["torvalds"]` in storage → click → back to `false` + `[]` |
+| **Whole tab order walked with real Tab events** (repositories page) | **17 controls, every one with a computed focus indicator; zero without.** Before the theme override, four had none |
+| Pagination on a 38-page user | page 1: two `<button disabled>` at `tabIndex -1` + five anchors with correct `href`s; middle page: seven anchors; last page: forward pair disabled; `aria-current` on the active number |
+| Clicking "Next page" | SPA navigation — **zero document requests** |
+| Stat cards, both themes | `tabIndex` 0 / −1 / −1, no `disabled` anywhere, all three exactly **90×90**, counts at **9.25:1** (dark) and **13.79:1** (light) |
+| Contribution grid | 53 rows, 371 cells, **370 labelled**, 1 padding cell `aria-hidden`, **0 characters of text painted in the grid**, **0 cell tab stops** (profile page total: 6) |
+| Grid tooltip on hover | "2 contributions on Thu, 19 Feb 2026" |
+| **Contrast sweep — every text node, 6 routes × 2 themes** | **0 failures** (WCAG 2.1 thresholds, 3:1 for large/bold text) |
+| CSP violations / console errors across the whole sweep | **0 / 0** |
+
+#### ⚠️ Deviations from the plans — read before S9
+
+1. **The contrast audit found four failures, and none of them are the three
+   P25 §4 names.** The plan lists the grey `>>>`, `PageButton`'s gold, and the
+   dark-mode secondary text. Measured: the grey chevrons **do** fail (2.9:1
+   light, 3.9:1 dark) and are fixed; the gold and the dark secondary **pass**
+   and were left alone. What actually failed instead: MUI's default outlined
+   **primary and info chips** on the repository page (4.18 and 3.51 on the
+   app's `#f5f5f5` paper) and the **active page number on the dark theme's
+   green** (3.89). Fixed via two theme overrides and a white numeral. **This is
+   the argument for sweeping rather than checking a list.**
+2. 🔴 **A real bug was found inside the element that failed hardest.**
+   `ProfileInfo` compared `x_handle !== "Not Provided"` while the mapper writes
+   `"🚫 Not Provided"` — so the check never matched and **every account without
+   an X handle rendered a live link to `https://x.com/🚫 Not Provided`**. The
+   sentinel is now an exported `NOT_PROVIDED` constant. Outside P25's scope on
+   paper; it was one line from the colour being changed, and leaving a link to
+   a nonsense URL in place while fixing its colour would have been absurd.
+3. **P22's `<Box component="main">` also required the `Box` import in
+   `App.tsx`** and the `Routes` block to be re-indented — the diff looks larger
+   than the change.
+4. **The theme-wide focus ring is not in any plan.** P22 §5 asks only for the
+   diamond `PageButton`. Walking the tab order showed the navbar search button
+   and two pagination arrows with no visible focus either, all for the same
+   reason (MUI's tint), so the fix went into the theme where it covers every
+   control including ones not yet written. `PageButton` still opts out.
+5. **`repoPageLink()` is not in P23 either.** Three components were building
+   the same URL by hand, and one of them interpolated the login raw. One
+   exported function, encoded, in the file that already owns pagination
+   arithmetic.
+6. **`Pagination` gained `component="nav"` + `aria-label`.** Not in P22's
+   table; a bar of seven links with no grouping is the case `nav` exists for,
+   and it is what made the verification selectors honest.
+7. **No axe DevTools run.** P22 and P25 both name it. `axe-core` is an npm
+   dependency and rule 5 forbids adding one, and the CSP blocks loading it from
+   a CDN. The substitutes are the accessible-name computation, the tab-order
+   walk and the contrast sweep above — narrower than axe, but **executed
+   against the real rendered DOM** rather than inspected. **P29/P30 should add
+   `jsx-a11y` and, if a dev dependency is acceptable there, a real axe run.**
+8. **The X-handle link is `<Link>` (MUI) rather than a bare `<a>`**, so it
+   inherits theming; `encodeURIComponent` was added on the handle at the same
+   time, for the same reason as deviation 5.
+
+#### Observations that are nobody's plan
+
+- **`npm run csp-hash` is now effectively a fifth gate step.** It costs
+  milliseconds and it is the only thing standing between an `index.html` edit
+  and a silently dropped script.
+- **The 371 tooltips cost ~7 kB** (654.11 → 661.52 kB raw, 204.77 kB gzip).
+  **P27**'s code splitting is measured against P00's baseline, so subtract this
+  and S7's ~8 kB before reading its gain.
+- **`npm audit` reports 2 advisories**, both the react-router RSC one. Down
+  from 13.
+
+#### Seen but deliberately NOT fixed (still open for their owning plan)
+
+- **`?page=999` still renders a clamped bar over an empty list.** S5 named
+  **P23** as its natural moment; P23's own scope is the button→link conversion
+  and its Do-NOT list forbids restyling, so redirecting a nonsense page number
+  is still unowned. It does not crash and the arrows work.
+- `/explore` and the 404 page still show two search boxes (navbar + hero) —
+  S7's observation, and **S9**'s natural moment since it re-measures those
+  pages.
+- No skip link — P22 rules it out explicitly for a two-item navbar.
+- The offline / `navigator.onLine` empty state — suggestions/10 §10f, unowned.
+
+#### → How S9 branches from here
+
+```bash
+git checkout fix/a11y                 # confirm with: git rev-parse --short HEAD
+git checkout -b perf/assets
+```
+
+**What S9 inherits:** `client/index.html` now contains a hash-pinned inline
+script — **run `npm run build && npm run csp-hash` after touching it**, and
+remember P26 must re-check that `netlify.toml`'s `/assets/*` rule still matches
+after the image masters move. The contribution grid's cells are `role=gridcell`
+with tooltips and **no text**; do not restore the digits. And the contrast
+sweep is a repeatable check, not a one-off claim — re-run it after P26 changes
+images and P27 changes what renders when.
+
+---
+
+### 🟢 S9 — Assets & performance  ← next
+**Branch:** `perf/assets`, off `fix/a11y`@`56dae26` · **Risk:** medium · **~1.5 h**
 **Plans:** P26 → P27
 
 `client/src/assets/`, `client/public/`, `index.html`, `App.tsx`. Batched because
@@ -1197,6 +1348,17 @@ both are measured against the same P00 bundle baseline — measure once.
 
 ⚠️ P26 uses `git mv`, **never `rm`**, for the image masters. After P26, re-check
 that `netlify.toml`'s `/assets/*` cache header from P35 still matches.
+
+⚠️ **Inherited from the loose-ends pass:** `client/index.html` now carries a
+hash-pinned inline script. **`npm run build && npm run csp-hash` after any edit
+to that file** — a one-character change invalidates the hash and the browser
+drops the script silently, bringing back the theme flash with no error anywhere.
+
+⚠️ **Inherited from S8:** the contribution grid's cells render **no text** —
+the count is a tooltip and an `aria-label`. Do not restore the digits; no text
+colour works across GitHub's green ramp. The contrast sweep S8 used is
+repeatable and should be re-run after P26 and P27, since both change what is
+painted.
 
 ---
 
@@ -1250,24 +1412,26 @@ rework/2026 (27c9555 — has received nothing yet)
                                     └── ✅ S5  error-states  924fbfb
                                             └── ✅ S6  context-storage  6220418
                                                  (+ fix/netlify-dev-envfile  39b40dc)
-                                                    └── ✅ S7  feat/search  6f1bd78  ← branch from here next
-                                                            ├── S8  a11y ── S10  tooling
-                                                            └── S9  perf/assets
-    S11 docs/readme      ← only needs S1 (stack it on 6f1bd78 anyway)
+                                                    └── ✅ S7  feat/search  a536151
+                                                         (+ chore/loose-ends  09f13d6)
+                                                            └── ✅ S8  fix/a11y  56dae26  ← branch from here next
+                                                                    ├── S9  perf/assets
+                                                                    └── S10 tooling
+    S11 docs/readme      ← only needs S1 (stack it on 56dae26 anyway)
 ```
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Seven sessions are done; the next branch is cut
-from `6f1bd78`.
+so far has not happened at all. Eight sessions are done; the next branch is cut
+from `56dae26`.
 
 **Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
 — S4 landed first, and S5 is cut from it. Nothing forced that order (they share
 no files), but stacking keeps a single line of history instead of a second stack
 to reconcile later. **S6 was drawn detached** — it only needs S1 — and was
 stacked on S5 anyway, for the same reason. **S11 is the last one still drawn
-that way; stack it too.** Seven sessions, one line of history, no merge
-commits.
+that way; stack it too.** Eight sessions and one loose-ends pass, a single line
+of history, no merge commits.
 
 ~~**Critical path to the security fix: S1 → S2 → S3 → S4.**~~ ✅ **All four have
 landed. V01 is closed in code.** What remains is not a plan — it is the Netlify
@@ -1275,7 +1439,7 @@ env var and the token revocation, both of which only you can do. See
 [What is still on you after S4](#-what-is-still-on-you-after-s4).
 
 **S11 is independent** — it only needs S1, so it *may* be cut from
-`fix/quick-wins`@`ac4186a`. Cutting it from `6f1bd78` instead keeps the single
+`fix/quick-wins`@`ac4186a`. Cutting it from `56dae26` instead keeps the single
 line every session so far has stayed on. ~~Same for S6~~ — **S6 has landed**,
 stacked on S5.
 
