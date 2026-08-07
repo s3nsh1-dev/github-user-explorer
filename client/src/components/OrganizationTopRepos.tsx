@@ -98,7 +98,15 @@ const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
                 <Button
                   variant="outlined"
                   size="small"
-                  href={`https://github.com/${username}/${repo.name}`}
+                  // Both segments are encoded for the same reason P07 encodes
+                  // the API URLs: a login or repository name carrying a `/`
+                  // or a `..` would otherwise escape its segment and point the
+                  // link somewhere else on github.com. A rendered link is a
+                  // smaller problem than an authenticated request, which is
+                  // why this outlived S2 — but it is the same bug.
+                  href={`https://github.com/${encodeURIComponent(
+                    username
+                  )}/${encodeURIComponent(repo.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
