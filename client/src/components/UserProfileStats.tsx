@@ -1,9 +1,10 @@
 import Typography from "@mui/material/Typography";
 import type { GitHubUser } from "../constants/common.types";
 import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
 import { Link as RouterLink } from "react-router-dom";
 import { repoPageLink } from "../helper/paginate";
-import Button from "@mui/material/Button";
 
 type UserProfileStatsProps = {
   userProfile: GitHubUser;
@@ -15,12 +16,40 @@ const style1 = {
   flexWrap: "wrap",
   gap: 2,
 };
-const style2 = {
+
+/**
+ * The three cards were all `Button`s so they would look alike — two of them
+ * `disabled`, purely for the styling. That made follower counts announce as
+ * "unavailable", removed them from the reading order for no reason, greyed
+ * the very number the visitor came to read, and promised a click that never
+ * arrives. report/suggestions/09 §9c.
+ *
+ * Now the shape is shared and the *affordance* is not: the one card that
+ * navigates looks and behaves like a control; the two that are data are a
+ * `Paper` with full-contrast text.
+ */
+const cardShape = {
   display: "flex",
   flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
   width: "90px",
   height: "90px",
+  borderRadius: 1,
 };
+
+const StatCard = ({ value, label }: { value: number; label: string }) => (
+  <Paper elevation={1} sx={cardShape}>
+    <Typography fontWeight={600}>{value}</Typography>
+    <Typography
+      variant="body2"
+      color="text.secondary"
+      sx={{ textTransform: "uppercase", fontSize: "0.8125rem" }}
+    >
+      {label}
+    </Typography>
+  </Paper>
+);
 
 const UserProfileStats: React.FC<UserProfileStatsProps> = ({ userProfile }) => {
   return (
@@ -32,7 +61,7 @@ const UserProfileStats: React.FC<UserProfileStatsProps> = ({ userProfile }) => {
         variant="outlined"
         component={RouterLink}
         to={repoPageLink(userProfile.username, 1)}
-        sx={style2}
+        sx={cardShape}
       >
         <Typography fontWeight={600}>{userProfile.public_repos}</Typography>
         <Typography variant="body2" color="text.secondary">
@@ -40,19 +69,8 @@ const UserProfileStats: React.FC<UserProfileStatsProps> = ({ userProfile }) => {
         </Typography>
       </Button>
 
-      <Button variant="contained" sx={style2} disabled>
-        <Typography fontWeight={600}>{userProfile.followers}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Followers
-        </Typography>
-      </Button>
-
-      <Button variant="contained" sx={style2} disabled>
-        <Typography fontWeight={600}>{userProfile.following}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Following
-        </Typography>
-      </Button>
+      <StatCard value={userProfile.followers} label="Followers" />
+      <StatCard value={userProfile.following} label="Following" />
     </Box>
   );
 };
