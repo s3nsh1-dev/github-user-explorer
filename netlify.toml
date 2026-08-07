@@ -1,0 +1,45 @@
+# Netlify build, functions and routing.
+#
+# ⚠️ `base = "client"` makes every other *path* in the [build] and [functions]
+# sections relative to client/ — hence `publish = "dist"` and
+# `directory = "../netlify/functions"`. Getting this wrong is the single most
+# common way a Netlify function silently fails to deploy. Redirect and header
+# rules are URL paths, so they are unaffected.
+
+[build]
+  base    = "client"
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory    = "../netlify/functions"
+  node_bundler = "esbuild"
+
+# The proxy. Every /api/* request is served by the function of that name in
+# netlify/functions/, which is where — and only where — the GitHub token lives.
+#
+# This is not a passthrough: the splat selects a *function file*, not an
+# upstream path. Seven files exist, each hard-coding its own GitHub endpoint,
+# so /api/anything-else has nothing to resolve to. The alternative — one route
+# forwarding a caller-supplied GitHub path — would be endpoint redirection with
+# a live credential attached.
+#
+# Netlify preserves the query string across a rewrite, which is the only
+# behaviour this design depends on: every parameter travels as a query
+# parameter, never as a path segment.
+[[redirects]]
+  from   = "/api/*"
+  to     = "/.netlify/functions/:splat"
+  status = 200
+  force  = true
+
+# SPA fallback. MUST stay below /api/* — Netlify evaluates top-down, and a /*
+# rule above would answer every API call with index.html.
+#
+# Without this, a hard refresh on /user/torvalds is a 404: Netlify looks for a
+# file at that path and React Router never gets to run. Verified 404 on the
+# live site before this landed, so every shared profile link was broken.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

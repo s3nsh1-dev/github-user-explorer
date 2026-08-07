@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { githubGraphQL } from "../helper/githubFetch";
-import { CONTRIBUTIONS_QUERY } from "../constants/graphqlQueries";
+import { githubFetch } from "../helper/githubFetch";
+import { contributionsUrl } from "../helper/githubUrls";
 import { qk } from "../constants/queryKeys";
 import { ContributionCalendarResponseSchema } from "../constants/schemas";
 import type { ContributionCalendarResponse } from "../constants/common.types";
@@ -10,9 +10,8 @@ const useFetchContributionInfo = (username: string) => {
   const result = useQuery<ContributionCalendarResponse, GitHubError>({
     queryKey: qk.contributions(username),
     queryFn: () =>
-      githubGraphQL(
-        CONTRIBUTIONS_QUERY,
-        { login: username },
+      githubFetch(
+        contributionsUrl(username),
         ContributionCalendarResponseSchema
       ),
     enabled: !!username,

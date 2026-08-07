@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { githubGraphQL } from "../helper/githubFetch";
-import { ORG_TOP_REPOS_QUERY } from "../constants/graphqlQueries";
+import { githubFetch } from "../helper/githubFetch";
+import { orgReposUrl } from "../helper/githubUrls";
 import { qk } from "../constants/queryKeys";
 import { OrganizationTop10ReposSchema } from "../constants/schemas";
 import type { OrganizationTop10ReposType } from "../constants/common.types";
@@ -10,11 +10,7 @@ const useFetchOrganizationRepos = (username: string) => {
   const result = useQuery<OrganizationTop10ReposType, GitHubError>({
     queryKey: qk.orgRepos(username),
     queryFn: () =>
-      githubGraphQL(
-        ORG_TOP_REPOS_QUERY,
-        { login: username },
-        OrganizationTop10ReposSchema
-      ),
+      githubFetch(orgReposUrl(username), OrganizationTop10ReposSchema),
     enabled: !!username,
   });
 
