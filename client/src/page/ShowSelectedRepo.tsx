@@ -134,6 +134,7 @@ const ShowSelectedRepo = () => {
               component="a"
               href={`${html_url}/network/members`}
               target="_blank"
+              rel="noopener noreferrer"
               clickable
               variant="outlined"
             />
@@ -147,6 +148,7 @@ const ShowSelectedRepo = () => {
               component="a"
               href={`${html_url}/issues`}
               target="_blank"
+              rel="noopener noreferrer"
               clickable
               variant="outlined"
             />
@@ -171,6 +173,7 @@ const ShowSelectedRepo = () => {
         color="primary"
         href={html_url}
         target="_blank"
+        rel="noopener noreferrer"
         endIcon={<OpenInNewIcon />}
         sx={{ mt: 2 }}
       >
