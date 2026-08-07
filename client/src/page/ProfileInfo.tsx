@@ -1,7 +1,15 @@
 import { useParams } from "react-router-dom";
-import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
-import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
-import { Box, Divider } from "@mui/material";
+import type { GitHubUser } from "../constants/common.types";
+import {
+  mapGitHubResponse,
+  NOT_PROVIDED,
+} from "../helper/simplifyGitHubResponse";
+import { Alert, Box, Divider, Link } from "@mui/material";
+import AppErrorBoundary from "../components/AppErrorBoundary";
+import ErrorState from "../components/ErrorState";
+import ProfileSkeleton from "../components/skeletons/ProfileSkeleton";
+import NotFound from "./NotFound";
+import { isValidLogin } from "../helper/validateLogin";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import useFetchUserData from "../hooks/useFetchUserData";
@@ -9,7 +17,6 @@ import Paper from "@mui/material/Paper";
 import useMode from "../hooks/useMode";
 import Grid from "@mui/material/Grid";
 import ContributionChart from "../components/ContributionChart";
-import StaredUserContextProvider from "../context/StaredUserContextProvider";
 
 const style1 = { my: 1, p: 1, display: "flex" };
 const style2 = {
@@ -36,20 +43,48 @@ const ProfileInfo = () => {
     py: 0.5,
     borderRadius: 1,
     wordWrap: "break-word",
-    // wordBreak: "break-all",
     fontSize: { xs: ".9rem", sm: "1rem" },
     fontFamily: "monospace",
   };
 
   const { username } = useParams();
-  const { userData, userLoading, userError } = useFetchUserData({
-    username: username || "demoUserName",
+  // `useParams` gives `string | undefined`, and the old placeholder fallback
+  // did not paper over that — it fired a real request for a literal
+  // placeholder username. `isValidLogin` is a type predicate, so `username`
+  // narrows to `string` below and no fallback is needed. Passing "" while it
+  // is invalid keeps the query disabled, so nothing is requested at all:
+  // this is the client half of the V02/V03 defence, the proxy being the other.
+  const usernameIsValid = isValidLogin(username);
+  const {
+    data: userData,
+    isLoading: userLoading,
+    error: userError,
+    refetch: refetchUser,
+  } = useFetchUserData({
+    username: usernameIsValid ? username : "",
   });
 
-  if (!userData) return null;
-  const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
-  if (userLoading) return <div>Loading...</div>;
-  if (userError) return <div>Error: {userError.message}</div>;
+  if (!usernameIsValid)
+    return (
+      <NotFound
+        title="Invalid username"
+        message="That doesn’t look like a GitHub username."
+      />
+    );
+
+  // Guard in the order the states actually occur. `if (!userData) return null`
+  // used to run first, and `userData` is undefined both while loading and
+  // after a failure — so the two branches below were unreachable and the
+  // visitor got a blank page under the navbar, during every cold load and
+  // permanently after any error. report/suggestions/03 §3a.
+  //
+  // `mapGitHubResponse` also has to run *after* the guards: on line one it
+  // threw on a malformed payload instead of the failure being reported.
+  if (userLoading) return <ProfileSkeleton />;
+  if (userError) return <ErrorState error={userError} onRetry={refetchUser} />;
+  if (!userData) return <NotFound />;
+
+  const userProfile: GitHubUser = mapGitHubResponse(userData);
 
   const arrays = [
     { label: "📝 Bio", value: userProfile.bio },
@@ -57,7 +92,7 @@ const ProfileInfo = () => {
       label: "🏢 Work",
       value: `${userProfile.company}`,
     },
-    { label: "💼 Hirable", value: userProfile.hirable },
+    { label: "💼 Hireable", value: userProfile.hireable },
     { label: "📧 Em@il", value: userProfile.email },
     {
       label: "🔗 Blog",
@@ -84,17 +119,23 @@ const ProfileInfo = () => {
     {
       label: "🌐 Social Media",
       value:
-        userProfile.x_handle !== "Not Provided" ? (
-          <a
-            href={`https://x.com/${userProfile.x_handle}`}
+        userProfile.x_handle !== NOT_PROVIDED ? (
+          <Link
+            href={`https://x.com/${encodeURIComponent(userProfile.x_handle)}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "#1DA1F2", fontWeight: "bold" }}
+            // Twitter blue is 2.14:1 on this background. The app's own accent
+            // pair clears 4.5:1 in both themes, and it is already what every
+            // other emphasised thing here uses.
+            sx={{
+              color: mode === "light" ? "#16610E" : "#FFD63A",
+              fontWeight: "bold",
+            }}
           >
             {userProfile.x_handle}
-          </a>
+          </Link>
         ) : (
-          "Not Provided"
+          NOT_PROVIDED
         ),
     },
   ];
@@ -117,14 +158,24 @@ const ProfileInfo = () => {
   return (
     <Box sx={style4}>
       <Box sx={style5}>
-        <StaredUserContextProvider>
-          <UserProfileHeader userProfile={userProfile} />
-        </StaredUserContextProvider>
+        <UserProfileHeader userProfile={userProfile} />
         <UserProfileStats userProfile={userProfile} />
       </Box>
       <Divider sx={{ my: 2 }} />
       <Box>{renderOtherUserDetails}</Box>
-      <ContributionChart username={username || "demoUserName"} />
+      {/* Scoped boundary: the contribution graph is the most fragile thing on
+          this page (nullable GraphQL, padded weeks, colours from the wire). A
+          crash in there degrades to a card instead of taking the profile with
+          it. */}
+      <AppErrorBoundary
+        fallback={() => (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Couldn’t display the contribution graph.
+          </Alert>
+        )}
+      >
+        <ContributionChart username={username} />
+      </AppErrorBoundary>
     </Box>
   );
 };

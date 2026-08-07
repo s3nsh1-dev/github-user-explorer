@@ -1,14 +1,25 @@
 import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
+
+/**
+ * The sentinel this mapper substitutes for a field GitHub left null.
+ *
+ * Exported because `ProfileInfo` has to recognise it, and it used to compare
+ * against the string "Not Provided" — without the emoji, so the comparison
+ * never matched and an account with no X handle got a live link to
+ * `https://x.com/🚫 Not Provided`.
+ */
+export const NOT_PROVIDED = "🚫 Not Provided";
+
 export function mapGitHubResponse(data: GitHubApiUser): GitHubUser {
   return {
     id: data.node_id,
     login: data.login,
     username: data.login,
-    name: data.name || "🚫 Not Provided",
+    name: data.name || NOT_PROVIDED,
     avatar_url: data.avatar_url,
-    bio: data.bio || "🚫 Not Provided",
-    company: data.company || "🚫 Not Provided",
-    location: data.location || "🚫 Not Provided",
+    bio: data.bio || NOT_PROVIDED,
+    company: data.company || NOT_PROVIDED,
+    location: data.location || NOT_PROVIDED,
     joined: data.created_at,
     lastActive: data.updated_at,
     followers: data.followers,
@@ -18,12 +29,12 @@ export function mapGitHubResponse(data: GitHubApiUser): GitHubUser {
     html_url: data.html_url,
     public_repos: data.public_repos,
     repos_url: data.repos_url,
-    email: data.email || "🚫 Not Provided",
-    hirable: data.hireable ? "📨 Actively Applying" : "🧑‍💻 Busy Learning",
-    accountType: data.type || "🚫 Not Provided",
+    email: data.email || NOT_PROVIDED,
+    hireable: data.hireable ? "📨 Actively Applying" : "🧑‍💻 Busy Learning",
+    accountType: data.type || NOT_PROVIDED,
     blog: data.blog || "⏳ Coming Soon ",
     gists: data.public_gists,
-    x_handle: data.twitter_username || "🚫 Not Provided",
+    x_handle: data.twitter_username || NOT_PROVIDED,
     starred_url: data.starred_url,
   };
 }

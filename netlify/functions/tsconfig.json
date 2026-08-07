@@ -1,0 +1,32 @@
+{
+  // Standalone project: these files are bundled by Netlify's esbuild, never by
+  // Vite, so they are not part of client/tsconfig.json's build graph. Run it
+  // with `npm run typecheck:functions` from client/.
+  "compilerOptions": {
+    "target": "ES2022",
+    // DOM supplies fetch/Request/Response/Headers/URL/URLSearchParams — all
+    // web standards Node has had since 18. `types: []` keeps @types/* out.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": [],
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    // Same constraint as the client, for a different reason: Node's built-in
+    // type stripping runs these files as-is, and it cannot erase enums or
+    // constructor parameter properties.
+    "erasableSyntaxOnly": true,
+
+    "skipLibCheck": true,
+    // Specifiers name the file that actually exists (`./env.mts`), so Node's
+    // type stripping, esbuild and tsc all resolve identically. A `.mjs`
+    // specifier only works in bundlers that remap it — Node does not.
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": ["**/*.mts", "**/*.d.ts"]
+}
