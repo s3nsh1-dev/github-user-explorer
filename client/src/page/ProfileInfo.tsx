@@ -1,7 +1,10 @@
 import { useParams } from "react-router-dom";
 import type { GitHubUser } from "../constants/common.types";
-import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
-import { Alert, Box, Divider } from "@mui/material";
+import {
+  mapGitHubResponse,
+  NOT_PROVIDED,
+} from "../helper/simplifyGitHubResponse";
+import { Alert, Box, Divider, Link } from "@mui/material";
 import AppErrorBoundary from "../components/AppErrorBoundary";
 import ErrorState from "../components/ErrorState";
 import ProfileSkeleton from "../components/skeletons/ProfileSkeleton";
@@ -116,17 +119,23 @@ const ProfileInfo = () => {
     {
       label: "🌐 Social Media",
       value:
-        userProfile.x_handle !== "Not Provided" ? (
-          <a
-            href={`https://x.com/${userProfile.x_handle}`}
+        userProfile.x_handle !== NOT_PROVIDED ? (
+          <Link
+            href={`https://x.com/${encodeURIComponent(userProfile.x_handle)}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "#1DA1F2", fontWeight: "bold" }}
+            // Twitter blue is 2.14:1 on this background. The app's own accent
+            // pair clears 4.5:1 in both themes, and it is already what every
+            // other emphasised thing here uses.
+            sx={{
+              color: mode === "light" ? "#16610E" : "#FFD63A",
+              fontWeight: "bold",
+            }}
           >
             {userProfile.x_handle}
-          </a>
+          </Link>
         ) : (
-          "Not Provided"
+          NOT_PROVIDED
         ),
     },
   ];

@@ -59,6 +59,30 @@ export const getTheme = (mode: ModeType) =>
           },
         },
       },
+      /**
+       * MUI's default primary/info blues are tuned for white, not for this
+       * app's #f5f5f5 paper: an outlined `primary` chip measured 4.18:1 and an
+       * `info` one 3.51:1 on the repository page, both under 4.5:1. Only the
+       * light theme needs it — the dark palette's lighter blues pass
+       * comfortably. report/suggestions/09 §9f.
+       */
+      MuiChip: {
+        styleOverrides: {
+          outlined:
+            mode === "light"
+              ? {
+                  "&.MuiChip-colorPrimary": {
+                    color: "#0d47a1",
+                    borderColor: "#0d47a1",
+                  },
+                  "&.MuiChip-colorInfo": {
+                    color: "#01579b",
+                    borderColor: "#01579b",
+                  },
+                }
+              : {},
+        },
+      },
       MuiAppBar: {
         styleOverrides: {
           root: {
