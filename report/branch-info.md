@@ -8,21 +8,19 @@ several times, and verifies once. Splitting plans that share files across
 sessions means re-reading the same code, re-deriving the same context, and
 resolving conflicts with yourself.
 
-37 plans → **11 sessions**. Ten have landed, plus a loose-ends pass and a
-simplification pass. **S11 is the last.**
+37 plans → **11 sessions**. ✅ **All eleven have landed**, plus a loose-ends
+pass and a simplification pass. See [All eleven sessions have
+landed](#-all-eleven-sessions-have-landed).
 
 ---
 
 ## How to start a session
 
-```
-Implement session S11 (plans P36 → P33) from
-report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: docs/readme, off chore/tooling.
-```
+**There is no next session — every plan has landed.** This section is kept
+because the procedure is the record of how the work was done.
 
-*(S1 through S10 have landed — see `00.INDEX.md` for their SHAs and for what
-they changed that later sessions must account for.)*
+*(See `00.INDEX.md` for every plan's commit SHA, and each session below for
+what it changed that the next one had to account for.)*
 
 Then, in order:
 
@@ -111,7 +109,11 @@ rework/2026 (27c9555)
                                                  └─ 4a38f54  P29 ┐
                                                     1a8969c  P30 ├─ S10  chore/tooling  ← HEAD
                                                     180496c  P31 │
-                                                    0bf39e5  P32 ┘
+                                                    0bf39e5  P32 │
+                                                    0dbc201  docs ┘
+                                                     └─ 5e0ea76  P36 ┐
+                                                        cf88274  shots ├─ S11  docs/readme  ← HEAD
+                                                        92524bd  P33  ┘
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -1613,15 +1615,92 @@ pure-logic coverage, not component or end-to-end tests.
 
 ---
 
-### 🟢 S11 — Docs & licence  ← next, and last
-**Branch:** `docs/readme`, off `chore/tooling`@`0bf39e5` · **Risk:** none · **~1.5 h**
-**Plans:** P36 → P33
+### ✅ S11 — Docs & licence — **landed 2026-08-08** · **the last session**
+**Branch:** `docs/readme`, tip `92524bd` · **Risk:** none
+**Cut from `chore/tooling`@`0dbc201`**, so it contains everything.
+**Plans:** P36 `5e0ea76` → P33 `92524bd` · plus `cf88274` (screenshots + og:image)
 
-`docs/`, `LICENSE`, `client/package.json`, `server/package.json`. P36 first — it
-creates `docs/` and the compressed screenshots that P33 references.
+The repo root a visitor sees first, and the README that is the product for a
+portfolio project. Gate green before every commit.
 
-P33 writes `docs/README.draft.md` and **does not touch `README.md`**. `report/`
-is never linked (B7).
+#### What shipped
+
+| Commit | Result |
+|---|---|
+| **P36** `5e0ea76` | `guide.txt` restored from `27c9555^` as `docs/PROJECT_LOG.md` — **byte-identical, verified with `diff`**. `extra/` → `docs/design/` as renames, with WebP siblings at 12–46 kB (from ~1.4 MB each). `LICENSE` (MIT) at the root, and `client/package.json` declares the same. Six relative links in `report/` repointed. |
+| **extra** `cf88274` | **Real screenshots of the running app** — five at 2×, 1.2 MB of PNG → 232 kB of WebP — and the **1200×630 `og:image`** P35 deferred, wired up with absolute URLs and `twitter:card: summary_large_image`. |
+| **P33** `92524bd` | `docs/README.draft.md`. **`README.md` untouched** — `git diff README.md` is empty. |
+
+#### How it was verified
+
+| Check | Result |
+|---|---|
+| `docs/PROJECT_LOG.md` vs `git show 27c9555^:guide.txt` | **identical** |
+| `git status` for the move | **R**, zero **D** |
+| Every version, script and the repo slug in the draft | read from `package.json` and `git remote`, not recalled |
+| Feature list | written from the code; each item traced to a component or hook |
+| `grep "report/" docs/README.draft.md` | **0** — B7 holds |
+| `grep TODO docs/README.draft.md` | **0** — see deviation 2 |
+| `git diff README.md` | **empty** |
+| Gate | lint, tsc, **84 tests**, build — green |
+
+#### ⚠️ Deviations from the plans
+
+1. **P36 contradicts itself and I followed the acceptance criterion.** Its steps
+   allow "a two-line header" on `PROJECT_LOG.md`; its acceptance criteria
+   require the contents to be byte-identical. Kept verbatim — that is the
+   checkable one, and an untouched historical file is the more credible
+   artefact. Provenance is stated in the README draft instead.
+2. **The draft has zero `TODO(Bn)` markers, which P33 expects to see.** Every
+   blank it anticipated is answered: the live URL (B3), the licence (B6), the
+   CI badge (P31) and screenshots all exist now. Nothing had to be left open.
+3. 🔴 **P33 assumes screenshots cannot be generated here. They can.** The same
+   headless-Chrome harness that verified S7–S10 captured five shots of the
+   production build against the live API. Real captures beat the design
+   mockups, and they also produced the `og:image` — **so P35's last deferred
+   item is closed too**, which was P26/P36's to do and had no owner in either.
+4. 🔴 **P36 quotes a line that is not in `guide.txt`.** It describes a "can not
+   concentrate. gotta sleep" entry; the file has no such text — its last line is
+   `PROJECT COMPLETED`. The draft quotes what is actually there. **Do not
+   reintroduce the other quote.**
+5. **Step 1b was a no-op.** The root `package.json` / `package-lock.json`
+   deletions were committed before S1, and `server/package.json` went in the
+   loose-ends pass — so there is exactly one licence declaration and it agrees
+   with `LICENSE`.
+6. **Screenshot PNGs were not kept**, unlike P26's image masters. These are
+   regenerable output from a script, not source artwork; keeping 1.2 MB of them
+   in a repo that just spent a session on image weight would be perverse.
+7. **The draft's paths are written for the repo root**, not for `docs/`, so the
+   images do not preview until it is moved. The header comment says so.
+
+#### Observations that are nobody's plan
+
+- **`.env.example` links to `report/vulnerabilities/01`.** Accurate today, but
+  it is the one place outside `report/` that points into it. If `report/` is
+  ever removed from the repo, that reference dangles. B7 only constrains the
+  README, so this is left as-is.
+- **Bundle unchanged.** `og-image.png` (79 kB) is in `public/`, served only to
+  link scrapers, never to a visitor.
+
+---
+
+## 🏁 All eleven sessions have landed
+
+37 plans, 11 sessions, plus a loose-ends pass and a simplification pass. **What
+started as "the deployed bundle contains a live GitHub token" is closed in code
+and in reality**, and so is every finding that came with it.
+
+**Two things are left, and neither is code:**
+
+1. 📄 **Move the README into place.** Read
+   [`../docs/README.draft.md`](../docs/README.draft.md), change what you
+   disagree with, then `git mv docs/README.draft.md README.md`. P33
+   deliberately did not overwrite the live file — that decision was always
+   going to be yours.
+2. 🔀 **Publish.** `rework/2026` is still at `27c9555` and has received none of
+   it. `git merge docs/readme` into it is a **single fast-forward** landing all
+   eleven sessions in order. Or open the stack as PRs, oldest first — never the
+   reverse, or each diff contains the ones below it.
 
 ---
 
@@ -1641,7 +1720,8 @@ rework/2026 (27c9555 — has received nothing yet)
                                                             └── ✅ S8  fix/a11y  38a0f55
                                                                  (+ chore/simplify  c598359)
                                                                     └── ✅ S9  perf/assets  a45e1ae
-                                                                            └── ✅ S10  chore/tooling  0bf39e5  ← branch from here next
+                                                                            └── ✅ S10  chore/tooling  0dbc201
+                                                                                    └── ✅ S11  docs/readme  92524bd  ← the tip
                                                                     ├── S9  perf/assets
                                                                     └── S10 tooling
     S11 docs/readme      ← only needs S1 (stack it on 0bf39e5 anyway)
@@ -1649,8 +1729,9 @@ rework/2026 (27c9555 — has received nothing yet)
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Ten sessions are done; the next branch is cut
-from `0bf39e5`, and it is the last one.
+so far has not happened at all. **All eleven sessions are done**, and merging
+`docs/readme` into `rework/2026` lands every one of them in a single
+fast-forward.
 
 **Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
 — S4 landed first, and S5 is cut from it. Nothing forced that order (they share
