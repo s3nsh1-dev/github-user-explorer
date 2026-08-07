@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { githubGraphQL } from "../helper/githubFetch";
 import { ORG_TOP_REPOS_QUERY } from "../constants/graphqlQueries";
+import { qk } from "../constants/queryKeys";
 import type { OrganizationTop10ReposType } from "../constants/common.types";
 
 const useFetchOrganizationRepos = (username: string) => {
   const result = useQuery({
-    queryKey: ["contributionInfo", username],
+    queryKey: qk.orgRepos(username),
     queryFn: () =>
       githubGraphQL<OrganizationTop10ReposType>(ORG_TOP_REPOS_QUERY, {
         login: username,

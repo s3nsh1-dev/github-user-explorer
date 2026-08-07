@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { githubFetch } from "../helper/githubFetch";
 import { usersUrl } from "../helper/githubUrls";
+import { qk } from "../constants/queryKeys";
 import type { GitHubApiUser } from "../constants/common.types";
 
 const useFetchUserData = ({ username }: { username: string }) => {
@@ -9,7 +10,7 @@ const useFetchUserData = ({ username }: { username: string }) => {
     isLoading: userLoading,
     error: userError,
   } = useQuery({
-    queryKey: ["userProfile", username],
+    queryKey: qk.userProfile(username),
     queryFn: () => {
       if (!username) throw new Error("Username is required");
       return githubFetch<GitHubApiUser>(usersUrl(username));

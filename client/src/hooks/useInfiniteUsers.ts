@@ -3,12 +3,13 @@ import type { QueryFunctionContext } from "@tanstack/react-query";
 import type { GitHubUserSearchResult } from "../constants/common.types";
 import { githubFetch } from "../helper/githubFetch";
 import { searchUsersUrl } from "../helper/githubUrls";
+import { qk } from "../constants/queryKeys";
 
 const USERS_PER_PAGE = 20;
 
 const useInfiniteUsers = (query: string) => {
   return useInfiniteQuery<GitHubUserSearchResult>({
-    queryKey: ["users", query],
+    queryKey: qk.searchUsers(query),
     queryFn: (context: QueryFunctionContext) => {
       /* When getNextPageParam returns undefined, React Query stops
       fetching more pages. so when the first page is being called
