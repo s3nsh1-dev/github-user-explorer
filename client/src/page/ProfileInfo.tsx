@@ -1,7 +1,8 @@
 import { useParams } from "react-router-dom";
 import type { GitHubUser } from "../constants/common.types";
 import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
-import { Box, Divider } from "@mui/material";
+import { Alert, Box, Divider } from "@mui/material";
+import AppErrorBoundary from "../components/AppErrorBoundary";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import useFetchUserData from "../hooks/useFetchUserData";
@@ -127,7 +128,19 @@ const ProfileInfo = () => {
       </Box>
       <Divider sx={{ my: 2 }} />
       <Box>{renderOtherUserDetails}</Box>
-      <ContributionChart username={username || "demoUserName"} />
+      {/* Scoped boundary: the contribution graph is the most fragile thing on
+          this page (nullable GraphQL, padded weeks, colours from the wire). A
+          crash in there degrades to a card instead of taking the profile with
+          it. */}
+      <AppErrorBoundary
+        fallback={() => (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Couldn’t display the contribution graph.
+          </Alert>
+        )}
+      >
+        <ContributionChart username={username || "demoUserName"} />
+      </AppErrorBoundary>
     </Box>
   );
 };
