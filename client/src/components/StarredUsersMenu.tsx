@@ -38,6 +38,9 @@ const StarredUsersMenu = () => {
       >
         <Button
           onClick={handleClick}
+          aria-label="Starred profiles"
+          aria-haspopup="menu"
+          aria-expanded={open}
           sx={{
             display: "flex",
             justifyContent: "end",

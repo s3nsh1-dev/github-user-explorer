@@ -35,12 +35,13 @@ const style4 = {
 
 const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
   const { checkStarred, toggleStarred } = useStarredUsers();
+  const isStarred = checkStarred(userProfile.username);
 
   return (
     <Box sx={style1}>
       <Avatar
         src={userProfile.avatar_url}
-        alt={userProfile.username}
+        alt={`${userProfile.username}'s avatar`}
         sx={style2}
       />
       <Box>
@@ -48,12 +49,17 @@ const UserProfileHeader: React.FC<UserProfileProps> = ({ userProfile }) => {
           <Typography sx={style4}>{userProfile.username}</Typography>
           <IconButton
             onClick={() => toggleStarred(userProfile.username)}
+            // The icon swap is the only signal a sighted user needs and the
+            // only one a screen reader cannot get. aria-pressed carries the
+            // state; the label carries what pressing it will do.
+            aria-pressed={isStarred}
+            aria-label={
+              isStarred
+                ? `Unstar ${userProfile.username}`
+                : `Star ${userProfile.username}`
+            }
           >
-            {checkStarred(userProfile.username) ? (
-              <StarIcon color="warning" />
-            ) : (
-              <StarBorderIcon />
-            )}
+            {isStarred ? <StarIcon color="warning" /> : <StarBorderIcon />}
           </IconButton>
         </Box>
         <Typography variant="subtitle1">{userProfile.name}</Typography>

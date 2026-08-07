@@ -95,7 +95,11 @@ const ShowSelectedRepo = () => {
       color={theme.palette.mode === "dark" ? "#fff" : "#000"}
     >
       <Box display="flex" alignItems="center" mb={2}>
-        <IconButton onClick={() => navigate(-1)} sx={{ mr: 1 }}>
+        <IconButton
+          onClick={() => navigate(-1)}
+          sx={{ mr: 1 }}
+          aria-label="Go back"
+        >
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h5" fontWeight={700}>

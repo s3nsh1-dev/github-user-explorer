@@ -28,6 +28,8 @@ const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <Box
+      component="nav"
+      aria-label="Repository pages"
       gap={1}
       mt={4}
       mb={2}
@@ -37,11 +39,13 @@ const Pagination: React.FC<PaginationProps> = ({
         link={pageLink(username, 1)}
         icon={<FirstPageIcon />}
         disabled={isFirst}
+        label="Go to first page"
       />
       <PageQuickButtons
         link={pageLink(username, Math.max(current - 1, 1))}
         icon={<KeyboardArrowLeftIcon />}
         disabled={isFirst}
+        label="Previous page"
       />
       {pageWindow(current, totalPages).map((pageNum) => (
         <PageButton
@@ -55,11 +59,13 @@ const Pagination: React.FC<PaginationProps> = ({
         link={pageLink(username, Math.min(current + 1, totalPages))}
         icon={<KeyboardArrowRightIcon />}
         disabled={isLast}
+        label="Next page"
       />
       <PageQuickButtons
         link={pageLink(username, totalPages)}
         icon={<LastPageIcon />}
         disabled={isLast}
+        label="Go to last page"
       />
     </Box>
   );

@@ -37,6 +37,13 @@ const PageButton = ({
       backgroundColor: mode === "dark" ? "green" : "#FFD700",
       color: mode === "dark" ? "#e0e0e0" : "#23272b",
     },
+    // The diamond clipPath clips the button's own focus ring away, so the
+    // control was keyboard-reachable with no visible focus at all. An inset
+    // shadow is drawn *inside* the clip and survives it; an outline does not.
+    "&:focus-visible": {
+      outline: "none",
+      boxShadow: `inset 0 0 0 3px ${mode === "dark" ? "#FFD63A" : "#16610E"}`,
+    },
   };
 
   const navigate = useNavigate();
@@ -45,7 +52,14 @@ const PageButton = ({
   };
 
   return (
-    <IconButton onClick={handlePageChange} sx={style}>
+    <IconButton
+      onClick={handlePageChange}
+      sx={style}
+      // The current page was signalled by colour alone. aria-current is what
+      // says "you are here" to everything that cannot see the colour.
+      aria-current={active ? "page" : undefined}
+      aria-label={`Go to page ${pageNum}`}
+    >
       {pageNum}
     </IconButton>
   );

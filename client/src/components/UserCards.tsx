@@ -28,7 +28,7 @@ const UserCards: FC<UserCardsProps> = ({ userName, imageURL, githubURL }) => {
         <Box
           component={"img"}
           src={imageURL}
-          alt="User-Profile-Picture"
+          alt={`${userName}'s avatar`}
           sx={{
             height: "100px",
             width: "100px",

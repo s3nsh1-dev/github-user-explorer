@@ -16,6 +16,30 @@ export const getTheme = (mode: ModeType) =>
       },
     },
     components: {
+      /**
+       * A visible focus ring on every MUI control, in one place.
+       *
+       * MUI's default `.Mui-focusVisible` on an IconButton is a 4%-opacity
+       * background tint — technically a state change, but not something you
+       * can find on a page. Keyboard users had four pagination arrows, a back
+       * button, a star toggle and a dropdown that all looked identical
+       * focused and unfocused. The accent colours are the ones the app
+       * already uses for its active/hover state.
+       *
+       * `PageButton` opts out with its own inset shadow: its diamond
+       * `clipPath` cuts an outline away, and only a shadow drawn inside the
+       * shape survives.
+       */
+      MuiButtonBase: {
+        styleOverrides: {
+          root: {
+            "&.Mui-focusVisible": {
+              outline: `3px solid ${mode === "dark" ? "#FFD63A" : "#16610E"}`,
+              outlineOffset: "2px",
+            },
+          },
+        },
+      },
       MuiButton: {
         styleOverrides: {
           containedPrimary: {
