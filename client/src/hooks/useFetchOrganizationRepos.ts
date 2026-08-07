@@ -16,7 +16,6 @@ const useFetchOrganizationRepos = (username: string) => {
         OrganizationTop10ReposSchema
       ),
     enabled: !!username,
-    staleTime: 1000 * 60 * 5,
   });
 
   return result;

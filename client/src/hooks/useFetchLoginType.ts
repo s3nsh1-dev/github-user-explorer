@@ -16,7 +16,6 @@ const useFetchLoginType = (username: string) => {
         LoginTypeResponseSchema
       ),
     enabled: !!username,
-    staleTime: 1000 * 60 * 5,
   });
   return fetchedData;
 };

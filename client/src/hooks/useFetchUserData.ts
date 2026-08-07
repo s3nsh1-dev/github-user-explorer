@@ -17,8 +17,6 @@ const useFetchUserData = ({ username }: { username: string }) => {
       return githubFetch(usersUrl(username), GitHubApiUserSchema);
     },
     enabled: !!username,
-    // how long the data will be considered fresh = stale time(in this case 5min)
-    staleTime: 1000 * 60 * 5,
   });
 };
 

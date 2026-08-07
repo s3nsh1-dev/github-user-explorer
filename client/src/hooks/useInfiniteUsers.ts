@@ -37,7 +37,6 @@ const useInfiniteUsers = (query: string) => {
     },
     initialPageParam: 1,
     enabled: !!query,
-    staleTime: 1000 * 60 * 5,
   });
 };
 

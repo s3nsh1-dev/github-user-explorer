@@ -23,7 +23,6 @@ const useShowIndividualRepo = ({
       return githubFetch(repoUrl(username, repoName), GitHubRepoSchema);
     },
     enabled: !!repoName && !!username,
-    staleTime: 1000 * 60 * 5,
   });
 };
 

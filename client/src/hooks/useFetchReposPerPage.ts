@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { githubFetch } from "../helper/githubFetch";
 import { userReposUrl } from "../helper/githubUrls";
 import { qk } from "../constants/queryKeys";
@@ -25,7 +25,15 @@ const useFetchReposPerPage = ({
       );
     },
     enabled: !!username,
-    // staleTime: 1000 * 60 * 5,
+    // staleTime came from the QueryClient default now; this hook used to have
+    // its own commented out, so the repositories list — the screen visitors
+    // click through fastest — refetched on every page change while its six
+    // siblings cached for five minutes.
+    //
+    // Each page is a separate cache entry, so paging is a cold load and would
+    // flash a spinner. keepPreviousData holds the last page on screen until the
+    // next one arrives.
+    placeholderData: keepPreviousData,
   });
 };
 
