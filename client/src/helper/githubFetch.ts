@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { GitHubError, NotFoundError, RateLimitError } from "./githubErrors";
 
 /**
@@ -45,15 +46,42 @@ function assertOk(res: Response): void {
   throw new GitHubError(`GitHub API error ${res.status}`, res.status);
 }
 
-export async function githubFetch<T>(url: string | URL): Promise<T> {
+/**
+ * The one place a GitHub payload becomes typed data.
+ *
+ * `schema` is optional so callers opt in, but every hook passes one: without it
+ * this function ends in `json as T`, an assertion about a shape nobody checked.
+ *
+ * `.safeParse`, never `.parse` — a schema gap must degrade into a handled
+ * error the UI can render, not an uncaught throw and a white screen. The issue
+ * detail goes to the console in dev only; the thrown message stays generic so
+ * nothing about GitHub's response shape reaches the page.
+ */
+function validate<T>(json: unknown, schema: z.ZodType<T>): T {
+  const parsed = schema.safeParse(json);
+  if (!parsed.success) {
+    if (import.meta.env.DEV) {
+      console.error("Schema mismatch:", parsed.error.issues);
+    }
+    throw new GitHubError("Unexpected response shape from GitHub");
+  }
+  return parsed.data;
+}
+
+export async function githubFetch<T>(
+  url: string | URL,
+  schema?: z.ZodType<T>
+): Promise<T> {
   const res = await fetch(url, { headers: authHeaders() });
   assertOk(res);
-  return res.json() as Promise<T>;
+  const json: unknown = await res.json();
+  return schema ? validate(json, schema) : (json as T);
 }
 
 export async function githubGraphQL<T>(
   query: string,
-  variables: Record<string, unknown>
+  variables: Record<string, unknown>,
+  schema?: z.ZodType<T>
 ): Promise<T> {
   const res = await fetch(GRAPHQL_ENDPOINT, {
     method: "POST",
@@ -63,7 +91,7 @@ export async function githubGraphQL<T>(
   assertOk(res);
 
   const json = (await res.json()) as {
-    data: T | null;
+    data: unknown;
     errors?: Array<{ message: string }>;
   };
 
@@ -78,5 +106,5 @@ export async function githubGraphQL<T>(
   }
 
   // Returns `data`, not the envelope — callers never see `{ data, errors }`.
-  return json.data;
+  return schema ? validate(json.data, schema) : (json.data as T);
 }

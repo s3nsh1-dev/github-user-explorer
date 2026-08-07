@@ -8,12 +8,14 @@ import {
   Alert,
   Button,
 } from "@mui/material";
-import type { OrganizationRepoResponseType } from "../constants/common.types";
 import useFetchOrganizationRepos from "../hooks/useFetchOrganizationRepos";
 
 const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
-  const { data, isLoading, error }: OrganizationRepoResponseType =
-    useFetchOrganizationRepos(username);
+  // Inferred from the hook. The old annotation declared the error as `Error`
+  // unioned with `unknown` — which collapses to plain `unknown`, and that is
+  // why the render below reaches for String(error) rather than error.message.
+  // The error is a GitHubError now; rewriting that render is P13's job.
+  const { data, isLoading, error } = useFetchOrganizationRepos(username);
 
   if (isLoading)
     return (

@@ -2,30 +2,24 @@ import LoadingSkeleton from "./LoadingSkeleton";
 import { Box, Typography } from "@mui/material";
 import useFetchContributionInfo from "../hooks/useFetchContributionInfo";
 import type { FC } from "react";
-import type { ContributionCalenderResponseType } from "../constants/common.types";
-
-type Week = {
-  contributionDays: ContributionDay[];
-};
-
-type ContributionDay = {
-  date: string; // or ""
-  contributionCount: number | null;
-  color: string; // hex color or "grey"
-};
+// Week / ContributionDay used to be declared here *and* structurally inside the
+// response type. One definition now, derived from the schema that validates it.
+import type { Week } from "../constants/common.types";
 
 type PropType = {
   username: string;
 };
 
 const UserContributions: FC<PropType> = ({ username }) => {
-  const { data, isLoading, error }: ContributionCalenderResponseType =
-    useFetchContributionInfo(username);
+  const { data, isLoading, error } = useFetchContributionInfo(username);
 
   if (isLoading) return <LoadingSkeleton />;
   if (error) return <div>no data</div>;
-  if (!data) return null;
-  const totalContributions: number | null =
+  // `user` is null when GitHub cannot resolve the login. githubGraphQL turns
+  // that into a NotFoundError in practice, but the field is nullable on the
+  // wire, so the compiler is right to insist it be handled.
+  if (!data?.user) return null;
+  const totalContributions: number =
     data.user.contributionsCollection.contributionCalendar.totalContributions;
   const weeks: Week[] =
     data.user.contributionsCollection.contributionCalendar.weeks;

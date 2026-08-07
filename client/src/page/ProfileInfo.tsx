@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
+import type { GitHubUser } from "../constants/common.types";
 import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
 import { Box, Divider } from "@mui/material";
 import UserProfileHeader from "../components/UserProfileHeader";
@@ -41,12 +41,16 @@ const ProfileInfo = () => {
   };
 
   const { username } = useParams();
-  const { userData, userLoading, userError } = useFetchUserData({
+  const {
+    data: userData,
+    isLoading: userLoading,
+    error: userError,
+  } = useFetchUserData({
     username: username || "demoUserName",
   });
 
   if (!userData) return null;
-  const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
+  const userProfile: GitHubUser = mapGitHubResponse(userData);
   if (userLoading) return <div>Loading...</div>;
   if (userError) return <div>Error: {userError.message}</div>;
 

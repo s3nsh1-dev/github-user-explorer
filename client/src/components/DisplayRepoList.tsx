@@ -5,7 +5,6 @@ import { Box, Typography } from "@mui/material";
 import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
 import { Link } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
-import type { Repo } from "../constants/common.types";
 import { parsePage } from "../helper/parsePage";
 
 type IncomingPropTypes = {
@@ -17,7 +16,11 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
   const [searchParams] = useSearchParams();
 
   const pNum = parsePage(searchParams.get("page"));
-  const { reposData, reposLoading, reposError } = useFetchReposPerPage({
+  const {
+    data: reposData,
+    isLoading: reposLoading,
+    error: reposError,
+  } = useFetchReposPerPage({
     username: username || "demoUserName",
     page: pNum,
   });
@@ -51,8 +54,10 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
           <b>{totalRepos}</b> <i>repositories</i>
         </Typography>
       </Box>
-      {/* Typed as of P05; the undefined case belongs to P09. */}
-      <UserProfileRepos repos={reposData as Repo[]} />
+      {/* A disabled query is neither loading nor errored, so `reposData` can
+          still be undefined here — which used to reach `repos.length` and
+          throw. `UserProfileRepos` already renders an empty list honestly. */}
+      <UserProfileRepos repos={reposData ?? []} />
     </Box>
   );
 };
