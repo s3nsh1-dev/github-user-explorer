@@ -8,19 +8,19 @@ several times, and verifies once. Splitting plans that share files across
 sessions means re-reading the same code, re-deriving the same context, and
 resolving conflicts with yourself.
 
-37 plans → **11 sessions**. Six have landed.
+37 plans → **11 sessions**. Seven have landed.
 
 ---
 
 ## How to start a session
 
 ```
-Implement session S7 (plans P20 → P21 → P37) from
+Implement session S8 (plans P22 → P23 → P24 → P25) from
 report/implementation_plans/. Read 00.INDEX.md for the rules, then each
-plan file in order. Branch: feat/search, off fix/context-storage.
+plan file in order. Branch: fix/a11y, off feat/search.
 ```
 
-*(S1 through S6 have landed — see `00.INDEX.md` for their SHAs and for what
+*(S1 through S7 have landed — see `00.INDEX.md` for their SHAs and for what
 they changed that later sessions must account for.)*
 
 Then, in order:
@@ -82,8 +82,15 @@ rework/2026 (27c9555)
                     4ebeb89  P16  │
                     924fbfb  docs ┘
                      └─ 6987ada  P17  ┐
-                        f3fbd6a  P18  ├─ S6  fix/context-storage → 6220418  ← HEAD
+                        f3fbd6a  P18  ├─ S6  fix/context-storage → 6220418
                         6220418  P19  ┘
+                         └─ b449109  docs ┐
+                            1796349  docs ├─ fix/netlify-dev-envfile → 39b40dc
+                            34a7a40  dev  │
+                            39b40dc  dev  ┘
+                             └─ dae9883  P20  ┐
+                                69880dc  P21  ├─ S7  feat/search → 6f1bd78  ← HEAD
+                                6f1bd78  P37  ┘
 ```
 
 Completely linear. No merge commits, no divergence.
@@ -123,9 +130,10 @@ Either way, **do not rebase any of these branches.** S3 was cut from
 `fix/request-safety` and S4 from `fix/data-layer`; rewriting their
 SHAs invalidates every SHA recorded in `00.INDEX.md` and in this file.
 
-*(Written before S3. Still accurate after S6 — `rework/2026` has received none of
-S1–S6, and a merge of `fix/context-storage` into it remains a single
-fast-forward landing all six in order.)*
+*(Written before S3. Still accurate after S7 — `rework/2026` has received none of
+S1–S7, and a merge of `feat/search` into it remains a single fast-forward
+landing all seven in order, plus the two-commit `fix/netlify-dev-envfile` that
+S7 was cut from.)*
 
 **S4 was cut from `c3ec6a1`, not `39a310b`.** Same situation as S3: the S3
 summary names `39a310b` because that was the tip when it was written, and a
@@ -153,7 +161,7 @@ single most likely way a session goes wrong:
 > - If a referenced bug appears already fixed — verify, note it, move on. Do not re-fix.
 > - If reality differs materially from the plan, adapt and **say so in the completion report**.
 
-This matters most in **S7, S8** (S1–S6 are done), which touch files that
+This matters most in **S8** (S1–S7 are done), which touches files that
 **S1**, **S2** and **S3** have already rewritten. All three have landed, so this is no
 longer hypothetical: **every hook file, `common.types.ts`, `Repositories.tsx`,
 `DisplayRepoList.tsx`, `UserProfileRepos.tsx`, `LowerHomeUI.tsx` and the three
@@ -1001,39 +1009,163 @@ at `27c9555` and has received none of S1–S6.
 
 ---
 
-### 🟡 S7 — Search & scroll  ← next
-**Branch:** `feat/search`, off `fix/context-storage`@`6220418` · **Risk:** medium · **~3 h**
-**Plans:** P20 → P21 → P37
+### ✅ S7 — Search & scroll — **landed 2026-08-07**
+**Branch:** `feat/search`, tip `6f1bd78` · **Risk:** medium
+**Cut from `39b40dc`** — the tip of `fix/netlify-dev-envfile`, which is a
+descendant of `fix/context-storage`@`6220418`, so it contains all of S1–S6 plus
+two docs commits and two `netlify dev` fixes. Nothing has been merged down to
+`rework/2026` yet; that still blocks nothing.
+**Plans:** P20 `dae9883` → P21 `69880dc` → P37 `6f1bd78`
 
-`LowerHomeUI.tsx`, `Explorer.tsx`, `Navbar.tsx`, plus the new shared
-`SearchBar.tsx`. Batched because P37 extracts P20's fixed form into the shared
-component, and both P21 and P37 touch `Explorer.tsx`.
+The search box was the app's front door and its dead end: it validated the
+wrong string, reported through `alert()`, and existed in exactly one place, so
+a visitor on `/user/torvalds` had to go back to the logo to look anyone else
+up. All three are closed. Gate (`npm run lint && npx tsc -b --noEmit && npm run
+build`) green before every commit; `npm run typecheck:functions` re-run at the
+end and still green (S7 touched no function code).
 
-**S5 has landed**, so P37's dependency is satisfied — `<EmptyState>`, `<ErrorState>` and the parameterised `<NotFound>` all exist, and P37 fills them with the shared `<SearchBar>` (`NotFound` deliberately ships without one).
+#### What shipped
 
-⚠️ **Inherited from S2:** `LowerHomeUI`'s submit handler already navigates via
-`createSearchParams` — **P20 must keep that** and not regress to a template
-string. Its two actual bugs are untouched and still P20's: the `alert()`, and
-the guard testing `searchTerm.length` instead of the trimmed length. When P37
-extracts the shared `<SearchBar>`, `createSearchParams` goes with it.
+| Plan | Result |
+|---|---|
+| **P20** | Validates the **trimmed** value (`"  a  "` no longer passes at length 5 and searches for `"a"`), reports inline via the field's own `error` + `helperText`, native `autoFocus` instead of the `useRef`/`useEffect` pair, and a real MUI `label` in place of the placeholder. `grep -rn "alert(" client/src` → **0**. `createSearchParams` (P07) and `id="github-username-search"` (P19) kept untouched, as S2 and S6 instructed. |
+| **P21** | The in-flight guard moved **inside** the observer callback; `threshold: 1.0 → 0`; `rootMargin: "0px" → "200px"`; cleanup `disconnect()`s instead of `unobserve`. |
+| **P37** | New `components/SearchBar.tsx` — `hero` / `compact`, one validation rule, one navigation path. `LowerHomeUI` rewritten to render it (**zero validation logic left**, `grep -c "trim()" SearchBar.tsx` → **1**). Navbar mounts it on every route except `/`, collapsing below `sm` to a search `IconButton` that opens a full-width row **below** the toolbar. Both `Explorer` empty states and `NotFound` now carry a real search box. |
 
-⚠️ **Inherited from S6:** the field is already `id="github-username-search"` —
-P19 did that, as its own plan instructs, so **P20 must not fight over the
-line.** Everything starred is spelled `starred` now
-(`components/StarredUsersMenu.tsx`, `hooks/useStarredUsers.ts`).
+#### How it was verified
 
-⚠️ **Inherited from S5 — P37 has three components to build on, not zero:**
-`<EmptyState>`, `<ErrorState>` and a parameterised `<NotFound>`. `Explorer`
-already renders an empty state for "no query" and another for "no results";
-**P37 replaces their `message` with the shared `<SearchBar>` rather than
-adding a fourth treatment**, and `NotFound` deliberately shipped without one so
-P37 could add it in a single place. **P20 should also reuse the
-trimmed-length rule P37 will inherit** — write it once.
+Everything below is **executed**. `netlify-cli` is still not installed (rule 5),
+so the seven functions ran under **Node 24's native type stripping** behind the
+same stand-in S4–S6 used — with the **CSP parsed out of the real
+`netlify.toml`** — against the **live** `api.github.com` with the real token,
+driving the production `vite build` output in **headless Chrome over CDP**.
+
+| Check | Result |
+|---|---|
+| `"  a  "` on the home form | ✅ **"Enter at least 3 characters."**, `aria-invalid="true"`, **URL unchanged** — the P20 bug |
+| Form height before / after the error | **78.9 px / 78.9 px** — the reserved helper row does its job, **no layout jump** |
+| Error clears on typing | ✅ |
+| `"  torvalds  "` | ✅ → `/explore?query=torvalds`, results render, field cleared |
+| `C++` | ✅ → `/explore?query=C%2B%2B`, upstream `q=C%2B%2B` — **one** correctly-encoded parameter |
+| Autofocus / real `<label for>` | ✅ `github-username-search` focused on load, label "GitHub username" |
+| Navbar search on `/user/torvalds` | ✅ present; `"  gaearon  "` → `/explore?query=gaearon`; `"  a  "` → the same inline error, because it is the same component |
+| Navbar search on `/` | ✅ **not rendered** |
+| Duplicate `id`s on a page carrying two boxes | **0** |
+| 404 page and empty `/explore` | ✅ both search successfully; `/explore` with no query still fires **0 API requests** |
+| Zero-result search | ✅ "No users found" **and** a box to try again |
+| **375 px**: icon only, tap expands, Escape / blur / submit collapse | ✅ all four; `aria-expanded` flips `false → true → false`, `aria-controls="navbar-search-panel"`, field autofocused on expand |
+| 375 px: panel geometry | toolbar bottom **65 px** = panel top **65 px** — **pushes content down, never overlays the logo** |
+| Horizontal overflow at 375 px (profile, expanded panel, home, 404) | **0 px** on all four |
+| **CSP violations / console errors** across the whole sweep | **0 / 0** — `form-action 'none'` still holds, because every form `preventDefault`s |
+
+**Pagination, measured against a real search:**
+
+| Case | Result |
+|---|---|
+| `?query=a`, **60 rapid scroll flips** over ~6 s | pages 2–11 requested, **0 duplicate page requests** |
+| `?query=shubham-pandey` (33 results), 20 scroll flips | **exactly one** request for page 2, 33 cards, **exactly one** end-of-results banner |
+| 1000 × 400 px viewport | ✅ paginates (6 pages) |
+
+#### ⚠️ Deviations from the plans — read before S8
+
+1. 🔴 **P21's headline claim did not reproduce, and the before/after proves
+   it.** The same scroll scripts were replayed against a throwaway worktree
+   built at `dae9883` (pre-P21): it also showed **zero duplicate page
+   requests**, and it also paginated in a 400 px-tall viewport. React Query
+   already ignores a `fetchNextPage` while one is in flight, so the missing
+   callback guard never became the burst the plan describes; and the 40 px
+   sentinel can always reach 100% visibility in a 400 px viewport, so
+   `threshold: 1.0` never blocked pagination either. **The change is still
+   right** — it stops depending on library de-duplication, and it stops tearing
+   the observer down and rebuilding it on every fetch — but it is a robustness
+   fix, not a measured saving. The one *visible* difference is the 200 px
+   prefetch lead: the same scroll pattern reached page 11 instead of page 6.
+   **Do not repeat the plan's "30 requests in 30 seconds" framing in the PR.**
+2. **P20's "`C++` → returns results" criterion cannot be met, and it is not our
+   bug.** `q=C++` is encoded correctly and reaches GitHub intact —
+   `/search/users?q=C%2B%2B` returns `total_count: 0` from GitHub itself
+   (`cpp` returns 6970). The app renders its zero-result empty state, which is
+   correct behaviour. The half of the criterion that matters — *navigates
+   correctly* — passes.
+3. **`isValidLogin` is deliberately not used by the search box.** S5's note
+   asks P20 to import `helper/validateLogin.ts` rather than re-derive rules.
+   That is right for a *route param* and wrong for a *search query*: `C++` is a
+   legal query and an illegal login, and P20's own acceptance criteria require
+   it to work. The only rule the box enforces is the trimmed minimum length.
+4. **`SearchBar` grew an `id` prop the plan does not mention.** Necessary, not
+   decorative: on `/explore` and on the 404 page the navbar box and a hero box
+   are on screen together, and two `<input>`s with one id break the label
+   association for both.
+5. **The mobile/desktop switch is `useMediaQuery`, not `sx` display rules.**
+   The plan says "below the `sm` breakpoint render an `IconButton`"; doing that
+   in CSS leaves both variants mounted, which is a duplicate id *and* two
+   autofocus targets. Only one field is ever in the DOM.
+6. **The compact variant submits through an `IconButton` inside the field's end
+   adornment** rather than a second "Search" button — a 375 px toolbar has no
+   room for a labelled button, and the icon carries `aria-label="Search"`.
+7. **Both forms carry `role="search"`.** Not in the plan; it is one attribute
+   and it is the landmark **P22** would otherwise have to add.
+8. **P37 §3's "blur collapses it" is implemented as a panel-level `onBlur` with
+   a `relatedTarget` containment check**, so moving focus from the field to its
+   own submit button does not close the panel mid-interaction.
+9. **The `docs/` half of P37's last bullet is not done** — it asks for a line in
+   the **P33** README feature list and in `docs/PROJECT_LOG.md`. Neither file
+   exists yet; both are **S11**'s (P36 creates `docs/`, P33 writes the README
+   draft). Recorded there rather than done here — rule 4.
+10. **One out-of-session commit, before the branch was cut.** `39b40dc`
+    (`.gitignore` → `.netlify`) was an uncommitted change sitting in the working
+    tree on `fix/netlify-dev-envfile`; it belonged to that branch's `netlify
+    dev` work, so it was committed there rather than dragged into S7's diff.
+    `feat/search` was then cut from it.
+
+#### Observations that are nobody's plan
+
+- ⚠️ **`/explore` and the 404 page now show two search boxes** — the navbar's
+  compact one and the hero one in the empty state. That is what P37 asks for
+  (§2 and §4 independently), and the hero box is the focal recovery action, but
+  it is worth a look in **S9** when the pages are being re-measured. Collapsing
+  it would mean hiding the navbar box on those two routes.
+- **The mobile panel's field measures 294 px inside a 375 px viewport**, not
+  the full 343 px available. Cosmetic; no overflow at any width tested.
+- **`npm audit` still reports 13 advisories.** Untouched, unowned.
+- **Bundle: 646.35 kB → 654.11 kB raw** (200.30 → 202.48 kB gzip).
+
+#### Seen but deliberately NOT fixed (still open for their owning plan)
+
+- `PageButton` / `PageQuickButtons` still render `<button>` + `navigate()`
+  → **P23**
+- `StarredUsersMenu`'s trigger has no accessible name and no `aria-haspopup`
+  → **P22**
+- `?page=999` still renders a clamped pagination bar over an empty list
+  → **P23**'s natural moment (S5's observation, unchanged)
+- `OrganizationTopRepos` still interpolates `username` into a rendered
+  `github.com` href. Unowned; a rendered link, not an authenticated request
+- The offline / `navigator.onLine` empty state — named in suggestions/10 §10f,
+  owned by no plan
+
+#### → How S8 branches from here
+
+```bash
+git checkout feat/search              # confirm with: git rev-parse --short HEAD
+git checkout -b fix/a11y
+```
+
+Same rule as always: **cut from the previous session's tip**, and read it with
+`git rev-parse` rather than trusting the SHA written above. `rework/2026` is
+still at `27c9555` and has received none of S1–S7.
+
+**What S8 inherits from S7:** `Navbar.tsx` now holds a search field, an
+`IconButton` and a `Collapse`, all with their ARIA already in place — **P22
+should not re-do them**, and must not replace the `useMediaQuery` switch with
+CSS visibility (that would put two fields with one id in the DOM). `NotFound`
+no longer has a `<Button>` to relabel. The one search form is
+`components/SearchBar.tsx`, and it already carries `role="search"` and a real
+`<label for>`, which closes suggestions/09 §9d.
 
 ---
 
-### 🟡 S8 — Accessibility
-**Branch:** `fix/a11y` · **Risk:** low-medium · **~2.5 h**
+### 🟡 S8 — Accessibility  ← next
+**Branch:** `fix/a11y`, off `feat/search`@`6f1bd78` · **Risk:** low-medium · **~2.5 h**
 **Plans:** P22 → P23 → P24 → P25
 
 Heavily overlapping files: `PageButton.tsx` appears in P22, P23 and P25;
@@ -1116,24 +1248,26 @@ rework/2026 (27c9555 — has received nothing yet)
                     └── ✅ S3  data-layer  c3ec6a1
                             └── ✅ S4  token-proxy  8bd9e85
                                     └── ✅ S5  error-states  924fbfb
-                                            └── ✅ S6  context-storage  6220418  ← branch from here next
-                                                    ├── S7  feat/search
-                                                    ├── S8  a11y ── S10  tooling
-                                                    └── S9  perf/assets
-    S11 docs/readme      ← only needs S1 (stack it on 6220418 anyway)
+                                            └── ✅ S6  context-storage  6220418
+                                                 (+ fix/netlify-dev-envfile  39b40dc)
+                                                    └── ✅ S7  feat/search  6f1bd78  ← branch from here next
+                                                            ├── S8  a11y ── S10  tooling
+                                                            └── S9  perf/assets
+    S11 docs/readme      ← only needs S1 (stack it on 6f1bd78 anyway)
 ```
 
 This tree is **branch ancestry, not merge order**. Each session is cut from the
 one above it; merging down to `rework/2026` can happen at any point after, and
-so far has not happened at all. Six sessions are done; the next branch is cut
-from `6220418`.
+so far has not happened at all. Seven sessions are done; the next branch is cut
+from `6f1bd78`.
 
 **Note the shape change:** S4 and S5 were drawn as siblings off S3. They are not
 — S4 landed first, and S5 is cut from it. Nothing forced that order (they share
 no files), but stacking keeps a single line of history instead of a second stack
 to reconcile later. **S6 was drawn detached** — it only needs S1 — and was
 stacked on S5 anyway, for the same reason. **S11 is the last one still drawn
-that way; stack it too.** Six sessions, one line of history, no merge commits.
+that way; stack it too.** Seven sessions, one line of history, no merge
+commits.
 
 ~~**Critical path to the security fix: S1 → S2 → S3 → S4.**~~ ✅ **All four have
 landed. V01 is closed in code.** What remains is not a plan — it is the Netlify
@@ -1141,7 +1275,7 @@ env var and the token revocation, both of which only you can do. See
 [What is still on you after S4](#-what-is-still-on-you-after-s4).
 
 **S11 is independent** — it only needs S1, so it *may* be cut from
-`fix/quick-wins`@`ac4186a`. Cutting it from `6220418` instead keeps the single
+`fix/quick-wins`@`ac4186a`. Cutting it from `6f1bd78` instead keeps the single
 line every session so far has stayed on. ~~Same for S6~~ — **S6 has landed**,
 stacked on S5.
 
