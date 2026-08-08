@@ -44,3 +44,7 @@ client/.cache/
 
 # Local Netlify folder
 .netlify
+
+# Personal working notes — audit reports, implementation plans, debugging logs.
+# Read locally, never shipped. Keep the folder out of the repo entirely.
+report/
