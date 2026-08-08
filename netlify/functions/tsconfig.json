@@ -28,5 +28,11 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["**/*.mts", "**/*.d.ts"]
+  // ⚠️ `globals.d.ts` lives one level up, in netlify/, and must stay there.
+  // Netlify turns every top-level file in the functions directory into a
+  // function named after the file minus its extension — `globals.d` — and
+  // rejects the deploy, because a function name may only contain alphanumeric
+  // characters, hyphens and underscores. The type declaration is still part of
+  // this project; only its location moved.
+  "include": ["**/*.mts", "../globals.d.ts"]
 }
