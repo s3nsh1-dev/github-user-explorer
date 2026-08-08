@@ -1,11 +1,15 @@
 import { useSearchParams } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-// import Button from "@mui/material/Button";
 import UserCards from "../components/UserCards";
 import useInfiniteUsers from "../hooks/useInfiniteUsers";
 import { useEffect, useRef } from "react";
 import { CircularProgress } from "@mui/material";
+import ErrorState from "../components/ErrorState";
+import EmptyState from "../components/EmptyState";
+import SearchBar from "../components/SearchBar";
+import SearchIcon from "@mui/icons-material/Search";
+import SearchOffIcon from "@mui/icons-material/SearchOff";
 
 const style1 = { display: "flex", flexDirection: "column", gap: 2 };
 const style2 = {
@@ -18,7 +22,6 @@ const style3 = {
   flexWrap: "wrap",
   justifyContent: "center",
 };
-// const style4 = { mt: 2, alignSelf: "center", mb: 2 };
 const style5 = { textAlign: "center", mt: 2 };
 const style6 = {
   height: "40px",
@@ -38,33 +41,55 @@ const Explorer = () => {
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-  } = useInfiniteUsers(query || "noQueryToSearch");
+    refetch,
+  } = useInfiniteUsers(query ?? "");
 
   const loadRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!hasNextPage || isFetchingNextPage) return;
+    const sentinel = loadRef.current;
+    if (!sentinel) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
+      ([entry]) => {
+        // The guard belongs here, not around the effect. Registering the
+        // observer under `if (!hasNextPage || isFetchingNextPage) return`
+        // only checks the condition once per registration: an already-live
+        // observer kept firing on every scroll event, so holding End walked
+        // pages as fast as the network allowed — against GitHub's tightest
+        // rate limit (10/min unauthenticated, 30 authenticated).
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
       },
       {
         root: null,
-        rootMargin: "0px",
-        threshold: 1.0,
+        // 200px of lead time, so the next page is usually there by the time
+        // the visitor reaches the bottom.
+        rootMargin: "200px",
+        // Was 1.0, which demanded the whole sentinel be visible. On a short
+        // viewport a sentinel taller than the visible area never reaches
+        // 100% and pagination silently stopped working.
+        threshold: 0,
       }
     );
 
-    const currentElement = loadRef.current;
-    if (currentElement) observer.observe(currentElement);
-
-    return () => {
-      if (currentElement) observer.unobserve(currentElement);
-    };
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Visiting /explore directly used to run a real GitHub search for the
+  // placeholder string and render "Matching Results : 0" over an empty grid.
+  // The hook is disabled on an empty query, so this branch fires nothing.
+  if (!query)
+    return (
+      <EmptyState
+        icon={<SearchIcon fontSize="large" />}
+        title="Search for a GitHub user"
+        message="Enter a username to see matching profiles."
+        action={<SearchBar variant="hero" focusOnMount />}
+      />
+    );
 
   if (isLoading)
     return (
@@ -72,7 +97,21 @@ const Explorer = () => {
         <CircularProgress />
       </Box>
     );
-  if (error) return <div>Error Message: {error.message}</div>;
+  if (error) return <ErrorState error={error} onRetry={refetch} />;
+
+  // A search that matched nothing is not a success worth celebrating, and it
+  // used to get both "Matching Results : 0" and the 🎉 end-of-results banner,
+  // because hasNextPage is false in that case too. Keep 🎉 for "you scrolled
+  // through everything".
+  if ((data?.pages[0]?.total_count ?? 0) === 0)
+    return (
+      <EmptyState
+        icon={<SearchOffIcon fontSize="large" />}
+        title="No users found"
+        message={`Nothing on GitHub matched “${query}”. Check the spelling, or try a different username.`}
+        action={<SearchBar variant="hero" />}
+      />
+    );
 
   const renderUserCards = data?.pages.flatMap((page) =>
     page.items.map((user) => {
@@ -82,7 +121,6 @@ const Explorer = () => {
           userName={user.login}
           githubURL={user.html_url}
           imageURL={user.avatar_url}
-          seeRepos={user.repos_url}
         />
       );
     })
@@ -94,25 +132,9 @@ const Explorer = () => {
       </Typography>
       <Box sx={style3}>{renderUserCards}</Box>
       {hasNextPage && (
-        // <Button
-        //   variant="contained"
-        //   onClick={() => fetchNextPage()}
-        //   disabled={isFetchingNextPage}
-        //   sx={style4}
-        // >
-        //   {isFetchingNextPage ? "Loading more..." : "Load More"}
-        // </Button>
-        <>
-          <Box ref={loadRef} sx={style6}>
-            {isFetchingNextPage && <CircularProgress color="inherit" />}
-          </Box>
-
-          {!hasNextPage && (
-            <Box sx={{ textAlign: "center" }}>
-              🎉 You’ve reached the end of results!
-            </Box>
-          )}
-        </>
+        <Box ref={loadRef} sx={style6}>
+          {isFetchingNextPage && <CircularProgress color="inherit" />}
+        </Box>
       )}
 
       {!hasNextPage && (

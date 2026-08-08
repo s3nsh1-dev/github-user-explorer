@@ -1,7 +1,16 @@
 import { useParams } from "react-router-dom";
-import type { GitHubApiUser, GitHubUser } from "../constants/common.types";
-import { mapGitHubResponse } from "../helper/simplifyGitHubResponse";
-import { Box, Divider } from "@mui/material";
+import type { GitHubUser } from "../constants/common.types";
+import {
+  mapGitHubResponse,
+  NOT_PROVIDED,
+} from "../helper/simplifyGitHubResponse";
+import { Alert, Box, Divider, Link } from "@mui/material";
+import AppErrorBoundary from "../components/AppErrorBoundary";
+import ErrorState from "../components/ErrorState";
+import ProfileSkeleton from "../components/skeletons/ProfileSkeleton";
+import NotFound from "./NotFound";
+import { isValidLogin } from "../helper/validateLogin";
+import { toExternalUrl } from "../helper/externalUrl";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import useFetchUserData from "../hooks/useFetchUserData";
@@ -9,7 +18,6 @@ import Paper from "@mui/material/Paper";
 import useMode from "../hooks/useMode";
 import Grid from "@mui/material/Grid";
 import ContributionChart from "../components/ContributionChart";
-import StaredUserContextProvider from "../context/StaredUserContextProvider";
 
 const style1 = { my: 1, p: 1, display: "flex" };
 const style2 = {
@@ -29,6 +37,28 @@ const style5 = {
 
 const ProfileInfo = () => {
   const { mode } = useMode();
+  /**
+   * ⚠️ This panel is INVERTED: dark text on a light strip in dark mode, and
+   * light text on a dark strip in light mode. Anything coloured inside it has
+   * to be picked against *this* background, not against the page.
+   *
+   * The social link got that backwards — dark green on the dark strip in light
+   * mode (2.0:1) and yellow on the light strip in dark mode (1.7:1). Both were
+   * missed by the S8 contrast sweep because the profile it swept had no X
+   * handle, so the link never rendered. States, not just pages.
+   */
+  const linkColor = mode === "dark" ? "#16610E" : "#FFD63A";
+  const ExternalLink = ({ href, label }: { href: string; label: string }) => (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      sx={{ color: linkColor, fontWeight: "bold", wordBreak: "break-all" }}
+    >
+      {label}
+    </Link>
+  );
+
   const style3 = {
     color: mode === "dark" ? "#23272b" : "#e0e0e0",
     backgroundColor: mode === "dark" ? "#e0e0e0" : "#23272b",
@@ -36,20 +66,52 @@ const ProfileInfo = () => {
     py: 0.5,
     borderRadius: 1,
     wordWrap: "break-word",
-    // wordBreak: "break-all",
     fontSize: { xs: ".9rem", sm: "1rem" },
     fontFamily: "monospace",
   };
 
   const { username } = useParams();
-  const { userData, userLoading, userError } = useFetchUserData({
-    username: username || "demoUserName",
+  // `useParams` gives `string | undefined`, and the old placeholder fallback
+  // did not paper over that — it fired a real request for a literal
+  // placeholder username. `isValidLogin` is a type predicate, so `username`
+  // narrows to `string` below and no fallback is needed. Passing "" while it
+  // is invalid keeps the query disabled, so nothing is requested at all:
+  // this is the client half of the V02/V03 defence, the proxy being the other.
+  const usernameIsValid = isValidLogin(username);
+  const {
+    data: userData,
+    isLoading: userLoading,
+    error: userError,
+    refetch: refetchUser,
+  } = useFetchUserData({
+    username: usernameIsValid ? username : "",
   });
 
-  if (!userData) return null;
-  const userProfile: GitHubUser = mapGitHubResponse(userData as GitHubApiUser);
-  if (userLoading) return <div>Loading...</div>;
-  if (userError) return <div>Error: {userError.message}</div>;
+  if (!usernameIsValid)
+    return (
+      <NotFound
+        title="Invalid username"
+        message="That doesn’t look like a GitHub username."
+      />
+    );
+
+  // Guard in the order the states actually occur. `if (!userData) return null`
+  // used to run first, and `userData` is undefined both while loading and
+  // after a failure — so the two branches below were unreachable and the
+  // visitor got a blank page under the navbar, during every cold load and
+  // permanently after any error. report/suggestions/03 §3a.
+  //
+  // `mapGitHubResponse` also has to run *after* the guards: on line one it
+  // threw on a malformed payload instead of the failure being reported.
+  if (userLoading) return <ProfileSkeleton />;
+  if (userError) return <ErrorState error={userError} onRetry={refetchUser} />;
+  if (!userData) return <NotFound />;
+
+  const userProfile: GitHubUser = mapGitHubResponse(userData);
+  // The sentinel is excluded explicitly: `new URL("https://🚫 Not Provided")`
+  // parses, so letting it through would render a link to nowhere.
+  const blogUrl =
+    userProfile.blog === NOT_PROVIDED ? null : toExternalUrl(userProfile.blog);
 
   const arrays = [
     { label: "📝 Bio", value: userProfile.bio },
@@ -57,11 +119,18 @@ const ProfileInfo = () => {
       label: "🏢 Work",
       value: `${userProfile.company}`,
     },
-    { label: "💼 Hirable", value: userProfile.hirable },
+    { label: "💼 Hireable", value: userProfile.hireable },
     { label: "📧 Em@il", value: userProfile.email },
     {
       label: "🔗 Blog",
-      value: userProfile.blog,
+      // GitHub's `blog` field is whatever the owner typed — often
+      // "example.com" with no scheme, sometimes not a URL at all. It was
+      // rendered as plain text, so a real website was unclickable.
+      value: blogUrl ? (
+        <ExternalLink href={blogUrl} label={userProfile.blog ?? blogUrl} />
+      ) : (
+        NOT_PROVIDED
+      ),
     },
     {
       label: "📅 Joined",
@@ -84,17 +153,13 @@ const ProfileInfo = () => {
     {
       label: "🌐 Social Media",
       value:
-        userProfile.x_handle !== "Not Provided" ? (
-          <a
-            href={`https://x.com/${userProfile.x_handle}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#1DA1F2", fontWeight: "bold" }}
-          >
-            {userProfile.x_handle}
-          </a>
+        userProfile.x_handle !== NOT_PROVIDED ? (
+          <ExternalLink
+            href={`https://x.com/${encodeURIComponent(userProfile.x_handle)}`}
+            label={userProfile.x_handle}
+          />
         ) : (
-          "Not Provided"
+          NOT_PROVIDED
         ),
     },
   ];
@@ -117,14 +182,29 @@ const ProfileInfo = () => {
   return (
     <Box sx={style4}>
       <Box sx={style5}>
-        <StaredUserContextProvider>
-          <UserProfileHeader userProfile={userProfile} />
-        </StaredUserContextProvider>
+        <UserProfileHeader userProfile={userProfile} />
         <UserProfileStats userProfile={userProfile} />
       </Box>
       <Divider sx={{ my: 2 }} />
-      <Box>{renderOtherUserDetails}</Box>
-      <ContributionChart username={username || "demoUserName"} />
+      {/* The margin lives here rather than on the graph, so the gap is the
+          same whatever renders below — the skeleton, the graph, the org's top
+          repositories, or an error card. Each detail row already carries
+          `my: 1`, so mb: 4 reads as a section break rather than another row
+          gap. */}
+      <Box sx={{ mb: 4 }}>{renderOtherUserDetails}</Box>
+      {/* Scoped boundary: the contribution graph is the most fragile thing on
+          this page (nullable GraphQL, padded weeks, colours from the wire). A
+          crash in there degrades to a card instead of taking the profile with
+          it. */}
+      <AppErrorBoundary
+        fallback={() => (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Couldn’t display the contribution graph.
+          </Alert>
+        )}
+      >
+        <ContributionChart username={username} />
+      </AppErrorBoundary>
     </Box>
   );
 };

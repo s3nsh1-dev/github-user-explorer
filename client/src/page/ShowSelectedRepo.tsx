@@ -16,20 +16,36 @@ import Skeleton from "@mui/material/Skeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import useShowIndividualRepo from "../hooks/useShowIndividualRepo";
 import type { GitHubRepo } from "../constants/common.types";
+import ErrorState from "../components/ErrorState";
+import NotFound from "./NotFound";
+import { isValidLogin, isValidRepoName } from "../helper/validateLogin";
 
 const ShowSelectedRepo = () => {
   const { repoName, username } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
 
+  // Same reasoning as ProfileInfo: the old placeholder fallbacks were real
+  // requests for names nobody owns. Empty strings keep the query
+  // disabled, so an invalid route fires nothing.
+  const paramsAreValid = isValidLogin(username) && isValidRepoName(repoName);
   const {
     data: repo,
     isLoading,
     error,
+    refetch,
   } = useShowIndividualRepo({
-    repoName: repoName || "demoRepo",
-    username: username || "demoUserName",
+    repoName: paramsAreValid ? repoName : "",
+    username: paramsAreValid ? username : "",
   });
+
+  if (!paramsAreValid)
+    return (
+      <NotFound
+        title="Invalid repository"
+        message="That doesn’t look like a GitHub owner and repository name."
+      />
+    );
 
   if (isLoading) {
     return (
@@ -39,8 +55,14 @@ const ShowSelectedRepo = () => {
       </Box>
     );
   }
-  if (error) return <div>Error: {error.message}</div>;
-  if (!repo) return <div>No Data Found</div>;
+  if (error) return <ErrorState error={error} onRetry={refetch} />;
+  if (!repo)
+    return (
+      <NotFound
+        title="Repository not found"
+        message="That repository doesn’t exist, or it isn’t public."
+      />
+    );
 
   const {
     name,
@@ -73,7 +95,11 @@ const ShowSelectedRepo = () => {
       color={theme.palette.mode === "dark" ? "#fff" : "#000"}
     >
       <Box display="flex" alignItems="center" mb={2}>
-        <IconButton onClick={() => navigate(-1)} sx={{ mr: 1 }}>
+        <IconButton
+          onClick={() => navigate(-1)}
+          sx={{ mr: 1 }}
+          aria-label="Go back"
+        >
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h5" fontWeight={700}>
@@ -134,6 +160,7 @@ const ShowSelectedRepo = () => {
               component="a"
               href={`${html_url}/network/members`}
               target="_blank"
+              rel="noopener noreferrer"
               clickable
               variant="outlined"
             />
@@ -147,6 +174,7 @@ const ShowSelectedRepo = () => {
               component="a"
               href={`${html_url}/issues`}
               target="_blank"
+              rel="noopener noreferrer"
               clickable
               variant="outlined"
             />
@@ -171,6 +199,7 @@ const ShowSelectedRepo = () => {
         color="primary"
         href={html_url}
         target="_blank"
+        rel="noopener noreferrer"
         endIcon={<OpenInNewIcon />}
         sx={{ mt: 2 }}
       >

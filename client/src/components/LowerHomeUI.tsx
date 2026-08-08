@@ -1,37 +1,8 @@
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import {
-  useRef,
-  useState,
-  useEffect,
-  type FormEvent,
-  type ChangeEvent,
-} from "react";
-import { useNavigate } from "react-router-dom";
+import SearchBar from "./SearchBar";
 
 const LowerHomeUI = () => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
-
-  const handleSearch = (event: FormEvent) => {
-    event.preventDefault();
-    const trimUserName = searchTerm.trim();
-    if (searchTerm.length <= 2) {
-      alert("Please enter at least 3 characters to search for a user.");
-      return;
-    }
-    setSearchTerm("");
-    navigate(`/explore?query=${trimUserName}`);
-  };
   return (
     <Box
       sx={{
@@ -47,29 +18,10 @@ const LowerHomeUI = () => {
       <Typography fontSize={42} fontWeight={500}>
         Github User Explorer
       </Typography>
-      <Box
-        sx={{ display: "flex", gap: 2 }}
-        component={"form"}
-        onSubmit={(event) => handleSearch(event)}
-        noValidate
-      >
-        <TextField
-          inputRef={inputRef}
-          value={searchTerm}
-          id="outlined-basic"
-          variant="outlined"
-          placeholder="Enter the GitHub username..."
-          sx={{
-            width: { xs: "55vw", sm: "300px" },
-          }}
-          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-            setSearchTerm(event.target.value)
-          }
-        />
-        <Button variant="contained" type="submit">
-          Search
-        </Button>
-      </Box>
+      {/* The form itself lives in SearchBar, which the navbar, the /explore
+          empty states and the 404 page render too — one validation rule, not
+          four copies of it. */}
+      <SearchBar variant="hero" focusOnMount />
       <Typography fontSize={25} fontWeight={300} color="textSecondary">
         Search for GitHub user to view their profile and repositories
       </Typography>
