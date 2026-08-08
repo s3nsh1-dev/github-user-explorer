@@ -162,7 +162,12 @@ const ProfileInfo = () => {
         <UserProfileStats userProfile={userProfile} />
       </Box>
       <Divider sx={{ my: 2 }} />
-      <Box>{renderOtherUserDetails}</Box>
+      {/* The margin lives here rather than on the graph, so the gap is the
+          same whatever renders below — the skeleton, the graph, the org's top
+          repositories, or an error card. Each detail row already carries
+          `my: 1`, so mb: 4 reads as a section break rather than another row
+          gap. */}
+      <Box sx={{ mb: 4 }}>{renderOtherUserDetails}</Box>
       {/* Scoped boundary: the contribution graph is the most fragile thing on
           this page (nullable GraphQL, padded weeks, colours from the wire). A
           crash in there degrades to a card instead of taking the profile with
