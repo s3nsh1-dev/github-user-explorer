@@ -15,12 +15,12 @@ jobs:
         working-directory: client
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Node 22, not the 24 this was developed on: 22 is the current LTS and
       # the version a reviewer running this repo is most likely to have. If it
       # breaks on 22, that is worth finding out here.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
