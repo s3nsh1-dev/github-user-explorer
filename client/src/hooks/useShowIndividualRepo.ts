@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-
-const gitHub_authentication_token = import.meta.env
-  .VITE_GITHUB_AUTHENTICATION_TOKEN;
+import { githubFetch } from "../helper/githubFetch";
+import { repoUrl } from "../helper/githubUrls";
+import { qk } from "../constants/queryKeys";
+import { GitHubRepoSchema } from "../constants/schemas";
+import type { GitHubRepo } from "../constants/common.types";
+import type { GitHubError } from "../helper/githubErrors";
 
 type UseShowIndividualRepoProps = {
   username: string;
@@ -12,28 +15,15 @@ const useShowIndividualRepo = ({
   username,
   repoName,
 }: UseShowIndividualRepoProps) => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: [repoName, "keyIsUnique"],
-    queryFn: async () => {
+  return useQuery<GitHubRepo, GitHubError>({
+    queryKey: qk.repo(username, repoName),
+    queryFn: () => {
       if (!username || !repoName)
         throw new Error("username or repoName is required");
-      const response = await fetch(
-        `https://api.github.com/repos/${username}/${repoName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${gitHub_authentication_token}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch Individual repo from GitHub API");
-      }
-      return await response.json();
+      return githubFetch(repoUrl(username, repoName), GitHubRepoSchema);
     },
     enabled: !!repoName && !!username,
-    staleTime: 1000 * 60 * 5,
   });
-  return { data, isLoading, error };
 };
 
 export default useShowIndividualRepo;

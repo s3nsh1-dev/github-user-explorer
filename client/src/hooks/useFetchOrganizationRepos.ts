@@ -1,43 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-
-const TOKEN = import.meta.env.VITE_GITHUB_AUTHENTICATION_TOKEN;
+import { githubFetch } from "../helper/githubFetch";
+import { orgReposUrl } from "../helper/githubUrls";
+import { qk } from "../constants/queryKeys";
+import { OrganizationTop10ReposSchema } from "../constants/schemas";
+import type { OrganizationTop10ReposType } from "../constants/common.types";
+import type { GitHubError } from "../helper/githubErrors";
 
 const useFetchOrganizationRepos = (username: string) => {
-  const queryBodyToFetchOrganizationTop10Repos = `
-        {
-          organization(login: "${username}") {
-            repositories(first: 10, orderBy: {field: UPDATED_AT, direction: DESC}) {
-              nodes {
-                name
-                description
-                stargazerCount
-                updatedAt
-              }
-            }
-          }
-        }`;
-
-  const result = useQuery({
-    queryKey: ["contributionInfo", username],
-    queryFn: async () => {
-      const dataResponse = await fetch("https://api.github.com/graphql", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query: queryBodyToFetchOrganizationTop10Repos }),
-      });
-
-      if (!dataResponse.ok) {
-        throw new Error("Failed to fetch repo data");
-      }
-
-      const data = await dataResponse.json();
-      return data;
-    },
+  const result = useQuery<OrganizationTop10ReposType, GitHubError>({
+    queryKey: qk.orgRepos(username),
+    queryFn: () =>
+      githubFetch(orgReposUrl(username), OrganizationTop10ReposSchema),
     enabled: !!username,
-    staleTime: 1000 * 60 * 5,
   });
 
   return result;
