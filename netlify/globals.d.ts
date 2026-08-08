@@ -1,7 +1,11 @@
 /**
- * The only Node global these functions touch.
+ * The only Node global the functions touch.
  *
- * `tsconfig.json` here sets `"types": []` so nothing is pulled in implicitly
+ * This file sits outside functions/ on purpose — Netlify would otherwise try
+ * to deploy it as a function called `globals.d` and fail the build on the
+ * illegal name. `functions/tsconfig.json` pulls it back in by path.
+ *
+ * That tsconfig sets `"types": []` so nothing is pulled in implicitly
  * from `client/node_modules/@types`; everything else the functions use
  * (`fetch`, `Request`, `Response`, `URL`, `URLSearchParams`) is a web standard
  * and comes from the `DOM` lib. Declaring the one exception by hand keeps the
