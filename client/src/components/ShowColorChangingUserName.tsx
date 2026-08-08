@@ -15,7 +15,11 @@ const ShowColorChangingUserName: FC<ShowColorChangingUserNameProps> = ({
       fontSize="1 rem"
       fontFamily="monospace"
       sx={{
-        color: "grey",
+        // Was the CSS keyword `grey` (#808080), which is 2.9:1 on the light
+        // background and 3.9:1 on the dark one — both below 4.5:1, in both
+        // themes at once. `text.secondary` is the theme's own answer to
+        // "quieter than the body text but still readable".
+        color: "text.secondary",
         textWrap: "nowrap",
       }}
     >

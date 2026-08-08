@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # `directory: /client` is the real dependency tree — the repo root has no
+  # package.json at all, so pointing this at `/` would watch nothing.
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      # Monthly, not weekly. This is a portfolio repo whose commit history is
+      # part of what a reader looks at; weekly bump PRs bury the actual work.
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      # MUI and Emotion release together, and dev dependencies are rarely
+      # interesting individually. Grouping turns a dozen PRs into two.
+      mui:
+        patterns: ["@mui/*", "@emotion/*"]
+      dev-dependencies:
+        dependency-type: development
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Keeps the actions/checkout@v4 and actions/setup-node@v4 pins in
+  # .github/workflows/ci.yml current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(ci)"

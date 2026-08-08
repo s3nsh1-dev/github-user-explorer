@@ -1,0 +1,102 @@
+# Netlify build, functions and routing.
+#
+# ⚠️ `base = "client"` makes every other *path* in the [build] and [functions]
+# sections relative to client/ — hence `publish = "dist"` and
+# `directory = "../netlify/functions"`. Getting this wrong is the single most
+# common way a Netlify function silently fails to deploy. Redirect and header
+# rules are URL paths, so they are unaffected.
+
+[build]
+  base    = "client"
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory    = "../netlify/functions"
+  node_bundler = "esbuild"
+
+# Local development only — Netlify's build and runtime ignore this section.
+#
+# ⚠️ `netlify dev` loads dotenv files relative to the **base** directory, not
+# the repository root: internally it resolves them against `buildDir`, which
+# `base = "client"` makes `client/`. The token lives in the root
+# `.env.development`, so without this line the CLI finds nothing and every
+# function dies at cold start with "GITHUB_TOKEN: required" — the env
+# validator working exactly as intended, on an environment that was never
+# loaded.
+#
+# Pointing at the root file keeps one env file in one place. Note this REPLACES
+# the CLI's default list, so a `client/.env*` would no longer be read.
+[dev]
+  envFiles = ["../.env.development"]
+
+# The proxy. Every /api/* request is served by the function of that name in
+# netlify/functions/, which is where — and only where — the GitHub token lives.
+#
+# This is not a passthrough: the splat selects a *function file*, not an
+# upstream path. Seven files exist, each hard-coding its own GitHub endpoint,
+# so /api/anything-else has nothing to resolve to. The alternative — one route
+# forwarding a caller-supplied GitHub path — would be endpoint redirection with
+# a live credential attached.
+#
+# Netlify preserves the query string across a rewrite, which is the only
+# behaviour this design depends on: every parameter travels as a query
+# parameter, never as a path segment.
+[[redirects]]
+  from   = "/api/*"
+  to     = "/.netlify/functions/:splat"
+  status = 200
+  force  = true
+
+# SPA fallback. MUST stay below /api/* — Netlify evaluates top-down, and a /*
+# rule above would answer every API call with index.html.
+#
+# Without this, a hard refresh on /user/torvalds is a 404: Netlify looks for a
+# file at that path and React Router never gets to run. Verified 404 on the
+# live site before this landed, so every shared profile link was broken.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# Security headers. The site currently sends none of these.
+#
+# Each directive below is here because something in the app needs it, or
+# because nothing does and the default is worth closing. The two that will
+# break the UI if "tightened" are called out — resist the urge.
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    # script-src 'self' with no 'unsafe-inline' is the directive doing the
+    #   real work: an injected <script> or an inline handler cannot run.
+    # style-src 'unsafe-inline' is MANDATORY — Emotion, which is MUI's
+    #   styling engine, injects every rule at runtime. Removing it blanks the
+    #   entire UI. Inline styles are not the XSS risk inline scripts are.
+    # img-src needs data: for the theme switch's inline SVG thumb, and
+    #   *.githubusercontent.com for every avatar.
+    # connect-src 'self' is only correct because P34 landed — the client now
+    #   calls this site's /api/*, never api.github.com directly.
+    # form-action 'none': the one <form> in the app (the search box) calls
+    #   preventDefault unconditionally and navigates through the router, so
+    #   no native submission ever happens.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.githubusercontent.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'"
+    X-Content-Type-Options  = "nosniff"
+    Referrer-Policy         = "strict-origin-when-cross-origin"
+    Permissions-Policy      = "camera=(), microphone=(), geolocation=()"
+
+# Vite fingerprints every filename in /assets, so the content at a given URL
+# can never change — a year is safe, and `immutable` stops revalidation.
+[[headers]]
+  for = "/assets/*"
+
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# The one file that is NOT fingerprinted, and the one that points at the
+# fingerprinted names. Caching it is how a deploy goes unnoticed.
+[[headers]]
+  for = "/index.html"
+
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

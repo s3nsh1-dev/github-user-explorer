@@ -5,14 +5,13 @@ import {
   CardContent,
   Typography,
   CircularProgress,
-  Alert,
   Button,
 } from "@mui/material";
-import type { OrganizationRepoResponseType } from "../constants/common.types";
 import useFetchOrganizationRepos from "../hooks/useFetchOrganizationRepos";
+import ErrorState from "./ErrorState";
 
 const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
-  const { data, isLoading, error }: OrganizationRepoResponseType =
+  const { data, isLoading, error, refetch } =
     useFetchOrganizationRepos(username);
 
   if (isLoading)
@@ -22,14 +21,9 @@ const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
       </Box>
     );
 
-  if (error)
-    return (
-      <Alert severity="error" sx={{ mt: 4 }}>
-        Error loading repositories: {String(error)}
-      </Alert>
-    );
+  if (error) return <ErrorState error={error} onRetry={refetch} sx={{ mt: 4 }} />;
 
-  const repos = data?.data?.organization?.repositories?.nodes || [];
+  const repos = data?.organization?.repositories?.nodes || [];
 
   if (repos.length === 0 && !isLoading)
     return (
@@ -50,7 +44,6 @@ const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
           gap: 2,
           flexWrap: "wrap",
           justifyContent: "space-evenly",
-          // width: "50%",
         }}
       >
         {repos.map((repo, index) => (
@@ -105,7 +98,15 @@ const OrganizationTopRepos: FC<{ username: string }> = ({ username }) => {
                 <Button
                   variant="outlined"
                   size="small"
-                  href={`https://github.com/${username}/${repo.name}`}
+                  // Both segments are encoded for the same reason P07 encodes
+                  // the API URLs: a login or repository name carrying a `/`
+                  // or a `..` would otherwise escape its segment and point the
+                  // link somewhere else on github.com. A rendered link is a
+                  // smaller problem than an authenticated request, which is
+                  // why this outlived S2 — but it is the same bug.
+                  href={`https://github.com/${encodeURIComponent(
+                    username
+                  )}/${encodeURIComponent(repo.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

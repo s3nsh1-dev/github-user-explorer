@@ -1,6 +1,7 @@
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
 import useMode from "../hooks/useMode";
+import { repoPageLink } from "../helper/paginate";
 
 const PageButton = ({
   username,
@@ -16,9 +17,12 @@ const PageButton = ({
     height: 30,
     width: 30,
     fontSize: "10px",
+    // #e0e0e0 on the dark theme's green measured 3.89:1 — the active page
+    // number was the least readable thing in the bar. White clears 4.5:1 on
+    // the same green, and the green is GitHub's, so it stays.
     color: active
       ? mode === "dark"
-        ? "#e0e0e0"
+        ? "#ffffff"
         : "#23272b"
       : mode === "dark"
       ? "#23272b"
@@ -35,17 +39,27 @@ const PageButton = ({
     transition: "background 0.2s",
     "&:hover": {
       backgroundColor: mode === "dark" ? "green" : "#FFD700",
-      color: mode === "dark" ? "#e0e0e0" : "#23272b",
+      color: mode === "dark" ? "#ffffff" : "#23272b",
+    },
+    // The diamond clipPath clips the button's own focus ring away, so the
+    // control was keyboard-reachable with no visible focus at all. An inset
+    // shadow is drawn *inside* the clip and survives it; an outline does not.
+    "&:focus-visible": {
+      outline: "none",
+      boxShadow: `inset 0 0 0 3px ${mode === "dark" ? "#FFD63A" : "#16610E"}`,
     },
   };
 
-  const navigate = useNavigate();
-  const handlePageChange = () => {
-    navigate(`/user/${username}?tab=repositories&page=${pageNum}`);
-  };
-
   return (
-    <IconButton onClick={handlePageChange} sx={style}>
+    <IconButton
+      component={RouterLink}
+      to={repoPageLink(username, pageNum)}
+      sx={style}
+      // The current page was signalled by colour alone. aria-current is what
+      // says "you are here" to everything that cannot see the colour.
+      aria-current={active ? "page" : undefined}
+      aria-label={`Go to page ${pageNum}`}
+    >
       {pageNum}
     </IconButton>
   );
