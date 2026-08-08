@@ -12,6 +12,34 @@ type PropType = {
 };
 
 /**
+ * Black or white, whichever is readable on this cell's colour.
+ *
+ * The count used to be painted `#fffff0` on every cell — near-white on a scale
+ * whose lightest step is `#ebedf0`, so a zero-contribution day was white on
+ * white and the lightest third of the ramp was unreadable. No single colour
+ * works across the whole ramp, which is why the digits were dropped once; this
+ * picks per cell instead, using the same WCAG relative-luminance formula the
+ * contrast audit used. `#ebedf0` gets black (14.5:1), `#216e39` gets white
+ * (7.5:1).
+ */
+const readableOn = (color: string): string => {
+  const hex = /^#?([0-9a-f]{6})$/i.exec(color);
+  if (!hex) return "#23272b"; // the padding cells' "grey", and any surprise
+  const value = parseInt(hex[1], 16);
+  const channels = [(value >> 16) & 255, (value >> 8) & 255, value & 255].map(
+    (v) => {
+      const c = v / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    }
+  );
+  const luminance =
+    0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  const onBlack = (luminance + 0.05) / 0.05;
+  const onWhite = 1.05 / (luminance + 0.05);
+  return onBlack > onWhite ? "#000000" : "#ffffff";
+};
+
+/**
  * Reads a cell the way a person would say it out loud. Used for both the
  * tooltip and the accessible name, so the two can never disagree.
  */
@@ -100,25 +128,30 @@ const UserContributions: FC<PropType> = ({ username }) => {
               );
             }
             const label = describeDay(day.date, day.contributionCount);
+            const count = day.contributionCount ?? 0;
             return (
-              // The count used to be printed inside the cell in #fffff0 —
-              // near-white on a scale whose lightest step is #ebedf0, so a
-              // zero-contribution day was white on white and the lightest
-              // third of the scale was unreadable. No single text colour
-              // works across the whole green ramp, so the number moves to a
-              // tooltip and an accessible name. That is what GitHub does,
-              // and a 20px cell never fitted three digits anyway.
+              // The count is in the cell, in the tooltip and in the accessible
+              // name. Three digits do not fit a 20px cell at the same size one
+              // does, so the type shrinks rather than overflowing.
               <Tooltip key={index} title={label} enterTouchDelay={0} arrow>
                 <Box
                   role="gridcell"
                   aria-label={label}
                   sx={{
                     backgroundColor: day.color,
+                    color: readableOn(day.color),
                     width: "20px",
                     height: "20px",
                     borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    lineHeight: 1,
+                    fontSize: count > 99 ? "0.5rem" : "0.65rem",
                   }}
-                />
+                >
+                  {count}
+                </Box>
               </Tooltip>
             );
           })}

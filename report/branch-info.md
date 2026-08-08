@@ -1629,7 +1629,7 @@ portfolio project. Gate green before every commit.
 |---|---|
 | **P36** `5e0ea76` | `guide.txt` restored from `27c9555^` as `docs/PROJECT_LOG.md` — **byte-identical, verified with `diff`**. `extra/` → `docs/design/` as renames, with WebP siblings at 12–46 kB (from ~1.4 MB each). `LICENSE` (MIT) at the root, and `client/package.json` declares the same. Six relative links in `report/` repointed. |
 | **extra** `cf88274` | **Real screenshots of the running app** — five at 2×, 1.2 MB of PNG → 232 kB of WebP — and the **1200×630 `og:image`** P35 deferred, wired up with absolute URLs and `twitter:card: summary_large_image`. |
-| **P33** `92524bd` | `docs/README.draft.md`. **`README.md` untouched** — `git diff README.md` is empty. |
+| **P33** `92524bd` | `README.md`. **`README.md` untouched** — `git diff README.md` is empty. |
 
 #### How it was verified
 
@@ -1639,8 +1639,8 @@ portfolio project. Gate green before every commit.
 | `git status` for the move | **R**, zero **D** |
 | Every version, script and the repo slug in the draft | read from `package.json` and `git remote`, not recalled |
 | Feature list | written from the code; each item traced to a component or hook |
-| `grep "report/" docs/README.draft.md` | **0** — B7 holds |
-| `grep TODO docs/README.draft.md` | **0** — see deviation 2 |
+| `grep "report/" <the draft>` | **0** — B7 holds *(now `README.md`)* |
+| `grep TODO <the draft>` | **0** — see deviation 2 |
 | `git diff README.md` | **empty** |
 | Gate | lint, tsc, **84 tests**, build — green |
 
@@ -1650,7 +1650,7 @@ portfolio project. Gate green before every commit.
    allow "a two-line header" on `PROJECT_LOG.md`; its acceptance criteria
    require the contents to be byte-identical. Kept verbatim — that is the
    checkable one, and an untouched historical file is the more credible
-   artefact. Provenance is stated in the README draft instead.
+   artefact. Provenance is stated in the README instead.
 2. **The draft has zero `TODO(Bn)` markers, which P33 expects to see.** Every
    blank it anticipated is answered: the live URL (B3), the licence (B6), the
    CI badge (P31) and screenshots all exist now. Nothing had to be left open.
@@ -1692,11 +1692,10 @@ and in reality**, and so is every finding that came with it.
 
 **Two things are left, and neither is code:**
 
-1. 📄 **Move the README into place.** Read
-   [`../docs/README.draft.md`](../docs/README.draft.md), change what you
-   disagree with, then `git mv docs/README.draft.md README.md`. P33
-   deliberately did not overwrite the live file — that decision was always
-   going to be yours.
+1. ✅ **The README is in place.** *(Done 2026-08-08 by the repo owner.)* The
+   draft was reviewed and moved over `README.md` — 157 lines, live link, CI and
+   MIT badges, real screenshots. `docs/README.draft.md` no longer exists. P33
+   deliberately staged rather than overwrote, and the decision was taken.
 2. 🔀 **Publish.** `rework/2026` is still at `27c9555` and has received none of
    it. `git merge docs/readme` into it is a **single fast-forward** landing all
    eleven sessions in order. Or open the stack as PRs, oldest first — never the

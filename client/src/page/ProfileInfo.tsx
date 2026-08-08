@@ -10,6 +10,7 @@ import ErrorState from "../components/ErrorState";
 import ProfileSkeleton from "../components/skeletons/ProfileSkeleton";
 import NotFound from "./NotFound";
 import { isValidLogin } from "../helper/validateLogin";
+import { toExternalUrl } from "../helper/externalUrl";
 import UserProfileHeader from "../components/UserProfileHeader";
 import UserProfileStats from "../components/UserProfileStats";
 import useFetchUserData from "../hooks/useFetchUserData";
@@ -36,6 +37,28 @@ const style5 = {
 
 const ProfileInfo = () => {
   const { mode } = useMode();
+  /**
+   * ⚠️ This panel is INVERTED: dark text on a light strip in dark mode, and
+   * light text on a dark strip in light mode. Anything coloured inside it has
+   * to be picked against *this* background, not against the page.
+   *
+   * The social link got that backwards — dark green on the dark strip in light
+   * mode (2.0:1) and yellow on the light strip in dark mode (1.7:1). Both were
+   * missed by the S8 contrast sweep because the profile it swept had no X
+   * handle, so the link never rendered. States, not just pages.
+   */
+  const linkColor = mode === "dark" ? "#16610E" : "#FFD63A";
+  const ExternalLink = ({ href, label }: { href: string; label: string }) => (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      sx={{ color: linkColor, fontWeight: "bold", wordBreak: "break-all" }}
+    >
+      {label}
+    </Link>
+  );
+
   const style3 = {
     color: mode === "dark" ? "#23272b" : "#e0e0e0",
     backgroundColor: mode === "dark" ? "#e0e0e0" : "#23272b",
@@ -85,6 +108,10 @@ const ProfileInfo = () => {
   if (!userData) return <NotFound />;
 
   const userProfile: GitHubUser = mapGitHubResponse(userData);
+  // The sentinel is excluded explicitly: `new URL("https://🚫 Not Provided")`
+  // parses, so letting it through would render a link to nowhere.
+  const blogUrl =
+    userProfile.blog === NOT_PROVIDED ? null : toExternalUrl(userProfile.blog);
 
   const arrays = [
     { label: "📝 Bio", value: userProfile.bio },
@@ -96,7 +123,14 @@ const ProfileInfo = () => {
     { label: "📧 Em@il", value: userProfile.email },
     {
       label: "🔗 Blog",
-      value: userProfile.blog,
+      // GitHub's `blog` field is whatever the owner typed — often
+      // "example.com" with no scheme, sometimes not a URL at all. It was
+      // rendered as plain text, so a real website was unclickable.
+      value: blogUrl ? (
+        <ExternalLink href={blogUrl} label={userProfile.blog ?? blogUrl} />
+      ) : (
+        NOT_PROVIDED
+      ),
     },
     {
       label: "📅 Joined",
@@ -120,20 +154,10 @@ const ProfileInfo = () => {
       label: "🌐 Social Media",
       value:
         userProfile.x_handle !== NOT_PROVIDED ? (
-          <Link
+          <ExternalLink
             href={`https://x.com/${encodeURIComponent(userProfile.x_handle)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            // Twitter blue is 2.14:1 on this background. The app's own accent
-            // pair clears 4.5:1 in both themes, and it is already what every
-            // other emphasised thing here uses.
-            sx={{
-              color: mode === "light" ? "#16610E" : "#FFD63A",
-              fontWeight: "bold",
-            }}
-          >
-            {userProfile.x_handle}
-          </Link>
+            label={userProfile.x_handle}
+          />
         ) : (
           NOT_PROVIDED
         ),
@@ -162,7 +186,12 @@ const ProfileInfo = () => {
         <UserProfileStats userProfile={userProfile} />
       </Box>
       <Divider sx={{ my: 2 }} />
-      <Box>{renderOtherUserDetails}</Box>
+      {/* The margin lives here rather than on the graph, so the gap is the
+          same whatever renders below — the skeleton, the graph, the org's top
+          repositories, or an error card. Each detail row already carries
+          `my: 1`, so mb: 4 reads as a section break rather than another row
+          gap. */}
+      <Box sx={{ mb: 4 }}>{renderOtherUserDetails}</Box>
       {/* Scoped boundary: the contribution graph is the most fragile thing on
           this page (nullable GraphQL, padded weeks, colours from the wire). A
           crash in there degrades to a card instead of taking the profile with
