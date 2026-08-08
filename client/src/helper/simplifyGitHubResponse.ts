@@ -32,7 +32,9 @@ export function mapGitHubResponse(data: GitHubApiUser): GitHubUser {
     email: data.email || NOT_PROVIDED,
     hireable: data.hireable ? "📨 Actively Applying" : "🧑‍💻 Busy Learning",
     accountType: data.type || NOT_PROVIDED,
-    blog: data.blog || "⏳ Coming Soon ",
+    // Was "⏳ Coming Soon " — which promised something the app cannot know,
+    // and carried a trailing space. An empty field is an empty field.
+    blog: data.blog || NOT_PROVIDED,
     gists: data.public_gists,
     x_handle: data.twitter_username || NOT_PROVIDED,
     starred_url: data.starred_url,

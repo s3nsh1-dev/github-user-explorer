@@ -3,63 +3,83 @@
 Full read of `client/`, `server/`, and the build/deploy setup as of commit
 `1fa3e0f` (branch `rework/2026`). 10 vulnerabilities, 13 suggestions.
 
-Every finding lists the exact files it touches and — where a fix conflicts with
-another fix or with an existing feature — a **Contradictions & trade-offs**
-section. Those conflicts are real; several fixes break each other if applied in
-the wrong order.
+**All 37 implementation plans have landed.** Every finding file now opens with
+its own **Before → After** section: what the code looked like, why it had to
+change, what replaced it, and how the structure differs. The original analysis
+is kept below it unedited — the reasoning is the point, not just the outcome.
+
+Each finding also lists the files it touched and, where a fix conflicted with
+another fix, a **Contradictions & trade-offs** section. Those conflicts were
+real: several of these fixes would have broken each other in the wrong order,
+and a few did until the sequence was corrected.
 
 ---
 
-## 📌 Current status — 2026-08-07
+## 📌 Current status — 2026-08-08 · complete
 
-Six of eleven implementation sessions have landed (**S1–S6**, plans P00–P19 plus
-P28/P34/P35). Every finding below now carries its own **Current status** section
-with a per-item breakdown; this is the roll-up.
+All eleven sessions landed (plans P00–P37). The verification gate is green:
+
+```
+lint ✅   tsc ✅   tsc:functions ✅   84 tests ✅   build ✅
+```
 
 | Finding | Status |
 |---|---|
-| **V01** PAT in the bundle | ✅ **Finished** — proxy shipped *and* the exposed token revoked |
-| **V02** GraphQL injection | ✅ Finished |
-| **V03** URL tampering | ✅ Finished |
-| **V04** Security headers | ✅ Finished |
-| **V05** Unhandled API errors | ✅ Finished |
-| **V06** Untrusted localStorage | ✅ Finished |
-| **V07** Rate-limit exhaustion | 🟡 Partial — everything except request throttling (7a) |
-| **V08** Reverse tabnabbing | ✅ Finished in code; the lint guard is pending |
-| **V09** Error-message disclosure | ✅ Finished |
-| **V10** Secret & dependency hygiene | 🟡 Partial — secrets done, dependency automation not |
-| **S01** Backend proxy | ✅ Finished (as Netlify Functions, not Express) |
-| **S02** Cache-key collisions | ✅ Finished |
-| **S03** Loading/error ordering | ✅ Finished |
-| **S04** Fetch-boundary types | ✅ Finished (Zod) |
-| **S05** Search UX | ⏳ Pending — S7 |
-| **S06** Starred-users state | ✅ Finished |
-| **S07** Assets & bundle | ⏳ Pending — S9 |
-| **S08** README & portfolio | ⏳ Pending — S11 |
-| **S09** Accessibility | ⏳ Pending — S8 |
-| **S10** Empty & 404 states | ✅ Finished (bar the shared search box, deferred to S7) |
-| **S11** Tests & CI | ⏳ Pending — S10 |
-| **S12** Dead code & hygiene | 🟡 Partial — code clean, repo root not yet |
-| **S13** Deployment config | ✅ Mostly — the anti-flash script (13d) is open |
+| **V01** PAT in the bundle | ✅ Proxy shipped, token revoked, bundle verified clean |
+| **V02** GraphQL injection | ✅ Documents server-side, login as a variable |
+| **V03** URL tampering | ✅ Query params only, validated twice |
+| **V04** Security headers | ✅ CSP + 3 headers, live |
+| **V05** Unhandled API errors | ✅ Typed errors, Zod, root error boundary |
+| **V06** Untrusted localStorage | ✅ Validated at the boundary |
+| **V07** Rate-limit exhaustion | ✅ Observer guard, retry policy, CDN cache |
+| **V08** Reverse tabnabbing | ✅ Fixed, and lint-enforced |
+| **V09** Error-message disclosure | ✅ Classified messages, detail to console only |
+| **V10** Secret & dependency hygiene | ✅ Zod env, CI, Dependabot — 13 advisories → 2 |
+| **S01** Backend proxy | ✅ 7 Netlify Functions (not the Express sketch) |
+| **S02** Cache-key collisions | ✅ One registry; both bugs gone |
+| **S03** Loading/error ordering | ✅ All three bugs fixed |
+| **S04** Fetch-boundary types | ✅ Zod schemas, types derived via `z.infer` |
+| **S05** Search UX | ✅ Shared `SearchBar`; no autocomplete, by design |
+| **S06** Starred-users state | ✅ One provider, pure updater, renamed |
+| **S07** Assets & bundle | ✅ 3.0 MB → 744 kB, routes split |
+| **S08** README & portfolio | ✅ Live — `README.md` rewritten, badges, real screenshots |
+| **S09** Accessibility | ✅ Names, landmarks, links, grid semantics |
+| **S10** Empty & 404 states | ✅ Including the shared search box |
+| **S11** Tests & CI | ✅ 5 suites, 84 tests, GitHub Actions |
+| **S12** Dead code & hygiene | ✅ Code and repo root both clean |
+| **S13** Deployment config | ✅ — anti-flash script deliberately reverted, see the file |
 
-**Seven of the eight "confirmed bugs found along the way" below are fixed** —
-the repo-detail cache key, the blank profile page, the pagination `NaN`, the
-skeleton animation, the unreachable JSX, the duplicate profile request, and the
-white screen on a non-existent user. The eighth, the search box validating an
-untrimmed length, is **still open** and owned by S7.
+**All eight "confirmed bugs found along the way"** (below) are fixed.
 
-**Not owned by any plan, and still open:** `npm audit`'s 13 advisories, the dead
-`server/` stub, the offline/`navigator.onLine` state, and the repo's own GitHub
-security settings.
+### Deliberately not done
 
-The **"Suggested order"** section below was written before any of this and is
-kept as the original reasoning. What actually happened is recorded in
-[`branch-info.md`](branch-info.md) and
-[`implementation_plans/00.INDEX.md`](implementation_plans/00.INDEX.md); steps 1,
-2, 3 and 5 are done, step 4 is half done, and steps 6 and 7 are what remains.
+Recorded so they read as decisions rather than oversights:
+
+- **No search autocomplete** — would fire a request per keystroke against
+  GitHub's tightest endpoint. Submit-only is the better design.
+- **The anti-flash theme script was reverted** — it needed `'unsafe-inline'` or
+  a hand-maintained CSP hash. A one-frame flash is the cheaper trade.
+- **Fonts still come from Google** — self-hosting would drop two CSP exceptions,
+  but it is a separate change with its own visual verification.
+- **No MSW or Playwright** — the pure-function suites carry most of the signal.
+- **`style1`…`style6` not renamed** — high churn, zero behaviour.
+- **Git history not rewritten** to reclaim the old image blobs — it breaks every
+  clone and fork.
+
+### Where things live now
+
+| | |
+|---|---|
+| [`vulnerabilities/`](vulnerabilities/) · [`suggestions/`](suggestions/) | The findings, each with a Before → After |
+| [`debugging/`](debugging/) | Issues found *after* implementation |
+| [`implementation_plans/`](implementation_plans/) | The 37 plans, with commit SHAs |
+| [`branch-info.md`](branch-info.md) | How the work was batched into 11 sessions |
+
+The **"Suggested order"** section further down was written before any of this
+and is kept unedited as the original reasoning. What actually happened is in
+`branch-info.md`.
 
 ---
-
 
 ## Vulnerabilities
 
