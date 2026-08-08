@@ -1,22 +1,33 @@
 import useFetchReposPerPage from "../hooks/useFetchReposPerPage";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import UserProfileRepos from "../components/UserProfileRepos";
 import { Box, Typography } from "@mui/material";
 import ShowColorChangingUserName from "../components/ShowColorChangingUserName";
 import { Link } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
+import { parsePage } from "../helper/parsePage";
+import ErrorState from "./ErrorState";
 
 type IncomingPropTypes = {
+  /** Already validated by `Repositories`, which owns the route param. */
+  username: string;
   totalRepos: number;
 };
 
-const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
-  const { username } = useParams();
+const DisplayRepoList: React.FC<IncomingPropTypes> = ({
+  username,
+  totalRepos,
+}) => {
   const [searchParams] = useSearchParams();
 
-  const pNum = parseInt(searchParams.get("page") || "1", 10);
-  const { reposData, reposLoading, reposError } = useFetchReposPerPage({
-    username: username || "demoUserName",
+  const pNum = parsePage(searchParams.get("page"));
+  const {
+    data: reposData,
+    isLoading: reposLoading,
+    error: reposError,
+    refetch: refetchRepos,
+  } = useFetchReposPerPage({
+    username,
     page: pNum,
   });
 
@@ -34,7 +45,8 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
         <CircularProgress />
       </Box>
     );
-  if (reposError) return <div>Error: {reposError.message}</div>;
+  if (reposError)
+    return <ErrorState error={reposError} onRetry={refetchRepos} />;
 
   return (
     <Box maxWidth={1000} minHeight={"80vh"} mx="auto" px={3} py={1}>
@@ -43,16 +55,16 @@ const DisplayRepoList: React.FC<IncomingPropTypes> = ({ totalRepos }) => {
           to={`/user/${username}`}
           style={{ textDecoration: "none", cursor: "pointer" }}
         >
-          <ShowColorChangingUserName username={username || "demoUserName"} />
+          <ShowColorChangingUserName username={username} />
         </Link>
         <Typography>
           <b>{totalRepos}</b> <i>repositories</i>
         </Typography>
       </Box>
-      <UserProfileRepos
-        repos={reposData}
-        username={username || "demoUserName"}
-      />
+      {/* A disabled query is neither loading nor errored, so `reposData` can
+          still be undefined here — which used to reach `repos.length` and
+          throw. `UserProfileRepos` already renders an empty list honestly. */}
+      <UserProfileRepos repos={reposData ?? []} />
     </Box>
   );
 };

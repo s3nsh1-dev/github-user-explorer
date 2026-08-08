@@ -67,7 +67,6 @@ const CustomSwitchForModeTransition: React.FC<ModeContextType> = ({
     <FormControlLabel
       control={
         <MaterialUISwitch
-          // sx={{ m: 1 }}
           checked={mode === "dark"}
           onChange={() =>
             handleSettingMode(mode === "light" ? "dark" : "light")

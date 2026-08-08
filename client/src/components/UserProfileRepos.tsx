@@ -2,6 +2,8 @@ import { Typography, Stack, Paper, Button, Grid, Box } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import type { Repo } from "../constants/common.types";
 import { useNavigate } from "react-router-dom";
+import EmptyState from "./EmptyState";
+import FolderOffIcon from "@mui/icons-material/FolderOff";
 
 const style1 = {
   padding: 1,
@@ -35,18 +37,17 @@ const style5 = {
 
 type UserProfileReposProps = {
   repos: Repo[];
-  username: string;
 };
-const UserProfileRepos: React.FC<UserProfileReposProps> = ({
-  repos,
-  username,
-}) => {
+const UserProfileRepos: React.FC<UserProfileReposProps> = ({ repos }) => {
   const navigate = useNavigate();
   const handleOpenRepository = (repo: Repo) => {
-    const repoName = repo.name;
-    navigate(`/user/${repo.full_name}`, {
-      state: { repoName, username },
-    });
+    // `full_name` is "owner/name". Passing it whole relied on the raw "/"
+    // surviving into the URL and the router happening to split it into the two
+    // route segments. Split it here and encode each segment instead, so the
+    // route shape is explicit and neither part can escape its segment.
+    const [owner, ...rest] = repo.full_name.split("/");
+    const name = rest.join("/") || repo.name;
+    navigate(`/user/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`);
   };
 
   return (
@@ -54,7 +55,11 @@ const UserProfileRepos: React.FC<UserProfileReposProps> = ({
       {/* Repositories List */}
       <Stack spacing={0.5}>
         {repos.length === 0 ? (
-          <Typography variant="body2">No repositories found.</Typography>
+          <EmptyState
+            icon={<FolderOffIcon fontSize="large" />}
+            title="No public repositories"
+            message="This account hasn’t published anything yet."
+          />
         ) : (
           repos.map((repo) => (
             <Grid
