@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import Skeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 
 const LoadingSkeleton = () => {
@@ -29,15 +30,12 @@ const LoadingSkeleton = () => {
           >
             {/* 7 days per week */}
             {Array.from({ length: 7 }).map((_, dayIndex) => (
-              <Box
+              <Skeleton
                 key={dayIndex}
-                sx={{
-                  backgroundColor: "#e0e0e0", // grey placeholder
-                  width: "20px",
-                  height: "20px",
-                  borderRadius: "10px",
-                  animation: "pulse 1.5s infinite",
-                }}
+                variant="rounded"
+                width={20}
+                height={20}
+                sx={{ borderRadius: "10px", flexShrink: 0 }}
               />
             ))}
           </Box>

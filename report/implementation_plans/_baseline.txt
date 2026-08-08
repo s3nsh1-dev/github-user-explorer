@@ -1,0 +1,70 @@
+P00 — Baseline capture
+======================
+
+Date:      2026-08-07
+Commit:    27c955533c39394f0954a8168d28de30be3d5e01  (branch rework/2026)
+Branch:    fix/quick-wins  (created off rework/2026)
+Node/npm:  v24.18.1 / 12.0.2
+Install:   `cd client && npm ci` → 230 packages, no lockfile drift.
+           npm reported 13 vulnerabilities (1 low, 2 moderate, 10 high).
+           `npm audit fix` deliberately NOT run (out of scope per P00).
+           Note: postinstall scripts blocked by the sandbox allowlist for
+           @swc/core@1.12.5 and esbuild@0.25.5 — build still succeeds.
+
+NOTE: the audit snapshot referenced by the plans is 1fa3e0f. HEAD is now
+27c9555, which additionally contains: the report/ tree, deletion of the root
+guide.txt / package.json / package-lock.json, and a .github/dependabot.yml
+(P32 appears to have landed early, outside S1).
+
+
+=== npm run lint ===
+> client@0.0.0 lint
+> eslint .
+
+exit 0 — no output, no warnings.
+
+
+=== npx tsc -b --noEmit ===
+> tsc -b --noEmit
+
+exit 0 — no output.
+
+
+=== npm run build ===
+> client@0.0.0 build
+> tsc -b && vite build
+
+vite v6.3.5 building for production...
+transforming...
+✓ 1011 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                   0.79 kB │ gzip:   0.43 kB
+dist/assets/website_logo_1-CW_ix9iq.png         505.25 kB
+dist/assets/website_logo_3-Bb39KpE-.png         547.76 kB
+dist/assets/github-logo-cropped-lb06o-Nx.png  1,422.20 kB
+dist/assets/index-CZjT8u_K.css                    0.02 kB │ gzip:   0.04 kB
+dist/assets/index-C1WonNt3.js                   571.53 kB │ gzip: 179.10 kB
+
+(!) Some chunks are larger than 500 kB after minification.
+✓ built in 2.51s
+
+exit 0
+
+
+=== Bundle size baseline (for P26 / P27) ===
+du -sh client/dist/assets  →  3.0M
+
+  github-logo-cropped-*.png   1,422,201 B   (1.42 MB)
+  website_logo_3-*.png          547,755 B
+  website_logo_1-*.png          505,245 B
+  index-*.js                    571,526 B   (179.10 kB gzip)
+  index-*.css                        22 B
+
+  Images total: 2,475,201 B  → P26 target
+  JS single chunk: 571,526 B → P27 target (code-split routes)
+
+
+=== Verdict ===
+BASELINE IS GREEN. All three gates pass at 27c9555 before any plan edits.
+Any later failure is attributable to the plan that introduced it.

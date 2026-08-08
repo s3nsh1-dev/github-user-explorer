@@ -1,0 +1,56 @@
+name: CI
+
+# CI verifies; it does not ship. Netlify already builds and deploys on push,
+# and a second deploy path would race it and would need the token as a secret.
+on:
+  push:
+    branches: [main, rework/2026]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 22, not the 24 this was developed on: 22 is the current LTS and
+      # the version a reviewer running this repo is most likely to have. If it
+      # breaks on 22, that is worth finding out here.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      # Its own step even though `npm run build` also runs tsc -b: a type
+      # error then shows as a distinct red step instead of being buried in
+      # build output.
+      - name: Typecheck (client)
+        run: npx tsc -b --noEmit
+
+      # The Netlify functions are a separate TS project that tsc -b does not
+      # see. Without this they are only typechecked at deploy.
+      - name: Typecheck (netlify functions)
+        run: npm run typecheck:functions
+
+      - run: npm run test:run
+
+      - run: npm run build
+
+      # Advisory only, deliberately. The tree is clean today, but audit results
+      # move on their own — an advisory can be published, or have its affected
+      # range revised, with no change to this repo at all. That already
+      # happened once here. A build that goes red for a transitive dev
+      # advisory nobody can act on trains everyone to ignore CI, which costs
+      # more than the advisory does. Read the step; do not gate on it.
+      - name: Audit (advisory)
+        run: npm audit --audit-level=high
+        continue-on-error: true
